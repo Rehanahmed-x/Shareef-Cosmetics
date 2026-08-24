@@ -403,21 +403,23 @@ ul {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .btn-shade-quiz-nav {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #F3EAE3, #E8D9CF);
-  border: 1px solid var(--accent-gold);
+  background: rgba(198, 166, 117, 0.12);
   color: var(--text-primary);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 1px;
   padding: 8px 16px;
   border-radius: var(--radius-pill);
+  border: 1px solid var(--accent-gold);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
 }
 
 .btn-shade-quiz-nav i {
@@ -435,30 +437,35 @@ ul {
 }
 
 .action-btn {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--text-primary);
   position: relative;
   background: transparent;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 .action-btn:hover {
   background: var(--bg-secondary);
   color: var(--accent-gold-dark);
+  border-color: var(--border-light);
 }
 
 .badge-count {
   position: absolute;
-  top: 4px;
+  top: 2px;
   right: 2px;
   background: var(--accent-ruby);
   color: #FFF;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
   min-width: 17px;
   height: 17px;
@@ -466,27 +473,55 @@ ul {
   border-radius: 50%;
   text-align: center;
   padding: 0 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .cart-btn-header {
   width: auto;
   padding: 0 14px;
+  height: 40px;
   border-radius: var(--radius-pill);
   background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
   display: flex;
+  align-items: center;
   gap: 8px;
+  cursor: pointer;
+}
+
+.cart-btn-header:hover {
+  background: var(--text-primary);
+  color: #FFF;
+  border-color: var(--text-primary);
+}
+
+.cart-btn-header:hover .cart-total-header {
+  color: #FFF;
 }
 
 .cart-total-header {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .mobile-toggle-btn {
   display: none;
-  font-size: 1.3rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1.2rem;
   color: var(--text-primary);
+  background: transparent;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-toggle-btn:hover {
+  background: var(--bg-secondary);
 }
 
 /* Live Search Bar Overlay */
@@ -1591,19 +1626,19 @@ ul {
 }
 
 /* =================================================================
-   FOOTER
+   FOOTER (SLEEK & COMPACT)
 ================================================================= */
 .site-footer {
   background: var(--bg-dark);
   color: var(--text-light);
-  padding: 70px 0 0;
+  padding: 48px 0 0;
 }
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 1.2fr 1.6fr;
-  gap: 40px;
-  padding-bottom: 50px;
+  grid-template-columns: 1.8fr 1.2fr 1.6fr;
+  gap: 36px;
+  padding-bottom: 36px;
   border-bottom: 1px solid var(--border-dark);
 }
 
@@ -1615,11 +1650,11 @@ ul {
 }
 
 .footer-desc {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.7;
-  margin: 18px 0 22px;
-  max-width: 320px;
+  line-height: 1.6;
+  margin: 12px 0 16px;
+  max-width: 300px;
 }
 
 .social-links {
@@ -2698,14 +2733,68 @@ ul {
     display: none !important;
   }
   
-  .mobile-toggle-btn {
-    display: block;
+  /* -------------------------------------------------------------
+     HEADER MOBILE PERFECTION (Clean Icons, Aligned Logo & Toggle)
+  ------------------------------------------------------------- */
+  .site-header {
+    height: 56px;
   }
-  
+
+  .header-inner {
+    height: 56px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .mobile-toggle-btn {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .brand-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .brand-logo .brand-main {
+    font-size: 1.15rem;
+    letter-spacing: 1.5px;
+    line-height: 1.1;
+  }
+
+  .brand-logo .brand-sub {
+    font-size: 0.52rem;
+    letter-spacing: 1.5px;
+    color: var(--accent-gold-dark);
+  }
+
   .desktop-nav {
     display: none;
   }
-  
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+
+  .cart-btn-header {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+  }
+
   .mobile-bottom-bar {
     display: flex;
   }
@@ -3059,56 +3148,330 @@ ul {
     font-size: 0.8rem;
   }
 
-  /* Other mobile sections */
+  /* -------------------------------------------------------------
+     5. SPOTLIGHT BANNER SECTION (PHONE OPTIMIZED)
+  ------------------------------------------------------------- */
   .bridal-spotlight-section {
-    padding: 44px 0;
+    padding: 38px 0;
   }
 
   .bridal-spotlight-inner {
-    grid-template-columns: 1fr;
-    gap: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .bridal-image-box {
+    width: 100%;
+    max-height: 240px;
+    padding: 14px !important;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF !important;
+  }
+
+  .bridal-img {
+    max-height: 190px !important;
+    object-fit: contain !important;
+  }
+
+  .bridal-glow-tag {
+    font-size: 0.58rem;
+    padding: 4px 8px;
+    bottom: 8px;
+    left: 8px;
+    letter-spacing: 0.8px;
+  }
+
+  .bridal-content-box {
+    text-align: left;
+  }
+
+  .bridal-content-box .sub-heading {
+    font-size: 0.68rem;
+    letter-spacing: 1.5px;
   }
 
   .bridal-content-box h2 {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
+    line-height: 1.25;
+    margin-bottom: 10px;
   }
 
+  .lead-text {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .bridal-features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .b-feature {
+    font-size: 0.76rem;
+    gap: 8px;
+  }
+
+  .b-feature i {
+    font-size: 0.8rem;
+  }
+
+  .bridal-pricing {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .price-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .regular-price {
+    font-size: 1.45rem;
+  }
+
+  .original-price {
+    font-size: 0.95rem;
+  }
+
+  .bridal-pricing .btn-luxury-primary {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 20px;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+  }
+
+  /* -------------------------------------------------------------
+     6. CUSTOMER REVIEWS SECTION (PHONE OPTIMIZED)
+  ------------------------------------------------------------- */
   .reviews-section {
-    padding: 44px 0;
+    padding: 42px 0;
   }
 
   .reviews-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
+  .review-card {
+    padding: 18px 14px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  }
+
+  .review-stars {
+    font-size: 0.78rem;
+    margin-bottom: 8px;
+    gap: 3px;
+  }
+
+  .review-text {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+
+  .reviewer-meta {
+    gap: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .reviewer-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .reviewer-name {
+    font-size: 0.82rem;
+  }
+
+  .reviewer-loc {
+    font-size: 0.66rem;
+  }
+
+  .verified-badge {
+    font-size: 0.62rem;
+    position: static;
+    margin-left: auto;
+  }
+
+  /* -------------------------------------------------------------
+     7. VIP NEWSLETTER SECTION (PHONE OPTIMIZED)
+  ------------------------------------------------------------- */
   .newsletter-section {
-    padding: 44px 0;
+    padding: 40px 0;
+  }
+
+  .newsletter-inner .sub-heading {
+    font-size: 0.68rem;
   }
 
   .newsletter-inner h2 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .newsletter-inner p {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin-bottom: 18px;
   }
 
   .newsletter-form {
+    display: flex;
     flex-direction: column;
-    border-radius: var(--radius-sm);
-    padding: 8px;
-    background: #FFF;
+    gap: 8px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
   }
 
   .newsletter-form input {
-    padding: 10px 14px;
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 0.84rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-light);
+    background: #FFF;
+    box-shadow: var(--shadow-sm);
   }
 
   .newsletter-form .btn-luxury-primary {
     width: 100%;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-pill);
+    padding: 13px 20px;
+    font-size: 0.8rem;
+    justify-content: center;
+    letter-spacing: 1px;
+  }
+
+  /* -------------------------------------------------------------
+     8. SITE FOOTER (ULTRA-COMPACT & SLEEK ON PHONE)
+  ------------------------------------------------------------- */
+  .site-footer {
+    padding: 24px 0 14px;
   }
 
   .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 16px;
+  }
+
+  .footer-col {
+    width: 100%;
+    text-align: left;
+  }
+
+  .footer-logo {
+    margin-bottom: 4px;
+  }
+
+  .footer-logo .brand-main {
+    font-size: 1.2rem;
+  }
+
+  .footer-logo .brand-sub {
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+  }
+
+  .footer-desc {
+    font-size: 0.74rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    max-width: 100%;
+  }
+
+  .social-links {
+    display: flex;
+    gap: 8px;
+  }
+
+  .social-links a {
+    width: 30px;
+    height: 30px;
+    font-size: 0.88rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(198, 166, 117, 0.2);
+  }
+
+  .footer-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent-gold-light);
+    letter-spacing: 0.6px;
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+  }
+
+  .footer-links a {
+    font-size: 0.72rem;
+    padding: 1px 0;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .store-location p {
+    font-size: 0.7rem;
+    line-height: 1.4;
+    margin-bottom: 3px;
+  }
+
+  .payment-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .pay-tag {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xs);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+    margin-top: 2px;
+    font-size: 0.64rem;
+  }
+
+  .footer-bottom-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: center;
   }
 
   .checkout-form-grid,
@@ -3152,5 +3515,14 @@ ul {
   .current-price {
     font-size: 0.82rem;
   }
+
+  .bridal-content-box h2 {
+    font-size: 1.25rem;
+  }
+
+  .newsletter-inner h2 {
+    font-size: 1.25rem;
+  }
 }
+
 

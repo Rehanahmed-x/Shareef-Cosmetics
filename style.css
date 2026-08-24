@@ -2693,6 +2693,7 @@ ul {
 }
 
 @media (max-width: 768px) {
+  /* Global / Mobile Nav */
   .hide-mobile {
     display: none !important;
   }
@@ -2717,72 +2718,439 @@ ul {
     font-size: 1.5rem;
   }
 
+  body {
+    padding-bottom: 64px; /* offset for sticky bottom nav */
+  }
+
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .section-header {
+    margin-bottom: 28px;
+  }
+
+  .section-title {
+    font-size: 1.65rem;
+    line-height: 1.25;
+  }
+
+  .section-subtitle {
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  /* -------------------------------------------------------------
+     1. HERO SECTION (PHONE OPTIMIZED)
+  ------------------------------------------------------------- */
   .hero-section {
-    min-height: 80vh;
+    min-height: auto;
+    padding: 36px 0 28px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero-content {
+    padding: 0;
+  }
+
+  .hero-badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: inline-flex;
+    max-width: 100%;
   }
 
   .hero-title {
-    font-size: 2.3rem;
+    font-size: 1.85rem;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+
+  .hero-description {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin-bottom: 20px;
+  }
+
+  .hero-cta-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .hero-cta-group .btn-luxury-primary,
+  .hero-cta-group .btn-luxury-secondary {
+    width: 100%;
+    padding: 13px 20px;
+    font-size: 0.8rem;
+    letter-spacing: 1.2px;
+    justify-content: center;
   }
 
   .hero-trust-strip {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(26, 22, 21, 0.12);
+  }
+
+  .trust-item {
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(198, 166, 117, 0.2);
+  }
+
+  .trust-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .trust-text strong {
+    font-size: 0.75rem;
+  }
+
+  .trust-text span {
+    font-size: 0.65rem;
+  }
+
+  /* -------------------------------------------------------------
+     2. SIGNATURE 4-STEP RITUAL SECTION (PHONE OPTIMIZED: 2x2 GRID)
+  ------------------------------------------------------------- */
+  .signature-concept-section {
+    padding: 44px 0;
+  }
+
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .concept-card {
+    padding: 18px 12px;
+    border-radius: var(--radius-sm);
+  }
+
+  .step-num {
+    font-size: 1.35rem;
+    top: 8px;
+    right: 10px;
+    opacity: 0.45;
+  }
+
+  .concept-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .concept-card h3 {
+    font-size: 0.92rem;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .concept-card p {
+    font-size: 0.72rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .step-tag {
+    font-size: 0.62rem;
+    letter-spacing: 0.5px;
+  }
+
+  /* -------------------------------------------------------------
+     3. SHADE FINDER BANNER SECTION (PHONE OPTIMIZED)
+  ------------------------------------------------------------- */
+  .shade-banner-section {
+    padding: 24px 0 40px;
   }
 
   .shade-banner-card {
     flex-direction: column;
-    padding: 32px 24px;
+    padding: 24px 16px;
     text-align: center;
+    gap: 20px;
+    border-radius: var(--radius-md);
   }
 
-  .shade-banner-swatches {
+  .shade-banner-content {
+    max-width: 100%;
+  }
+
+  .shade-banner-content h2 {
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .shade-banner-content p {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .shade-banner-content .btn-luxury-primary {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
     justify-content: center;
   }
 
+  .shade-banner-swatches {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    justify-items: center;
+  }
+
+  .swatch-circle {
+    width: 56px;
+    height: 56px;
+    font-size: 0.62rem;
+    border-width: 2px;
+  }
+
+  /* -------------------------------------------------------------
+     4. PRODUCT CATALOG: STRICTLY 2 PRODUCTS IN ONE LINE ON PHONE
+  ------------------------------------------------------------- */
+  .products-section {
+    padding: 44px 0;
+  }
+
+  .filter-tabs-wrapper {
+    margin-bottom: 20px;
+    padding-bottom: 6px;
+  }
+
+  .filter-tab-btn {
+    padding: 7px 14px;
+    font-size: 0.74rem;
+    gap: 6px;
+  }
+
+  .catalog-controls {
+    margin-bottom: 18px;
+    font-size: 0.78rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .catalog-sort {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .product-card {
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .product-image-wrap {
+    padding: 10px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .product-card-badge {
+    top: 6px;
+    left: 6px;
+    font-size: 0.52rem;
+    padding: 2px 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .wishlist-card-btn {
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .quick-view-overlay-btn {
+    display: none; /* Tap opens card on mobile */
+  }
+
+  .product-info {
+    padding: 10px 8px 12px;
+  }
+
+  .product-category-tag {
+    font-size: 0.58rem;
+    letter-spacing: 0.8px;
+    margin-bottom: 2px;
+  }
+
+  .product-title {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.1em;
+  }
+
+  .product-rating {
+    font-size: 0.65rem;
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  .product-rating span {
+    font-size: 0.6rem;
+  }
+
+  .swatches-row {
+    margin-bottom: 6px;
+    gap: 4px;
+  }
+
+  .swatch-dot {
+    width: 14px;
+    height: 14px;
+  }
+
+  .product-pricing {
+    padding-top: 8px;
+  }
+
+  .current-price {
+    font-size: 0.86rem;
+  }
+
+  .old-price {
+    font-size: 0.62rem;
+  }
+
+  .btn-card-add {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* Other mobile sections */
+  .bridal-spotlight-section {
+    padding: 44px 0;
   }
 
   .bridal-spotlight-inner {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
+  }
+
+  .bridal-content-box h2 {
+    font-size: 1.6rem;
+  }
+
+  .reviews-section {
+    padding: 44px 0;
   }
 
   .reviews-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .checkout-form-grid {
+  .newsletter-section {
+    padding: 44px 0;
+  }
+
+  .newsletter-inner h2 {
+    font-size: 1.5rem;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    background: #FFF;
+  }
+
+  .newsletter-form input {
+    padding: 10px 14px;
+  }
+
+  .newsletter-form .btn-luxury-primary {
+    width: 100%;
+    border-radius: var(--radius-sm);
+  }
+
+  .footer-grid {
     grid-template-columns: 1fr;
+    gap: 32px;
   }
 
-  .quick-view-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .quiz-options-grid {
-    grid-template-columns: 1fr;
-  }
-
+  .checkout-form-grid,
+  .quick-view-grid,
+  .quiz-options-grid,
   .finish-grid {
     grid-template-columns: 1fr;
-  }
-
-  body {
-    padding-bottom: 64px; /* offset for bottom nav bar */
   }
 }
 
 @media (max-width: 480px) {
+  /* Extra refinement for narrow smartphone screens (320px - 480px) */
   .product-grid {
-    grid-template-columns: 1fr;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
+
   .hero-title {
-    font-size: 1.9rem;
+    font-size: 1.65rem;
   }
+
   .section-title {
-    font-size: 1.7rem;
+    font-size: 1.45rem;
+  }
+
+  .swatch-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 0.58rem;
+  }
+
+  .concept-card {
+    padding: 14px 10px;
+  }
+
+  .product-title {
+    font-size: 0.76rem;
+  }
+
+  .current-price {
+    font-size: 0.82rem;
   }
 }
+

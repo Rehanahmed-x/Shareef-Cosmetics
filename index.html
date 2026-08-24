@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shareef Cosmetics | Luxury Pakistani Beauty & Cosmetics</title>
+  <meta name="description" content="Shareef Cosmetics - Effortless luxury beauty, minimalist all-in-one routines, and iconic Pakistani cosmetic favorites. Cash on delivery nationwide across Pakistan.">
+  <meta name="keywords" content="Shareef Cosmetics, Pakistani cosmetics, Masarrat Misbah, Medora, Rivaj UK, bridal makeup Lahore, Karachi beauty shop, halal makeup">
+  
+  <!-- Google Fonts: Playfair Display + Plus Jakarta Sans + Cormorant Garamond -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=2.2">
+</head>
+<body>
+
+  <!-- =================================================================
+       ENTRY LOADING ANIMATION
+  ================================================================= -->
+  <div id="entry-loader" class="entry-loader" aria-label="Loading Shareef Cosmetics">
+    <div class="loader-curtain curtain-left"></div>
+    <div class="loader-curtain curtain-right"></div>
+    
+    <div class="loader-content">
+      <div class="loader-monogram">
+        <span class="monogram-letter">S</span>
+        <span class="monogram-divider"></span>
+        <span class="monogram-letter">C</span>
+      </div>
+      
+      <h1 class="loader-brand-title">SHAREEF COSMETICS</h1>
+      <p class="loader-tagline">THE ART OF NATURAL RADIANCE • LUXURY BEAUTY RITUALS</p>
+      
+      <div class="loader-progress-track">
+        <div class="loader-progress-bar" id="loaderProgressBar"></div>
+      </div>
+      
+      <div class="loader-counter">
+        <span id="loaderPercent">0</span>%
+      </div>
+      
+      <div class="loader-cities">
+        <span>LAHORE</span> • <span>KARACHI</span> • <span>ISLAMABAD</span> • <span>NATIONWIDE DELIVERY</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       ANNOUNCEMENT BAR
+  ================================================================= -->
+  <div class="announcement-bar">
+    <div class="container announcement-inner">
+      <div class="announcement-item">
+        <i class="fa-solid fa-truck-fast"></i>
+        <span><strong>FREE EXPRESS DELIVERY</strong> on orders over Rs. 2,500 across Pakistan</span>
+      </div>
+      <div class="announcement-actions hide-mobile">
+        <span><i class="fa-solid fa-tag"></i> Use Code: <strong>BEAUTY10</strong> for 10% OFF</span>
+        <span class="divider">|</span>
+        <a href="https://wa.me/923001234567" target="_blank" class="whatsapp-top-link">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp Order: +92 300 1234567
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MAIN NAVIGATION HEADER
+  ================================================================= -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-toggle-btn" id="mobileMenuOpen" aria-label="Open Menu">
+        <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+
+      <!-- Brand Logo -->
+      <a href="#" class="brand-logo">
+        <span class="brand-main">SHAREEF</span>
+        <span class="brand-sub">COSMETICS • LUXE</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="desktop-nav">
+        <ul class="nav-list">
+          <li><a href="#signature-ritual" class="nav-link">The Ritual</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="all">All Products</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="skincare">Skincare</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="face">Face & Powders</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="lips">Lipsticks</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="haircare">Haircare</a></li>
+        </ul>
+      </nav>
+
+      <!-- Header Utilities / Actions -->
+      <div class="header-actions">
+        <!-- Shade Finder CTA Button -->
+        <button class="btn-shade-quiz-nav hide-mobile" id="openShadeFinderNavBtn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Shade Matcher</span>
+        </button>
+
+        <!-- Search Button -->
+        <button class="action-btn" id="searchToggleBtn" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <!-- Wishlist Button -->
+        <button class="action-btn" id="wishlistToggleBtn" aria-label="Wishlist">
+          <i class="fa-regular fa-heart"></i>
+          <span class="badge-count" id="wishlistBadgeCount">0</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button class="action-btn cart-btn-header" id="cartToggleBtn" aria-label="Shopping Cart">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span class="badge-count" id="cartBadgeCount">0</span>
+          <span class="cart-total-header hide-mobile" id="cartHeaderTotal">Rs. 0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Search Overlay Bar -->
+    <div class="search-overlay-bar" id="searchOverlay">
+      <div class="container search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="liveSearchInput" placeholder="Search foundations, lipsticks, complexion palettes, sunblock..." autocomplete="off">
+        <button class="search-close-btn" id="searchCloseBtn" aria-label="Close Search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+    </div>
+  </header>
+
+  <!-- =================================================================
+       MOBILE NAVIGATION DRAWER
+  ================================================================= -->
+  <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+  <aside class="mobile-nav-drawer" id="mobileNavDrawer">
+    <div class="drawer-header">
+      <div class="brand-logo">
+        <span class="brand-main">SHAREEF</span>
+        <span class="brand-sub">COSMETICS</span>
+      </div>
+      <button class="close-drawer-btn" id="mobileMenuClose" aria-label="Close Drawer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <ul class="mobile-nav-list">
+        <li><a href="#hero" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="#signature-ritual" class="mobile-nav-link"><i class="fa-solid fa-gem"></i> The Signature Ritual</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="all"><i class="fa-solid fa-bag-shopping"></i> All Products (20)</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="skincare"><i class="fa-solid fa-spa"></i> Skincare & Creams</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="face"><i class="fa-solid fa-palette"></i> Face & Foundation</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="lips"><i class="fa-solid fa-heart"></i> Lipsticks & Tints</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="haircare"><i class="fa-solid fa-seedling"></i> Herbal Haircare</a></li>
+      </ul>
+      <div class="mobile-drawer-cta">
+        <button class="btn-primary w-100 mb-2" id="openShadeFinderMobileBtn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Find My Exact Shade (Quiz)
+        </button>
+        <a href="https://wa.me/923001234567" target="_blank" class="btn-whatsapp-outline w-100">
+          <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
+        </a>
+      </div>
+      <div class="drawer-footer">
+        <p><i class="fa-solid fa-shield-halved"></i> 100% Authentic Pakistani Cosmetics</p>
+        <p><i class="fa-solid fa-money-bill-wave"></i> Cash on Delivery Nationwide</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =================================================================
+       HERO SECTION (High Fashion Editorial)
+  ================================================================= -->
+  <section class="hero-section" id="hero">
+    <div class="hero-bg-container">
+      <img src="assets/images/hero_banner.jpg" alt="Shareef Cosmetics Luxury Campaign" class="hero-bg-image">
+      <div class="hero-gradient-overlay"></div>
+    </div>
+    
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>THE NATURAL BEAUTY REVOLUTION IN PAKISTAN</span>
+      </div>
+      
+      <h2 class="hero-title">
+        The Illusion of <em>Perfection,</em><br>
+        Without the Weight.
+      </h2>
+      
+      <p class="hero-description">
+        Crafted specifically for Pakistani skin tones and climates. Discover timeless local classics from Pond's, Himalaya, Saeed Ghani, Medora, Rivaj UK, and Masarrat Misbah.
+      </p>
+      
+      <div class="hero-cta-group">
+        <a href="#collection" class="btn-luxury-primary">
+          <span>Shop 20 Authentic Products</span>
+          <i class="fa-solid fa-arrow-right-long"></i>
+        </a>
+        <button class="btn-luxury-secondary" id="openShadeFinderHeroBtn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Find Your Skin Tone Match</span>
+        </button>
+      </div>
+
+      <!-- Trust Badges Strip -->
+      <div class="hero-trust-strip">
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fa-solid fa-certificate"></i></div>
+          <div class="trust-text">
+            <strong>100% Original Pakistani Brands</strong>
+            <span>Pond's, Himalaya, Saeed Ghani & More</span>
+          </div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
+          <div class="trust-text">
+            <strong>Cash On Delivery</strong>
+            <span>Lahore, Karachi, Islamabad & All PK</span>
+          </div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon"><i class="fa-solid fa-droplet"></i></div>
+          <div class="trust-text">
+            <strong>Fresh Stock Guaranteed</strong>
+            <span>Direct Brand Authenticity</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       SIGNATURE 4-STEP RITUAL PHILOSOPHY
+  ================================================================= -->
+  <section class="signature-concept-section" id="signature-ritual">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="sub-heading">THE SIGNATURE RITUAL</span>
+        <h2 class="section-title">Natural Radiance • 4 Simple Steps</h2>
+        <div class="gold-flourish"></div>
+        <p class="section-subtitle">
+          Say goodbye to cakey layers. Formulated for Pakistani wheatish, fair, and warm olive undertones.
+        </p>
+      </div>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <div class="step-num">01</div>
+          <div class="concept-icon"><i class="fa-solid fa-feather-pointed"></i></div>
+          <h3>Cleanse & Purify</h3>
+          <p>Himalaya Neem & Pond's Bright Beauty cleanser to wash away oil, dust, and impurities without stripping moisture.</p>
+          <span class="step-tag">Step 1: Cleanse</span>
+        </div>
+
+        <div class="concept-card highlight-card">
+          <div class="step-num">02</div>
+          <div class="concept-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <h3>Hydrate & Tone</h3>
+          <p>Pure Damask Saeed Ghani Arq-e-Gulab mist and Pond's Cold Cream to restore natural moisture balance.</p>
+          <span class="step-tag">Step 2: Hydrate</span>
+        </div>
+
+        <div class="concept-card">
+          <div class="step-num">03</div>
+          <div class="concept-icon"><i class="fa-solid fa-sun"></i></div>
+          <h3>Mineral Sun Shield</h3>
+          <p>Rivaj UK HD Mineral Sunblock SPF 60 for invisible, sweatproof sun protection under hot Pakistani sun.</p>
+          <span class="step-tag">Step 3: Shield</span>
+        </div>
+
+        <div class="concept-card">
+          <div class="step-num">04</div>
+          <div class="concept-icon"><i class="fa-solid fa-heart"></i></div>
+          <h3>Flawless Touch</h3>
+          <p>Masarrat Misbah silk foundation & iconic Medora velvet matte lipstick for effortless Pakistani elegance.</p>
+          <span class="step-tag">Step 4: Radiance</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       INTERACTIVE SHADE FINDER BANNER / MODAL TRIGGER
+  ================================================================= -->
+  <section class="shade-banner-section">
+    <div class="container">
+      <div class="shade-banner-card">
+        <div class="shade-banner-content">
+          <span class="badge-pill"><i class="fa-solid fa-sparkles"></i> VIRTUAL BEAUTY ASSISTANT</span>
+          <h2>Not sure about your exact foundation shade?</h2>
+          <p>Take our 1-minute smart Pakistani skin tone quiz to find your exact match across Masarrat Misbah, Christine powder, and Medora lip shades.</p>
+          <button class="btn-luxury-primary" id="openShadeFinderQuizBtn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Start Free Shade Quiz</span>
+          </button>
+        </div>
+        <div class="shade-banner-swatches">
+          <div class="swatch-circle swatch-fair" title="Fair Alabaster (Porcelain)"><span>Fair</span></div>
+          <div class="swatch-circle swatch-wheatish" title="Light Wheatish (Ivory)"><span>Wheatish</span></div>
+          <div class="swatch-circle swatch-honey" title="Medium Honey (Pakistani Classic)"><span>Medium</span></div>
+          <div class="swatch-circle swatch-dusky" title="Warm Dusky (Olive Glow)"><span>Warm</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       MAIN PRODUCTS CATALOG & COLLECTION (20 PRODUCTS)
+  ================================================================= -->
+  <section class="products-section" id="collection">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="sub-heading">CURATED PAKISTANI COSMETICS</span>
+        <h2 class="section-title">Iconic Pakistani Beauty Favorites (20 Items)</h2>
+        <div class="gold-flourish"></div>
+        <p class="section-subtitle">
+          From legendary staples (Pond's, Himalaya, Saeed Ghani, Medora) to pro salon essentials. 100% genuine with money-back guarantee.
+        </p>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="filter-tabs-wrapper">
+        <div class="filter-tabs" id="categoryFilterTabs">
+          <button class="filter-tab-btn active" data-category="all">
+            <i class="fa-solid fa-border-all"></i> All Products (<span id="countAll">20</span>)
+          </button>
+          <button class="filter-tab-btn" data-category="skincare">
+            <i class="fa-solid fa-spa"></i> Skincare & Creams (<span id="countSkincare">10</span>)
+          </button>
+          <button class="filter-tab-btn" data-category="face">
+            <i class="fa-solid fa-face-smile"></i> Face & Foundation (<span id="countFace">6</span>)
+          </button>
+          <button class="filter-tab-btn" data-category="lips">
+            <i class="fa-solid fa-kiss-wink-heart"></i> Velvet Lipsticks (<span id="countLips">2</span>)
+          </button>
+          <button class="filter-tab-btn" data-category="haircare">
+            <i class="fa-solid fa-seedling"></i> Haircare & Oils (<span id="countHaircare">2</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Secondary Controls: Sorting & Results Count -->
+      <div class="catalog-controls">
+        <div class="catalog-status">
+          Showing <span id="visibleProductsCount">10</span> luxury cosmetics
+        </div>
+        <div class="catalog-sort">
+          <label for="sortSelect"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort By:</label>
+          <select id="sortSelect" class="luxury-select">
+            <option value="featured">Featured / Bestsellers</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Highest Customer Rating</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Product Grid -->
+      <div class="product-grid" id="productGrid">
+        <!-- Injected dynamically via JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       PROMOTION BANNER: PAKISTANI BEAUTY SPOTLIGHT
+  ================================================================= -->
+  <section class="bridal-spotlight-section">
+    <div class="container bridal-spotlight-inner">
+      <div class="bridal-image-box" style="background:#FFF; display:flex; align-items:center; justify-content:center; padding: 20px;">
+        <img src="assets/images/products/masarrat_misbah_foundation.jpg" alt="Masarrat Misbah Silk Foundation" class="bridal-img" style="object-fit:contain; max-height:360px;">
+        <div class="bridal-glow-tag">ICONIC PAKISTANI HERITAGE STAPLES</div>
+      </div>
+      <div class="bridal-content-box">
+        <span class="sub-heading">CURATED FOR PAKISTANI COMPLEXIONS</span>
+        <h2>Masarrat Misbah & Saeed Ghani Heritage Ritual</h2>
+        <p class="lead-text">
+          Experience authentic Pakistani beauty craftsmanship. Masarrat Misbah 100% Halal Silk Foundation paired with pure Damask Saeed Ghani Arq-e-Gulab, classic Medora Velvet Lipsticks, and Christine HD Powder for all-day luminous skin in Pakistani weather.
+        </p>
+        <div class="bridal-features-list">
+          <div class="b-feature"><i class="fa-solid fa-check"></i> 100% Halal Certified & Dermatologically Tested</div>
+          <div class="b-feature"><i class="fa-solid fa-check"></i> Formulated for Warm, Wheatish & Olive Undertones</div>
+          <div class="b-feature"><i class="fa-solid fa-check"></i> Free Nationwide Express Delivery Across Pakistan</div>
+        </div>
+        <div class="bridal-pricing">
+          <div class="price-wrap">
+            <span class="regular-price">Rs. 3,650</span>
+            <span class="original-price">Rs. 4,200</span>
+            <span class="save-badge">SAVE 15%</span>
+          </div>
+          <button class="btn-luxury-primary" onclick="quickAddProduct(15)">
+            <i class="fa-solid fa-bag-shopping"></i> Add Masarrat Misbah to Bag
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       REAL CUSTOMER REVIEWS (PAKISTANI BEAUTY ENTHUSIASTS)
+  ================================================================= -->
+  <section class="reviews-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <span class="sub-heading">REAL EXPERIENCES</span>
+        <h2 class="section-title">Loved by Pakistani Women Nationwide</h2>
+        <div class="gold-flourish"></div>
+        <p class="section-subtitle">
+          Over 25,000+ happy customers across Karachi, Lahore, Islamabad, and beyond.
+        </p>
+      </div>
+
+      <div class="reviews-grid">
+        <!-- Review 1 -->
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="review-text">
+            "The Shareef Minute Miracle Palette is a lifesaver for Karachi weather! It doesn't melt in humidity and gives that effortlessly glowing look without feeling sticky or heavy. Delivery was super fast via COD."
+          </p>
+          <div class="reviewer-meta">
+            <div class="reviewer-avatar">AK</div>
+            <div>
+              <h4 class="reviewer-name">Ayesha Khan</h4>
+              <span class="reviewer-loc"><i class="fa-solid fa-location-dot"></i> DHA Phase 6, Karachi</span>
+            </div>
+            <span class="verified-badge"><i class="fa-solid fa-circle-check"></i> Verified Buyer</span>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="review-text">
+            "Masarrat Misbah silk foundation matched my exact wheatish skin tone perfectly through their Shade Quiz tool. The coverage looks like natural high-end magazine skin. Medora lipsticks are 100% authentic originals!"
+          </p>
+          <div class="reviewer-meta">
+            <div class="reviewer-avatar">MS</div>
+            <div>
+              <h4 class="reviewer-name">Mahnoor Siddiqui</h4>
+              <span class="reviewer-loc"><i class="fa-solid fa-location-dot"></i> Gulberg, Lahore</span>
+            </div>
+            <span class="verified-badge"><i class="fa-solid fa-circle-check"></i> Verified Buyer</span>
+          </div>
+        </div>
+
+        <!-- Review 3 -->
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="review-text">
+            "I ordered the Bridal Vanity Box for my sister's wedding. The velvet packaging is breathtaking! Everything was intact and original. Ordered on WhatsApp and arrived within 2 days in Islamabad."
+          </p>
+          <div class="reviewer-meta">
+            <div class="reviewer-avatar">FZ</div>
+            <div>
+              <h4 class="reviewer-name">Fatima Zahra</h4>
+              <span class="reviewer-loc"><i class="fa-solid fa-location-dot"></i> F-7/2, Islamabad</span>
+            </div>
+            <span class="verified-badge"><i class="fa-solid fa-circle-check"></i> Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       NEWSLETTER VIP ACCESS
+  ================================================================= -->
+  <section class="newsletter-section">
+    <div class="container newsletter-inner text-center">
+      <span class="sub-heading">JOIN THE VIP BEAUTY CIRCLE</span>
+      <h2>Receive Rs. 500 Off Your First Order</h2>
+      <p>Subscribe for exclusive launches, seasonal Pakistani beauty rituals, and private masterclasses.</p>
+      <form class="newsletter-form" id="newsletterForm">
+        <input type="email" id="newsletterEmail" placeholder="Enter your email address or phone number" required>
+        <button type="submit" class="btn-luxury-primary">
+          <span>Claim VIP Privilege</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+      <div id="newsletterMessage" class="newsletter-msg"></div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       FOOTER
+  ================================================================= -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <!-- Col 1: Brand Info -->
+      <div class="footer-col brand-col">
+        <div class="brand-logo footer-logo">
+          <span class="brand-main">SHAREEF</span>
+          <span class="brand-sub">COSMETICS</span>
+        </div>
+        <p class="footer-desc">
+          Pakistan's premier destination for minimalist luxury beauty, authentic local formulations, and effortless radiant beauty essentials.
+        </p>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+          <a href="https://wa.me/923001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+
+      <!-- Col 2: Quick Links -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Collections</h4>
+        <ul class="footer-links">
+          <li><a href="#collection" data-filter="skincare">Pond's & Himalaya Skincare</a></li>
+          <li><a href="#collection" data-filter="face">Masarrat Misbah & Christine Face</a></li>
+          <li><a href="#collection" data-filter="lips">Medora & Golden Rose Lipsticks</a></li>
+          <li><a href="#collection" data-filter="skincare">Saeed Ghani Arq-e-Gulab Mist</a></li>
+          <li><a href="#collection" data-filter="haircare">Saeed Ghani Mughziat Hair Oil</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Customer Care -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Customer Care</h4>
+        <ul class="footer-links">
+          <li><a href="#signature-ritual">The Natural Beauty Guide</a></li>
+          <li><a href="#" id="footerOpenShadeQuiz">Skin Shade Matcher</a></li>
+          <li><a href="#">Track Your Pakistan Post / TCS Order</a></li>
+          <li><a href="#">7-Day Return & Exchange Policy</a></li>
+          <li><a href="#">Authenticity Guarantee</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Store & Contact -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Flagship Locations</h4>
+        <div class="store-location">
+          <p><i class="fa-solid fa-location-dot"></i> <strong>Lahore:</strong> MM Alam Road, Gulberg III</p>
+          <p><i class="fa-solid fa-location-dot"></i> <strong>Karachi:</strong> Bukhari Commercial, DHA Phase 6</p>
+          <p><i class="fa-solid fa-phone"></i> <strong>Helpline:</strong> +92 300 1234567 / (042) 35789000</p>
+          <p><i class="fa-solid fa-envelope"></i> <strong>Email:</strong> care@shareefcosmetics.pk</p>
+        </div>
+        <div class="payment-badges-row">
+          <span class="pay-tag"><i class="fa-solid fa-money-bill-wave"></i> COD</span>
+          <span class="pay-tag"><i class="fa-solid fa-mobile-screen"></i> JazzCash</span>
+          <span class="pay-tag"><i class="fa-solid fa-wallet"></i> Easypaisa</span>
+          <span class="pay-tag"><i class="fa-brands fa-cc-visa"></i> Visa</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>&copy; 2026 Shareef Cosmetics Pakistan. All Rights Reserved. Crafted for Pakistani Beauty & Radiance.</p>
+        <p class="credits">100% Genuine Pakistani Cosmetics • Halal Certified</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =================================================================
+       SLIDE-OVER SHOPPING CART DRAWER
+  ================================================================= -->
+  <div class="cart-drawer-overlay" id="cartDrawerOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+      <div class="cart-header-title">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <h3>Your Beauty Bag (<span id="cartTotalItemsCount">0</span>)</h3>
+      </div>
+      <button class="cart-close-btn" id="cartCloseBtn" aria-label="Close Bag">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Free Delivery Progress Bar -->
+    <div class="free-shipping-bar-wrap">
+      <div class="free-shipping-msg" id="freeShippingMsg">
+        Add <strong id="shippingRemainingAmount">Rs. 2,500</strong> for <strong>FREE Delivery</strong> across Pakistan!
+      </div>
+      <div class="shipping-progress-track">
+        <div class="shipping-progress-fill" id="shippingProgressFill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Items List Container -->
+    <div class="cart-drawer-body" id="cartDrawerItems">
+      <!-- Empty state / Items rendered here -->
+    </div>
+
+    <!-- Cart Drawer Footer / Checkout CTA -->
+    <div class="cart-drawer-footer" id="cartDrawerFooter">
+      <!-- Promo code toggle -->
+      <div class="promo-code-wrap">
+        <div class="promo-input-group">
+          <input type="text" id="promoCodeInput" placeholder="Enter Promo Code (e.g. BEAUTY10)">
+          <button type="button" id="applyPromoBtn" class="btn-promo">Apply</button>
+        </div>
+        <div id="promoFeedback" class="promo-feedback"></div>
+      </div>
+
+      <!-- Bill summary -->
+      <div class="cart-summary-breakdown">
+        <div class="summary-line">
+          <span>Subtotal:</span>
+          <span id="cartSubtotalText">Rs. 0</span>
+        </div>
+        <div class="summary-line discount-line" id="discountSummaryRow" style="display: none;">
+          <span>Discount Applied:</span>
+          <span id="cartDiscountText">-Rs. 0</span>
+        </div>
+        <div class="summary-line">
+          <span>Delivery Fee (Pakistan):</span>
+          <span id="cartDeliveryText">Rs. 200</span>
+        </div>
+        <div class="summary-line total-line">
+          <span>Estimated Total:</span>
+          <span id="cartGrandTotalText">Rs. 0</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <button class="btn-luxury-primary w-100 mb-2" id="proceedToCheckoutBtn">
+        <i class="fa-solid fa-lock"></i>
+        <span>Proceed to Secure Checkout</span>
+      </button>
+      
+      <button class="btn-whatsapp-outline w-100" id="cartWhatsAppOrderBtn">
+        <i class="fa-brands fa-whatsapp"></i>
+        <span>Instant Order via WhatsApp</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =================================================================
+       CHECKOUT MODAL (Cash On Delivery & Mobile Wallets)
+  ================================================================= -->
+  <div class="modal-overlay" id="checkoutModalOverlay">
+    <div class="modal-card checkout-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-shield-check"></i>
+          <h3>Secure Checkout • Shareef Cosmetics</h3>
+        </div>
+        <button class="modal-close-btn" id="closeCheckoutModalBtn" aria-label="Close Checkout">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="checkoutForm" class="checkout-form-grid">
+          <!-- Left Col: Customer Shipping Details -->
+          <div class="checkout-col customer-details">
+            <h4 class="form-section-title"><i class="fa-solid fa-location-dot"></i> Delivery Address in Pakistan</h4>
+            
+            <div class="form-group">
+              <label for="custName">Full Name *</label>
+              <input type="text" id="custName" required placeholder="e.g. Ayesha Khan">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="custPhone">Phone / WhatsApp Number *</label>
+                <input type="tel" id="custPhone" required placeholder="0300-1234567">
+              </div>
+              <div class="form-group flex-1">
+                <label for="custCity">City *</label>
+                <select id="custCity" required class="luxury-select">
+                  <option value="">Select City</option>
+                  <option value="Lahore">Lahore</option>
+                  <option value="Karachi">Karachi</option>
+                  <option value="Islamabad">Islamabad</option>
+                  <option value="Rawalpindi">Rawalpindi</option>
+                  <option value="Faisalabad">Faisalabad</option>
+                  <option value="Multan">Multan</option>
+                  <option value="Peshawar">Peshawar</option>
+                  <option value="Quetta">Quetta</option>
+                  <option value="Sialkot">Sialkot</option>
+                  <option value="Gujranwala">Gujranwala</option>
+                  <option value="Hyderabad">Hyderabad</option>
+                  <option value="Abbottabad">Abbottabad</option>
+                  <option value="Other">Other City (Nationwide)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="custAddress">Full Street Address (House/Apartment, Block, Area) *</label>
+              <input type="text" id="custAddress" required placeholder="e.g. House 42, Street 10, Sector G-11/2">
+            </div>
+
+            <div class="form-group">
+              <label for="custNotes">Special Delivery Notes (Optional)</label>
+              <input type="text" id="custNotes" placeholder="e.g. Call before delivery / Leave at gate">
+            </div>
+
+            <!-- Payment Method Selection -->
+            <h4 class="form-section-title mt-4"><i class="fa-solid fa-credit-card"></i> Payment Method</h4>
+            <div class="payment-options-grid">
+              <label class="payment-option-card active">
+                <input type="radio" name="paymentMethod" value="COD" checked>
+                <div class="payment-option-content">
+                  <i class="fa-solid fa-money-bill-wave"></i>
+                  <div>
+                    <strong>Cash on Delivery (COD)</strong>
+                    <span>Pay in cash when parcel arrives at your doorstep</span>
+                  </div>
+                </div>
+              </label>
+
+              <label class="payment-option-card">
+                <input type="radio" name="paymentMethod" value="JazzCash">
+                <div class="payment-option-content">
+                  <i class="fa-solid fa-mobile-screen"></i>
+                  <div>
+                    <strong>JazzCash / Easypaisa Wallet</strong>
+                    <span>Instant mobile account transfer</span>
+                  </div>
+                </div>
+              </label>
+
+              <label class="payment-option-card">
+                <input type="radio" name="paymentMethod" value="Card">
+                <div class="payment-option-content">
+                  <i class="fa-brands fa-cc-visa"></i>
+                  <div>
+                    <strong>Debit / Credit Card</strong>
+                    <span>Visa / Mastercard 3D Secure</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Right Col: Order Summary & Place Order -->
+          <div class="checkout-col order-summary-col">
+            <h4 class="form-section-title"><i class="fa-solid fa-receipt"></i> Order Review</h4>
+            <div class="checkout-items-preview" id="checkoutItemsPreview">
+              <!-- Rendered items -->
+            </div>
+            
+            <div class="checkout-totals-box">
+              <div class="tot-row">
+                <span>Items Subtotal:</span>
+                <span id="coSubtotal">Rs. 0</span>
+              </div>
+              <div class="tot-row" id="coDiscountRow" style="display: none;">
+                <span>Voucher Discount:</span>
+                <span id="coDiscount">-Rs. 0</span>
+              </div>
+              <div class="tot-row">
+                <span>Nationwide Shipping:</span>
+                <span id="coShipping">Rs. 200</span>
+              </div>
+              <div class="tot-row grand-total">
+                <span>Payable Amount:</span>
+                <span id="coGrandTotal">Rs. 0</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-luxury-primary w-100 btn-submit-order" id="submitOrderBtn">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Confirm & Place Order</span>
+            </button>
+            <p class="secure-checkout-notice">
+              <i class="fa-solid fa-lock"></i> 256-Bit SSL Encrypted • 7-Day Hassle-Free Returns
+            </p>
+          </div>
+        </form>
+
+        <!-- Order Success State (Hidden by default) -->
+        <div class="order-success-screen" id="orderSuccessScreen" style="display: none;">
+          <div class="success-icon-wrap">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <h3>Shukriya! Your Order is Confirmed</h3>
+          <p class="success-order-num">Tracking ID: <strong id="successOrderId">PK-SHF-84920</strong></p>
+          <p class="success-details-text">
+            We have received your order. Our team in Lahore will dispatch your parcel via TCS / Pakistan Post Express.
+          </p>
+          <div class="success-action-btns">
+            <button class="btn-whatsapp-outline" id="successWhatsAppShareBtn">
+              <i class="fa-brands fa-whatsapp"></i> Send Order Details to WhatsApp
+            </button>
+            <button class="btn-luxury-primary" id="successContinueShoppingBtn">
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       SHADE MATCHING QUIZ MODAL
+  ================================================================= -->
+  <div class="modal-overlay" id="shadeQuizModalOverlay">
+    <div class="modal-card shade-quiz-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <h3>Pakistani Beauty Shade Matcher</h3>
+        </div>
+        <button class="modal-close-btn" id="closeShadeQuizModalBtn" aria-label="Close Shade Finder">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body quiz-body">
+        <!-- Quiz Steps -->
+        <div class="quiz-step active" id="quizStep1">
+          <div class="quiz-step-header">
+            <span class="step-indicator">Step 1 of 3</span>
+            <h4>What is your natural skin undertone?</h4>
+          </div>
+          <div class="quiz-options-grid">
+            <button type="button" class="quiz-tone-btn" data-tone="fair" onclick="selectQuizTone('fair')">
+              <div class="tone-sample tone-fair-bg"></div>
+              <strong>Fair / Light Alabaster</strong>
+              <span>Porcelain with cool pink or neutral undertone</span>
+            </button>
+
+            <button type="button" class="quiz-tone-btn" data-tone="wheatish" onclick="selectQuizTone('wheatish')">
+              <div class="tone-sample tone-wheatish-bg"></div>
+              <strong>Light Wheatish (Gori Rangat)</strong>
+              <span>Ivory to soft golden beige undertone</span>
+            </button>
+
+            <button type="button" class="quiz-tone-btn" data-tone="medium" onclick="selectQuizTone('medium')">
+              <div class="tone-sample tone-medium-bg"></div>
+              <strong>Medium Wheatish / Pakistani Olive</strong>
+              <span>Warm golden honey undertone (Most Common)</span>
+            </button>
+
+            <button type="button" class="quiz-tone-btn" data-tone="dusky" onclick="selectQuizTone('dusky')">
+              <div class="tone-sample tone-dusky-bg"></div>
+              <strong>Warm Dusky (Sanwli Rangat)</strong>
+              <span>Rich caramel & deep bronze warm undertone</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quiz Step 2 -->
+        <div class="quiz-step" id="quizStep2">
+          <div class="quiz-step-header">
+            <span class="step-indicator">Step 2 of 3</span>
+            <h4>What finish do you prefer for daily wear?</h4>
+          </div>
+          <div class="quiz-options-grid finish-grid">
+            <button type="button" class="quiz-finish-btn" data-finish="dewy" onclick="selectQuizFinish('dewy')">
+              <i class="fa-solid fa-droplet"></i>
+              <strong>Dewy Glass Glow</strong>
+              <span>Hydrated, luminous, effortless natural skin</span>
+            </button>
+
+            <button type="button" class="quiz-finish-btn" data-finish="velvet" onclick="selectQuizFinish('velvet')">
+              <i class="fa-solid fa-feather"></i>
+              <strong>Velvet Semi-Matte</strong>
+              <span>Soft blur, oil-control without flat dryness</span>
+            </button>
+
+            <button type="button" class="quiz-finish-btn" data-finish="matte" onclick="selectQuizFinish('matte')">
+              <i class="fa-solid fa-shield"></i>
+              <strong>All-Day High Matte</strong>
+              <span>Sweatproof, full coverage for long events</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quiz Step 3 / Result -->
+        <div class="quiz-step" id="quizStep3">
+          <div class="quiz-step-header text-center">
+            <span class="badge-pill mb-2"><i class="fa-solid fa-circle-check"></i> YOUR CUSTOM BEAUTY MATCH</span>
+            <h4 id="matchResultTitle">Pakistani Medium Warm Routine</h4>
+            <p id="matchResultSubtitle">Specially selected for flawless radiant natural beauty</p>
+          </div>
+
+          <div class="recommended-bundle-card" id="recommendedBundleCard">
+            <!-- Dynamically populated bundle recommendation -->
+          </div>
+
+          <div class="quiz-result-actions mt-3">
+            <button class="btn-luxury-primary w-100" id="addQuizBundleToCartBtn">
+              <i class="fa-solid fa-bag-shopping"></i> Add Complete Matched Routine to Bag (Special 15% Off)
+            </button>
+            <button class="btn-ghost text-center w-100 mt-2" onclick="resetQuiz()">
+              <i class="fa-solid fa-rotate-left"></i> Retake Shade Quiz
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       PRODUCT QUICK VIEW MODAL
+  ================================================================= -->
+  <div class="modal-overlay" id="quickViewModalOverlay">
+    <div class="modal-card quick-view-card">
+      <button class="modal-close-btn" id="closeQuickViewBtn" aria-label="Close Preview">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="quick-view-grid" id="quickViewContent">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       WISHLIST DRAWER / MODAL
+  ================================================================= -->
+  <div class="modal-overlay" id="wishlistModalOverlay">
+    <div class="modal-card wishlist-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-heart"></i>
+          <h3>Your Saved Favorites (<span id="wishlistCountText">0</span>)</h3>
+        </div>
+        <button class="modal-close-btn" id="closeWishlistBtn" aria-label="Close Wishlist">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="wishlistItemsContainer">
+        <!-- Wishlist items -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       STICKY MOBILE BOTTOM NAVIGATION BAR
+  ================================================================= -->
+  <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
+    <a href="#hero" class="mobile-bottom-item active">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="#collection" class="mobile-bottom-item">
+      <i class="fa-solid fa-layer-group"></i>
+      <span>Shop</span>
+    </a>
+    <button class="mobile-bottom-item highlight-item" id="mobileBottomShadeBtn">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <span>Shade Quiz</span>
+    </button>
+    <button class="mobile-bottom-item" id="mobileBottomCartBtn">
+      <div class="bottom-badge-wrap">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span class="badge-count" id="mobileBottomCartBadge">0</span>
+      </div>
+      <span>Bag</span>
+    </button>
+    <a href="https://wa.me/923001234567" target="_blank" class="mobile-bottom-item whatsapp-item">
+      <i class="fa-brands fa-whatsapp"></i>
+      <span>WhatsApp</span>
+    </a>
+  </nav>
+
+  <!-- =================================================================
+       FLOATING WHATSAPP BUTTON (Nationwide Pakistan)
+  ================================================================= -->
+  <a href="https://wa.me/923001234567?text=Assalam-o-Alaikum%20Shareef%20Cosmetics!%20I%20would%20like%20to%20inquire%20about%20your%20products." 
+     target="_blank" 
+     class="floating-whatsapp-btn" 
+     aria-label="Order on WhatsApp"
+     id="floatingWhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+    <span class="whatsapp-tooltip">Order on WhatsApp</span>
+  </a>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic -->
+  <script src="app.js?v=2.2"></script>
+</body>
+</html>

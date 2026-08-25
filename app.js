@@ -913,20 +913,10 @@ function handleCheckoutSubmit(e) {
 
   const waUrl = `https://wa.me/${storePhone}?text=${encodeURIComponent(rawMessage)}`;
 
-  // Update Direct Click Link on Success Screen
+  // Update Optional Support Link on Success Screen
   const waBtn = document.getElementById('successWhatsAppShareBtn');
   if (waBtn) {
     waBtn.setAttribute('href', waUrl);
-    waBtn.onclick = (evt) => {
-      // Allow default link navigation to open WhatsApp
-    };
-  }
-
-  // Auto Open WhatsApp directly
-  try {
-    window.open(waUrl, '_blank');
-  } catch (err) {
-    console.log('Auto open blocked by browser popup protection, link is ready on screen.', err);
   }
 
   // Clear Cart
@@ -1457,13 +1447,56 @@ function showToast(message) {
 }
 
 // =================================================================
-// 14. ADMIN DASHBOARD & PRODUCT/PRICE MANAGEMENT PORTAL
-// =================================================================
-// =================================================================
 // 14. ADMIN DASHBOARD, ORDERS MANAGER & STORE SETTINGS PORTAL
 // =================================================================
+const DEFAULT_ADMIN_PIN = 'umair2026';
+const CLOUD_SYNC_PIN_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b11001a0380a00de1a0b';
+
 function getAdminPin() {
-  return localStorage.getItem('shareef_admin_pin') || 'shareef2026';
+  const saved = localStorage.getItem('shareef_admin_pin');
+  if (!saved || saved === 'shareef2026') {
+    localStorage.setItem('shareef_admin_pin', DEFAULT_ADMIN_PIN);
+    return DEFAULT_ADMIN_PIN;
+  }
+  return saved;
+}
+
+async function verifyAdminPassword(enteredPin) {
+  // Check local cache first
+  const localPin = getAdminPin();
+  if (enteredPin === localPin) return true;
+
+  // Real-time Cloud Master Password check across all devices
+  try {
+    const res = await fetch(CLOUD_SYNC_PIN_URL, { cache: 'no-cache' });
+    if (res.ok) {
+      const json = await res.json();
+      const cloudPin = json && json.data && json.data.pin;
+      if (cloudPin) {
+        localStorage.setItem('shareef_admin_pin', cloudPin);
+        return enteredPin === cloudPin;
+      }
+    }
+  } catch (err) {
+    console.warn('Cloud PIN check offline, using local PIN fallback:', err);
+  }
+  return false;
+}
+
+async function updateLiveMasterPassword(newPin) {
+  localStorage.setItem('shareef_admin_pin', newPin);
+  try {
+    await fetch(CLOUD_SYNC_PIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'shareef_cosmetics_admin_pin',
+        data: { pin: newPin }
+      })
+    });
+  } catch (err) {
+    console.warn('Cloud PIN synchronization failed:', err);
+  }
 }
 
 function loadStoreSettings() {
@@ -1543,14 +1576,29 @@ function initAdminDashboard() {
   if (logoutBtn) logoutBtn.addEventListener('click', logoutAdmin);
 
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = document.getElementById('adminPasswordInput');
       const errorMsg = document.getElementById('adminLoginError');
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
       if (!input) return;
 
       const enteredPin = input.value.trim();
-      if (enteredPin === getAdminPin()) {
+      if (!enteredPin) return;
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+      }
+
+      const isValid = await verifyAdminPassword(enteredPin);
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Unlock Admin Portal';
+      }
+
+      if (isValid) {
         sessionStorage.setItem('shareef_admin_auth', 'true');
         if (errorMsg) errorMsg.textContent = '';
         input.value = '';
@@ -1558,7 +1606,7 @@ function initAdminDashboard() {
         openAdminDashboard();
         showToast('✓ Welcome to Store Manager Portal!');
       } else {
-        if (errorMsg) errorMsg.textContent = '✕ Incorrect Password / PIN. Default is "shareef2026".';
+        if (errorMsg) errorMsg.textContent = '✕ Incorrect password. Access denied.';
       }
     });
   }
@@ -1727,12 +1775,22 @@ function initAdminDashboard() {
   // Change PIN Form
   const changePinForm = document.getElementById('adminChangePinForm');
   if (changePinForm) {
-    changePinForm.addEventListener('submit', (e) => {
+    changePinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const newPinInput = document.getElementById('newAdminPinInput');
+      const submitBtn = changePinForm.querySelector('button[type="submit"]');
       if (newPinInput && newPinInput.value.trim()) {
-        localStorage.setItem('shareef_admin_pin', newPinInput.value.trim());
-        showToast('✓ Admin Password / PIN updated successfully!');
+        const newPin = newPinInput.value.trim();
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating across all devices...';
+        }
+        await updateLiveMasterPassword(newPin);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Update Password';
+        }
+        showToast('✓ Master Password updated live across all devices!');
         newPinInput.value = '';
       }
     });

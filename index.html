@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=3.3">
+  <link rel="stylesheet" href="style.css?v=3.7">
 </head>
 <body>
 
@@ -775,18 +775,18 @@
           <div class="success-icon-wrap">
             <i class="fa-solid fa-check"></i>
           </div>
-          <h3>Shukriya! Your Order is Confirmed</h3>
-          <p class="success-order-num">Tracking ID: <strong id="successOrderId">PK-SHF-84920</strong></p>
+          <h3>Order Confirmed!</h3>
+          <p class="success-order-num">Tracking Reference: <strong id="successOrderId">PK-SHF-84920</strong></p>
           <p class="success-details-text">
-            We have received your order. Our team in Lahore will dispatch your parcel via TCS / Pakistan Post Express.
+            Thank you for shopping with Shareef Cosmetics! Your order has been placed and is being prepared for dispatch across Pakistan with <strong>Cash on Delivery</strong>.
           </p>
           <div class="success-action-btns">
-            <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-primary" id="successWhatsAppShareBtn">
-              <i class="fa-brands fa-whatsapp"></i> Tap to Send Order Details to WhatsApp (03296209082)
-            </a>
-            <button type="button" class="btn-luxury-secondary" id="successContinueShoppingBtn">
-              Continue Shopping
+            <button type="button" class="btn-luxury-primary" id="successContinueShoppingBtn">
+              <i class="fa-solid fa-bag-shopping"></i> Continue Shopping
             </button>
+            <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-outline" id="successWhatsAppShareBtn" style="font-size:0.85rem;">
+              <i class="fa-brands fa-whatsapp"></i> Chat with Support on WhatsApp
+            </a>
           </div>
         </div>
       </div>
@@ -952,16 +952,13 @@
         
         <form id="adminLoginForm" class="admin-login-form">
           <div class="form-group">
-            <label for="adminPasswordInput"><i class="fa-solid fa-key"></i> Administrator Password / PIN</label>
-            <input type="password" id="adminPasswordInput" placeholder="Enter PIN (Default: shareef2026)" required autocomplete="current-password">
+            <label for="adminPasswordInput"><i class="fa-solid fa-key"></i> Administrator Password</label>
+            <input type="password" id="adminPasswordInput" placeholder="Enter Administrator Password" required autocomplete="current-password">
           </div>
           <div id="adminLoginError" class="admin-error-msg"></div>
           <button type="submit" class="btn-luxury-primary w-100">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Store Dashboard
+            <i class="fa-solid fa-lock-open"></i> Unlock Admin Portal
           </button>
-          <div class="admin-login-hint">
-            <i class="fa-solid fa-circle-info"></i> Default PIN is <code>shareef2026</code> (can be changed in settings).
-          </div>
         </form>
       </div>
     </div>
@@ -1358,6 +1355,7 @@
     </div>
   </div>
 
+  <!-- =================================================================
        STICKY MOBILE BOTTOM NAVIGATION BAR
   ================================================================= -->
   <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
@@ -1402,6 +1400,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=3.3"></script>
+  <script src="app.js?v=3.7"></script>
 </body>
 </html>

@@ -4,9 +4,9 @@
  */
 
 // =================================================================
-// 1. PRODUCTS DATASET (20 PAKISTANI COSMETIC & BEAUTY FAVORITES)
+// 1. DEFAULT PRODUCTS DATASET (20 PAKISTANI COSMETIC FAVORITES)
 // =================================================================
-const PRODUCTS_DATA = [
+const DEFAULT_PRODUCTS_DATA = [
   {
     id: 1,
     name: "Pond's Bright Beauty Spot-less Glow Face Wash (100g)",
@@ -367,8 +367,32 @@ const PRODUCTS_DATA = [
 ];
 
 // =================================================================
-// 2. STATE MANAGEMENT (Cart, Wishlist, Discount, Current Filter)
+// 2. DYNAMIC CATALOG & STATE MANAGEMENT
 // =================================================================
+function loadStoredProducts() {
+  try {
+    const saved = localStorage.getItem('shareef_products_catalog');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error('Error loading stored products catalog:', e);
+  }
+  return [...DEFAULT_PRODUCTS_DATA];
+}
+
+let PRODUCTS_DATA = loadStoredProducts();
+
+function persistProducts() {
+  localStorage.setItem('shareef_products_catalog', JSON.stringify(PRODUCTS_DATA));
+  renderProducts();
+  if (typeof updateAdminStats === 'function') updateAdminStats();
+  if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+}
+
 let cart = JSON.parse(localStorage.getItem('shareef_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('shareef_wishlist')) || [];
 
@@ -390,6 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartUI();
   updateWishlistUI();
   setupEventListeners();
+  initAdminDashboard();
 });
 
 // =================================================================
@@ -544,6 +569,36 @@ function selectCardSwatch(productId, shadeName, el) {
 // =================================================================
 // 6. CART OPERATIONS & DRAWER LOGIC
 // =================================================================
+function animateCartIcon() {
+  const badgeEls = [
+    document.getElementById('cartBadgeCount'),
+    document.getElementById('mobileBottomCartBadge')
+  ];
+  const buttonEls = [
+    document.getElementById('cartToggleBtn'),
+    document.getElementById('mobileBottomCartBtn')
+  ];
+
+  badgeEls.forEach(el => {
+    if (!el) return;
+    el.classList.remove('animate-bounce');
+    void el.offsetWidth; // force reflow
+    el.classList.add('animate-bounce');
+  });
+
+  buttonEls.forEach(el => {
+    if (!el) return;
+    el.classList.remove('animate-shake');
+    void el.offsetWidth; // force reflow
+    el.classList.add('animate-shake');
+  });
+
+  setTimeout(() => {
+    badgeEls.forEach(el => el && el.classList.remove('animate-bounce'));
+    buttonEls.forEach(el => el && el.classList.remove('animate-shake'));
+  }, 700);
+}
+
 function quickAddProduct(productId, customShade = null) {
   const product = PRODUCTS_DATA.find(p => p.id === productId);
   if (!product) return;
@@ -566,6 +621,7 @@ function quickAddProduct(productId, customShade = null) {
 
   saveCart();
   updateCartUI();
+  animateCartIcon();
   openCartDrawer();
   showToast(`Added "${product.name.slice(0, 25)}..." to Bag!`);
 }
@@ -644,7 +700,7 @@ function updateCartUI() {
       `;
     } else {
       itemsContainer.innerHTML = cart.map((item, idx) => `
-        <div class="cart-item">
+        <div class="cart-item" style="animation-delay: ${idx * 0.05}s;">
           <img src="${item.image}" alt="${item.name}" class="cart-item-img">
           <div class="cart-item-details">
             <h4 class="cart-item-title">${item.name}</h4>
@@ -652,11 +708,11 @@ function updateCartUI() {
             <span class="cart-item-price">Rs. ${(item.price * item.qty).toLocaleString()}</span>
             <div class="cart-item-controls">
               <div class="qty-stepper">
-                <button class="qty-btn" onclick="updateCartQty(${idx}, -1)">-</button>
+                <button class="qty-btn" onclick="updateCartQty(${idx}, -1)" aria-label="Decrease quantity">-</button>
                 <span class="qty-val">${item.qty}</span>
-                <button class="qty-btn" onclick="updateCartQty(${idx}, 1)">+</button>
+                <button class="qty-btn" onclick="updateCartQty(${idx}, 1)" aria-label="Increase quantity">+</button>
               </div>
-              <button class="cart-item-remove" onclick="removeCartItem(${idx})">
+              <button class="cart-item-remove" onclick="removeCartItem(${idx})" aria-label="Remove item">
                 <i class="fa-regular fa-trash-can"></i> Remove
               </button>
             </div>
@@ -804,7 +860,7 @@ function handleCheckoutSubmit(e) {
   const phone = document.getElementById('custPhone').value.trim();
   const city = document.getElementById('custCity').value;
   const address = document.getElementById('custAddress').value.trim();
-  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'COD';
+  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'Cash on Delivery (COD)';
 
   if (!name || !phone || !city || !address) {
     showToast('Please fill in all required delivery fields.');
@@ -816,6 +872,33 @@ function handleCheckoutSubmit(e) {
   const deliveryFee = subtotal >= 2500 ? 0 : 200;
   const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
+  const timestamp = new Date().toISOString();
+
+  // Create Order Record
+  const newOrder = {
+    id: trackingId,
+    timestamp: timestamp,
+    customer: {
+      name,
+      phone,
+      city,
+      address
+    },
+    items: [...cart],
+    subtotal,
+    deliveryFee,
+    discountAmount,
+    discountPercent: appliedDiscount,
+    couponCode: appliedCouponCode,
+    grandTotal,
+    paymentMethod,
+    status: 'pending'
+  };
+
+  // Save to Store Orders
+  const orders = loadOrders();
+  orders.unshift(newOrder);
+  saveOrders(orders);
 
   // Show Success Screen
   document.getElementById('checkoutForm').style.display = 'none';
@@ -823,22 +906,34 @@ function handleCheckoutSubmit(e) {
   successScreen.style.display = 'block';
   document.getElementById('successOrderId').textContent = trackingId;
 
-  // Prepare WhatsApp message payload
-  const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${i.price * i.qty}`).join('%0A');
-  const whatsappMsg = `*Assalam-o-Alaikum Shareef Cosmetics!*%0A%0A*New Order Placed:*%20${trackingId}%0A*Customer:*%20${encodeURIComponent(name)}%0A*Phone:*%20${encodeURIComponent(phone)}%0A*City:*%20${encodeURIComponent(city)}%0A*Address:*%20${encodeURIComponent(address)}%0A*Payment:*%20${paymentMethod}%0A%0A*Items:*%0A${itemsText}%0A%0A*Total Amount:*%20Rs.%20${grandTotal.toLocaleString()}%0A%0APlease confirm my dispatch. Shukriya!`;
+  // Prepare WhatsApp message payload with configured store WhatsApp number
+  const storePhone = getStoreWhatsAppNumber();
+  const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${(i.price * i.qty).toLocaleString()}`).join('\n');
+  const rawMessage = `*Assalam-o-Alaikum Shareef Cosmetics!*\n\n*📦 New Order Placed:* ${trackingId}\n*👤 Customer:* ${name}\n*📞 Phone:* ${phone}\n*📍 City:* ${city}\n*🏠 Address:* ${address}\n*💳 Payment:* ${paymentMethod}\n\n*🛍️ Items Ordered:*\n${itemsText}\n\n*💰 Total Amount:* Rs. ${grandTotal.toLocaleString()}\n\nPlease confirm my order & dispatch tracking. Shukriya!`;
 
+  const waUrl = `https://wa.me/${storePhone}?text=${encodeURIComponent(rawMessage)}`;
+
+  // Update Direct Click Link on Success Screen
   const waBtn = document.getElementById('successWhatsAppShareBtn');
   if (waBtn) {
-    waBtn.onclick = () => {
-      window.open(`https://wa.me/923001234567?text=${whatsappMsg}`, '_blank');
+    waBtn.setAttribute('href', waUrl);
+    waBtn.onclick = (evt) => {
+      // Allow default link navigation to open WhatsApp
     };
+  }
+
+  // Auto Open WhatsApp directly
+  try {
+    window.open(waUrl, '_blank');
+  } catch (err) {
+    console.log('Auto open blocked by browser popup protection, link is ready on screen.', err);
   }
 
   // Clear Cart
   cart = [];
   saveCart();
   updateCartUI();
-  showToast('Order Placed Successfully!');
+  showToast(`🎉 Order ${trackingId} logged successfully!`);
 }
 
 function placeWhatsAppOrderDirect() {
@@ -851,11 +946,12 @@ function placeWhatsAppOrderDirect() {
   const deliveryFee = subtotal >= 2500 ? 0 : 200;
   const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
+  const storePhone = getStoreWhatsAppNumber();
 
-  const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${i.price * i.qty}`).join('%0A');
-  const waMsg = `*Assalam-o-Alaikum Shareef Cosmetics!*%0A%0AI would like to order directly via WhatsApp:%0A%0A*Items in Bag:*%0A${itemsText}%0A%0A*Total:*%20Rs.%20${grandTotal.toLocaleString()}%0A%0APlease take my delivery address for Cash on Delivery.`;
+  const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${(i.price * i.qty).toLocaleString()}`).join('%0A');
+  const waMsg = `*Assalam-o-Alaikum Shareef Cosmetics!*%0A%0AI would like to place an instant order:%0A%0A*🛍️ Items in Bag:*%0A${itemsText}%0A%0A*💰 Total Bill:*%20Rs.%20${grandTotal.toLocaleString()}%0A%0APlease take my delivery address for Cash on Delivery.`;
 
-  window.open(`https://wa.me/923001234567?text=${waMsg}`, '_blank');
+  window.open(`https://wa.me/${storePhone}?text=${waMsg}`, '_blank');
 }
 
 // =================================================================
@@ -1359,3 +1455,1015 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 300);
   }, 3200);
 }
+
+// =================================================================
+// 14. ADMIN DASHBOARD & PRODUCT/PRICE MANAGEMENT PORTAL
+// =================================================================
+// =================================================================
+// 14. ADMIN DASHBOARD, ORDERS MANAGER & STORE SETTINGS PORTAL
+// =================================================================
+function getAdminPin() {
+  return localStorage.getItem('shareef_admin_pin') || 'shareef2026';
+}
+
+function loadStoreSettings() {
+  try {
+    const saved = localStorage.getItem('shareef_store_settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.whatsapp && parsed.whatsapp !== '923001234567' && parsed.whatsapp !== '923296012921') {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error('Error loading store settings:', e);
+  }
+  const defaultSettings = {
+    whatsapp: '923296209082',
+    email: 'care@shareefcosmetics.pk'
+  };
+  localStorage.setItem('shareef_store_settings', JSON.stringify(defaultSettings));
+  return defaultSettings;
+}
+
+function saveStoreSettings(settings) {
+  localStorage.setItem('shareef_store_settings', JSON.stringify(settings));
+}
+
+function getStoreWhatsAppNumber() {
+  const s = loadStoreSettings();
+  return (s && s.whatsapp) ? s.whatsapp.replace(/[^0-9]/g, '') : '923296209082';
+}
+
+function getStoreEmail() {
+  const s = loadStoreSettings();
+  return (s && s.email) ? s.email : 'care@shareefcosmetics.pk';
+}
+
+function loadOrders() {
+  try {
+    const saved = localStorage.getItem('shareef_orders');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('Error loading orders:', e);
+  }
+  return [];
+}
+
+function saveOrders(orders) {
+  localStorage.setItem('shareef_orders', JSON.stringify(orders));
+  updateAdminOrderStats();
+}
+
+function initAdminDashboard() {
+  // Modal Triggers
+  const openLoginBtn = document.getElementById('openAdminLoginBtn');
+  const closeLoginBtn = document.getElementById('closeAdminLoginBtn');
+  const loginForm = document.getElementById('adminLoginForm');
+  const closeDashboardBtn = document.getElementById('closeAdminDashboardBtn');
+  const logoutBtn = document.getElementById('adminLogoutBtn');
+
+  if (openLoginBtn) {
+    openLoginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      // If already logged in this session, open directly
+      if (sessionStorage.getItem('shareef_admin_auth') === 'true') {
+        openAdminDashboard();
+      } else {
+        openAdminLogin();
+      }
+    });
+  }
+
+  if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeAdminLogin);
+  if (closeDashboardBtn) closeDashboardBtn.addEventListener('click', closeAdminDashboard);
+  if (logoutBtn) logoutBtn.addEventListener('click', logoutAdmin);
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('adminPasswordInput');
+      const errorMsg = document.getElementById('adminLoginError');
+      if (!input) return;
+
+      const enteredPin = input.value.trim();
+      if (enteredPin === getAdminPin()) {
+        sessionStorage.setItem('shareef_admin_auth', 'true');
+        if (errorMsg) errorMsg.textContent = '';
+        input.value = '';
+        closeAdminLogin();
+        openAdminDashboard();
+        showToast('✓ Welcome to Store Manager Portal!');
+      } else {
+        if (errorMsg) errorMsg.textContent = '✕ Incorrect Password / PIN. Default is "shareef2026".';
+      }
+    });
+  }
+
+  // Tabs Switching
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-admin-tab');
+      switchAdminTab(targetTab);
+    });
+  });
+
+  // Products Top Search & Filter in Table
+  const searchInput = document.getElementById('adminSearchInput');
+  const catFilter = document.getElementById('adminCategoryFilter');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      renderAdminProductsTable(searchInput.value.trim(), catFilter ? catFilter.value : 'all');
+    });
+  }
+
+  if (catFilter) {
+    catFilter.addEventListener('change', () => {
+      renderAdminProductsTable(searchInput ? searchInput.value.trim() : '', catFilter.value);
+    });
+  }
+
+  const addNewTopBtn = document.getElementById('adminAddNewTopBtn');
+  if (addNewTopBtn) {
+    addNewTopBtn.addEventListener('click', () => {
+      resetAdminProductForm();
+      switchAdminTab('add-product');
+    });
+  }
+
+  // Orders Search & Status Filter
+  const ordersSearch = document.getElementById('adminOrdersSearchInput');
+  const ordersStatusFilter = document.getElementById('adminOrderStatusFilter');
+  const exportOrdersCsvBtn = document.getElementById('adminExportOrdersCsvBtn');
+
+  if (ordersSearch) {
+    ordersSearch.addEventListener('input', () => {
+      renderAdminOrdersTable(ordersSearch.value.trim(), ordersStatusFilter ? ordersStatusFilter.value : 'all');
+    });
+  }
+
+  if (ordersStatusFilter) {
+    ordersStatusFilter.addEventListener('change', () => {
+      renderAdminOrdersTable(ordersSearch ? ordersSearch.value.trim() : '', ordersStatusFilter.value);
+    });
+  }
+
+  if (exportOrdersCsvBtn) {
+    exportOrdersCsvBtn.addEventListener('click', exportOrdersCSV);
+  }
+
+  // Store Contact Settings Form
+  const storeContactForm = document.getElementById('adminStoreContactForm');
+  if (storeContactForm) {
+    storeContactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const waInput = document.getElementById('settingStoreWhatsApp');
+      const emailInput = document.getElementById('settingStoreEmail');
+      if (waInput && emailInput) {
+        saveStoreSettings({
+          whatsapp: waInput.value.trim(),
+          email: emailInput.value.trim()
+        });
+        showToast('✓ Store Notification Settings Updated!');
+      }
+    });
+  }
+
+  // Form Submit (Add / Edit Product)
+  const productForm = document.getElementById('adminProductForm');
+  if (productForm) {
+    productForm.addEventListener('submit', handleProductFormSubmit);
+  }
+
+  const cancelEditBtn = document.getElementById('adminCancelEditBtn');
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', () => {
+      resetAdminProductForm();
+      switchAdminTab('catalog');
+    });
+  }
+
+  // Add Shade Button
+  const addShadeBtn = document.getElementById('adminAddShadeBtn');
+  if (addShadeBtn) {
+    addShadeBtn.addEventListener('click', () => {
+      addShadeRow('New Shade', '#D2A379');
+    });
+  }
+
+  // Image Upload File Input
+  const imageFileInput = document.getElementById('adminImageFileInput');
+  const imageUrlInput = document.getElementById('pImageUrl');
+
+  if (imageFileInput) {
+    imageFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (loadEvt) => {
+          const base64Url = loadEvt.target.result;
+          if (imageUrlInput) imageUrlInput.value = base64Url;
+          updateAdminImagePreview(base64Url);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (imageUrlInput) {
+    imageUrlInput.addEventListener('input', () => {
+      updateAdminImagePreview(imageUrlInput.value.trim());
+    });
+  }
+
+  // Export JSON
+  const exportBtn = document.getElementById('adminExportJsonBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportProductsJSON);
+  }
+
+  // Import JSON
+  const importInput = document.getElementById('adminImportJsonInput');
+  if (importInput) {
+    importInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (loadEvt) => {
+          try {
+            const imported = JSON.parse(loadEvt.target.result);
+            if (Array.isArray(imported) && imported.length > 0) {
+              PRODUCTS_DATA = imported;
+              persistProducts();
+              showToast(`✓ Successfully restored ${imported.length} products!`);
+            } else {
+              showToast('✕ Invalid backup file format.');
+            }
+          } catch (err) {
+            showToast('✕ Error reading backup file.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+  }
+
+  // Reset to Defaults
+  const resetDefaultBtn = document.getElementById('adminResetDefaultBtn');
+  if (resetDefaultBtn) {
+    resetDefaultBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset all products back to the original 20 Pakistani cosmetic favorites? Any custom additions or price edits will be reverted.')) {
+        PRODUCTS_DATA = [...DEFAULT_PRODUCTS_DATA];
+        persistProducts();
+        showToast('✓ Reset to Default Pakistani Catalog successful!');
+      }
+    });
+  }
+
+  // Change PIN Form
+  const changePinForm = document.getElementById('adminChangePinForm');
+  if (changePinForm) {
+    changePinForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newPinInput = document.getElementById('newAdminPinInput');
+      if (newPinInput && newPinInput.value.trim()) {
+        localStorage.setItem('shareef_admin_pin', newPinInput.value.trim());
+        showToast('✓ Admin Password / PIN updated successfully!');
+        newPinInput.value = '';
+      }
+    });
+  }
+
+  // Initial stats calculation
+  updateAdminOrderStats();
+}
+
+function openAdminLogin() {
+  const modal = document.getElementById('adminLoginModalOverlay');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      const input = document.getElementById('adminPasswordInput');
+      if (input) input.focus();
+    }, 150);
+  }
+}
+
+function closeAdminLogin() {
+  const modal = document.getElementById('adminLoginModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function openAdminDashboard() {
+  const modal = document.getElementById('adminDashboardModalOverlay');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    updateAdminStats();
+    updateAdminOrderStats();
+    renderAdminProductsTable();
+    populateStoreSettingsFields();
+  }
+}
+
+function closeAdminDashboard() {
+  const modal = document.getElementById('adminDashboardModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem('shareef_admin_auth');
+  closeAdminDashboard();
+  showToast('Logged out of Admin Portal');
+}
+
+function switchAdminTab(tabName) {
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+    if (btn.getAttribute('data-admin-tab') === tabName) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  document.querySelectorAll('.admin-tab-pane').forEach(pane => {
+    pane.classList.remove('active');
+  });
+
+  if (tabName === 'catalog') {
+    const p = document.getElementById('adminTabCatalog');
+    if (p) p.classList.add('active');
+    updateAdminStats();
+    renderAdminProductsTable();
+  } else if (tabName === 'orders') {
+    const p = document.getElementById('adminTabOrders');
+    if (p) p.classList.add('active');
+    updateAdminOrderStats();
+    renderAdminOrdersTable();
+  } else if (tabName === 'add-product') {
+    const p = document.getElementById('adminTabAddProduct');
+    if (p) p.classList.add('active');
+  } else if (tabName === 'settings') {
+    const p = document.getElementById('adminTabSettings');
+    if (p) p.classList.add('active');
+    populateStoreSettingsFields();
+  }
+}
+
+function populateStoreSettingsFields() {
+  const settings = loadStoreSettings();
+  const waInput = document.getElementById('settingStoreWhatsApp');
+  const emailInput = document.getElementById('settingStoreEmail');
+  if (waInput) waInput.value = settings.whatsapp || '923296209082';
+  if (emailInput) emailInput.value = settings.email || 'care@shareefcosmetics.pk';
+}
+
+function updateAdminStats() {
+  const total = PRODUCTS_DATA.length;
+  const skincare = PRODUCTS_DATA.filter(p => p.category === 'skincare').length;
+  const face = PRODUCTS_DATA.filter(p => p.category === 'face' || p.category === 'lips').length;
+  const haircare = PRODUCTS_DATA.filter(p => p.category === 'haircare').length;
+
+  const totalEl = document.getElementById('adminStatTotal');
+  const skinEl = document.getElementById('adminStatSkincare');
+  const faceEl = document.getElementById('adminStatFace');
+  const hairEl = document.getElementById('adminStatHaircare');
+  const badgeEl = document.getElementById('adminTotalCountBadge');
+
+  if (totalEl) totalEl.textContent = total;
+  if (skinEl) skinEl.textContent = skincare;
+  if (faceEl) faceEl.textContent = face;
+  if (hairEl) hairEl.textContent = haircare;
+  if (badgeEl) badgeEl.textContent = total;
+}
+
+function updateAdminOrderStats() {
+  const orders = loadOrders();
+  const totalOrders = orders.length;
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
+  const dispatchedCount = orders.filter(o => o.status === 'dispatched').length;
+  const revenueSum = orders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+
+  const totalEl = document.getElementById('adminOrdersTotalCount');
+  const pendingEl = document.getElementById('adminOrdersPendingCount');
+  const dispEl = document.getElementById('adminOrdersDispatchedCount');
+  const revEl = document.getElementById('adminOrdersRevenueSum');
+  const badgeEl = document.getElementById('adminOrdersCountBadge');
+
+  if (totalEl) totalEl.textContent = totalOrders;
+  if (pendingEl) pendingEl.textContent = pendingCount;
+  if (dispEl) dispEl.textContent = dispatchedCount;
+  if (revEl) revEl.textContent = `Rs. ${revenueSum.toLocaleString()}`;
+  if (badgeEl) badgeEl.textContent = totalOrders;
+}
+
+function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
+  const tbody = document.getElementById('adminProductsTableBody');
+  if (!tbody) return;
+
+  let filtered = [...PRODUCTS_DATA];
+
+  if (categoryFilter && categoryFilter !== 'all') {
+    filtered = filtered.filter(p => p.category === categoryFilter);
+  }
+
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    filtered = filtered.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      p.category.toLowerCase().includes(q) || 
+      (p.badge && p.badge.toLowerCase().includes(q))
+    );
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding: 36px; color: var(--text-muted);">
+          <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 8px; display:block; color:var(--accent-gold);"></i>
+          No products matched your search filter.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(product => {
+    const shadesHtml = product.shades && product.shades.length > 0
+      ? product.shades.map(s => `
+          <span class="admin-swatch-chip" style="background-color:${s.color};" title="${s.name}"></span>
+        `).join('')
+      : '<span class="text-muted text-xs">Standard</span>';
+
+    return `
+      <tr>
+        <td>
+          <img src="${product.image}" alt="${product.name}" class="admin-p-thumb" onerror="this.src='assets/images/hero_banner.jpg'">
+        </td>
+        <td>
+          <div class="admin-p-title">${product.name}</div>
+          ${product.badge ? `<span class="admin-p-badge-tag">${product.badge}</span>` : ''}
+        </td>
+        <td>
+          <span style="text-transform: capitalize; font-weight:600; color:var(--text-secondary);">${product.category}</span>
+        </td>
+        <td>
+          <div class="inline-price-box">
+            <span style="font-weight:700; color:var(--text-muted); font-size:0.75rem;">Rs.</span>
+            <input type="number" id="inlinePrice_${product.id}" class="inline-price-input" value="${product.price}" min="0">
+            <button type="button" class="btn-inline-save" onclick="handleInlinePriceSave(${product.id})" title="Save Price">
+              <i class="fa-solid fa-check"></i>
+            </button>
+          </div>
+        </td>
+        <td>
+          <div class="inline-price-box">
+            <span style="font-weight:700; color:var(--text-muted); font-size:0.75rem;">Rs.</span>
+            <input type="number" id="inlineOrigPrice_${product.id}" class="inline-price-input" value="${product.originalPrice || 0}" min="0" placeholder="0">
+          </div>
+        </td>
+        <td>
+          <div class="admin-shades-preview">
+            ${shadesHtml}
+          </div>
+        </td>
+        <td>
+          <div class="admin-actions-cell">
+            <button type="button" class="btn-tbl-action edit" onclick="openEditProductModal(${product.id})" title="Edit Details">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" class="btn-tbl-action delete" onclick="deleteProductItem(${product.id})" title="Delete Product">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
+  const tbody = document.getElementById('adminOrdersTableBody');
+  if (!tbody) return;
+
+  let orders = loadOrders();
+
+  if (statusFilter && statusFilter !== 'all') {
+    orders = orders.filter(o => o.status === statusFilter);
+  }
+
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    orders = orders.filter(o => 
+      o.id.toLowerCase().includes(q) ||
+      (o.customer && o.customer.name && o.customer.name.toLowerCase().includes(q)) ||
+      (o.customer && o.customer.phone && o.customer.phone.toLowerCase().includes(q)) ||
+      (o.customer && o.customer.city && o.customer.city.toLowerCase().includes(q))
+    );
+  }
+
+  if (orders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align:center; padding: 48px; color: var(--text-muted);">
+          <i class="fa-solid fa-cart-flatbed" style="font-size: 2.2rem; margin-bottom: 12px; display:block; color:var(--accent-gold);"></i>
+          <strong>No customer orders found.</strong>
+          <p style="font-size:0.8rem; margin-top:4px;">When customers checkout on the store or via WhatsApp, their orders will appear here in real-time.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = orders.map(order => {
+    const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }) : 'Just now';
+
+    const customerPhoneDigits = (order.customer.phone || '').replace(/[^0-9]/g, '');
+    const cleanWhatsAppPhone = customerPhoneDigits.startsWith('0')
+      ? `92${customerPhoneDigits.slice(1)}`
+      : customerPhoneDigits;
+
+    const itemsSummaryHtml = order.items.map(item => `
+      <div class="order-item-compact">
+        <strong>${item.qty}x</strong> ${item.name} <span class="text-muted text-xs">(${item.shade})</span>
+      </div>
+    `).join('');
+
+    const statusClasses = {
+      pending: 'status-pending',
+      confirmed: 'status-confirmed',
+      dispatched: 'status-dispatched',
+      delivered: 'status-delivered',
+      cancelled: 'status-cancelled'
+    };
+
+    return `
+      <tr>
+        <td>
+          <span class="order-id-badge">${order.id}</span>
+          <span class="order-timestamp"><i class="fa-regular fa-clock"></i> ${dateStr}</span>
+        </td>
+        <td>
+          <span class="cust-name">${order.customer.name}</span>
+          <div class="cust-address"><i class="fa-solid fa-location-dot text-gold"></i> ${order.customer.address}, <strong>${order.customer.city}</strong></div>
+          <div class="cust-contact-chips">
+            <a href="https://wa.me/${cleanWhatsAppPhone}?text=Assalam-o-Alaikum%20${encodeURIComponent(order.customer.name)}!%20Regarding%20your%20Shareef%20Cosmetics%20Order%20${order.id}" target="_blank" class="chip-whatsapp" title="WhatsApp Customer">
+              <i class="fa-brands fa-whatsapp"></i> WhatsApp
+            </a>
+            <a href="tel:${order.customer.phone}" class="chip-phone" title="Call Customer">
+              <i class="fa-solid fa-phone"></i> ${order.customer.phone}
+            </a>
+          </div>
+        </td>
+        <td>
+          <div class="order-items-compact-list">
+            ${itemsSummaryHtml}
+          </div>
+        </td>
+        <td>
+          <span class="order-bill-total">Rs. ${order.grandTotal.toLocaleString()}</span>
+          <span class="order-pay-method">${order.paymentMethod || 'COD'}</span>
+        </td>
+        <td>
+          <select class="order-status-select ${statusClasses[order.status] || 'status-pending'}" onchange="updateOrderStatus('${order.id}', this.value)">
+            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>🟡 Pending</option>
+            <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>🔵 Confirmed</option>
+            <option value="dispatched" ${order.status === 'dispatched' ? 'selected' : ''}>🚚 Dispatched</option>
+            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🟢 Delivered</option>
+            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>🔴 Cancelled</option>
+          </select>
+        </td>
+        <td>
+          <div class="admin-actions-cell">
+            <button type="button" class="btn-tbl-action print" onclick="printOrderInvoice('${order.id}')" title="Print Invoice Slip">
+              <i class="fa-solid fa-print"></i>
+            </button>
+            <button type="button" class="btn-tbl-action delete" onclick="deleteOrder('${order.id}')" title="Delete Order">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateOrderStatus(orderId, newStatus) {
+  const orders = loadOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (order) {
+    order.status = newStatus;
+    saveOrders(orders);
+    renderAdminOrdersTable(
+      document.getElementById('adminOrdersSearchInput')?.value.trim() || '',
+      document.getElementById('adminOrderStatusFilter')?.value || 'all'
+    );
+    showToast(`✓ Order ${orderId} updated to "${newStatus.toUpperCase()}"`);
+  }
+}
+
+function deleteOrder(orderId) {
+  if (confirm(`Are you sure you want to delete order ${orderId}?`)) {
+    let orders = loadOrders();
+    orders = orders.filter(o => o.id !== orderId);
+    saveOrders(orders);
+    renderAdminOrdersTable(
+      document.getElementById('adminOrdersSearchInput')?.value.trim() || '',
+      document.getElementById('adminOrderStatusFilter')?.value || 'all'
+    );
+    showToast(`Order ${orderId} removed`);
+  }
+}
+
+function exportOrdersCSV() {
+  const orders = loadOrders();
+  if (orders.length === 0) {
+    showToast('No orders available to export.');
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Order ID,Date,Customer Name,Phone,City,Delivery Address,Payment Method,Items Count,Items List,Subtotal PKR,Discount PKR,Grand Total PKR,Status\n";
+
+  orders.forEach(o => {
+    const dateStr = o.timestamp ? new Date(o.timestamp).toISOString().slice(0, 10) : '';
+    const itemsListClean = (o.items || []).map(i => `${i.qty}x ${i.name} (${i.shade})`).join(' | ').replace(/"/g, '""');
+    const itemsCount = (o.items || []).reduce((sum, i) => sum + i.qty, 0);
+
+    const row = [
+      `"${o.id}"`,
+      `"${dateStr}"`,
+      `"${(o.customer.name || '').replace(/"/g, '""')}"`,
+      `"${(o.customer.phone || '').replace(/"/g, '""')}"`,
+      `"${(o.customer.city || '').replace(/"/g, '""')}"`,
+      `"${(o.customer.address || '').replace(/"/g, '""')}"`,
+      `"${(o.paymentMethod || 'COD').replace(/"/g, '""')}"`,
+      itemsCount,
+      `"${itemsListClean}"`,
+      o.subtotal || 0,
+      o.discountAmount || 0,
+      o.grandTotal || 0,
+      `"${o.status || 'pending'}"`
+    ].join(",");
+
+    csvContent += row + "\n";
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `shareef_cosmetics_orders_export_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  showToast('✓ Orders exported to CSV spreadsheet!');
+}
+
+function printOrderInvoice(orderId) {
+  const orders = loadOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK') : new Date().toLocaleString();
+  const itemsRows = order.items.map(i => `
+    <tr>
+      <td style="padding:8px; border-bottom:1px solid #ddd;">${i.name} <br><small style="color:#666;">Shade: ${i.shade}</small></td>
+      <td style="padding:8px; border-bottom:1px solid #ddd; text-align:center;">${i.qty}</td>
+      <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${i.price.toLocaleString()}</td>
+      <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${(i.price * i.qty).toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+  const invoiceWindow = window.open('', '_blank', 'width=800,height=900');
+  invoiceWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Invoice - ${order.id} | Shareef Cosmetics</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #222; max-width: 700px; margin: 0 auto; line-height: 1.5; }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #C6A675; padding-bottom: 16px; margin-bottom: 20px; }
+        .brand h1 { margin: 0; color: #141211; font-size: 24px; letter-spacing: 2px; }
+        .brand p { margin: 2px 0 0; color: #C6A675; font-size: 11px; letter-spacing: 1px; font-weight: bold; }
+        .order-meta { text-align: right; font-size: 13px; color: #555; }
+        .two-col { display: flex; justify-content: space-between; margin-bottom: 24px; }
+        .box { background: #f9f9f9; padding: 14px 18px; border-radius: 6px; width: 46%; }
+        .box h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; color: #8A2D3C; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+        th { background: #f0ebe5; padding: 8px; text-align: left; border-bottom: 2px solid #ddd; }
+        .totals { margin-left: auto; width: 280px; font-size: 13px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 4px 0; }
+        .totals-row.grand { border-top: 2px solid #222; font-weight: bold; font-size: 16px; color: #141211; padding-top: 8px; margin-top: 6px; }
+        .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #eee; padding-top: 16px; }
+        @media print { .no-print { display: none; } }
+      </style>
+    </head>
+    <body>
+      <div class="no-print" style="margin-bottom:20px; display:flex; justify-content:space-between;">
+        <button onclick="window.print()" style="padding:10px 20px; background:#141211; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🖨️ Print Invoice Slip</button>
+        <button onclick="window.close()" style="padding:10px 20px; background:#eee; border:none; border-radius:4px; cursor:pointer;">Close</button>
+      </div>
+
+      <div class="header">
+        <div class="brand">
+          <h1>SHAREEF COSMETICS</h1>
+          <p>PAKISTANI LUXURY BEAUTY • OFFICIAL DISPATCH INVOICE</p>
+        </div>
+        <div class="order-meta">
+          <strong>Order: ${order.id}</strong><br>
+          Date: ${dateStr}<br>
+          Status: <strong>${(order.status || 'PENDING').toUpperCase()}</strong>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="box">
+          <h3>Customer Details</h3>
+          <strong>${order.customer.name}</strong><br>
+          Phone: ${order.customer.phone}<br>
+          City: ${order.customer.city}
+        </div>
+        <div class="box">
+          <h3>Shipping Address</h3>
+          ${order.customer.address}<br>
+          <strong>Pakistan (Cash On Delivery)</strong>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Product & Shade</th>
+            <th style="text-align:center;">Qty</th>
+            <th style="text-align:right;">Unit Price</th>
+            <th style="text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+
+      <div class="totals">
+        <div class="totals-row">
+          <span>Subtotal:</span>
+          <span>Rs. ${(order.subtotal || 0).toLocaleString()}</span>
+        </div>
+        ${order.discountAmount ? `
+          <div class="totals-row" style="color:#2E7D32;">
+            <span>Discount (${order.discountPercent}% OFF):</span>
+            <span>-Rs. ${order.discountAmount.toLocaleString()}</span>
+          </div>
+        ` : ''}
+        <div class="totals-row">
+          <span>Delivery Fee:</span>
+          <span>${order.deliveryFee === 0 ? 'FREE' : `Rs. ${order.deliveryFee}`}</span>
+        </div>
+        <div class="totals-row grand">
+          <span>Grand Total:</span>
+          <span>Rs. ${(order.grandTotal || 0).toLocaleString()}</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Thank you for choosing Shareef Cosmetics! 100% Genuine Pakistani Formulations.<br>Helpline: +92 329 6209082 | care@shareefcosmetics.pk</p>
+      </div>
+    </body>
+    </html>
+  `);
+  invoiceWindow.document.close();
+}
+
+function handleInlinePriceSave(productId) {
+  const priceInput = document.getElementById(`inlinePrice_${productId}`);
+  const origPriceInput = document.getElementById(`inlineOrigPrice_${productId}`);
+
+  const product = PRODUCTS_DATA.find(p => p.id === productId);
+  if (!product || !priceInput) return;
+
+  const newPrice = parseInt(priceInput.value, 10);
+  const newOrigPrice = origPriceInput ? parseInt(origPriceInput.value, 10) : 0;
+
+  if (isNaN(newPrice) || newPrice < 0) {
+    showToast('✕ Please enter a valid price amount');
+    return;
+  }
+
+  product.price = newPrice;
+  product.originalPrice = newOrigPrice > 0 ? newOrigPrice : undefined;
+
+  persistProducts();
+  showToast(`✓ Updated price for "${product.name.slice(0, 20)}..." to Rs. ${newPrice.toLocaleString()}`);
+}
+
+function resetAdminProductForm() {
+  const form = document.getElementById('adminProductForm');
+  if (!form) return;
+  form.reset();
+
+  document.getElementById('adminEditProductId').value = '';
+  document.getElementById('adminFormModeTitle').textContent = 'Add New Product to Store Catalog';
+  document.getElementById('adminSaveBtnText').textContent = 'Save & Publish Product';
+  document.getElementById('adminCancelEditBtn').style.display = 'none';
+
+  updateAdminImagePreview('');
+  
+  // Set default shade
+  renderShadesInForm([
+    { name: 'Standard Pack', color: '#C6A675' }
+  ]);
+}
+
+function updateAdminImagePreview(src) {
+  const previewImg = document.getElementById('adminImagePreviewImg');
+  const placeholder = document.getElementById('adminImagePlaceholderText');
+
+  if (src) {
+    if (previewImg) {
+      previewImg.src = src;
+      previewImg.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+  } else {
+    if (previewImg) previewImg.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+  }
+}
+
+function addShadeRow(name = 'New Shade', color = '#C6A675') {
+  const list = document.getElementById('adminShadesList');
+  if (!list) return;
+
+  const div = document.createElement('div');
+  div.className = 'shade-builder-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Shade / Size Name" value="${name}" class="shade-name-input" required>
+    <input type="color" value="${color}" class="shade-color-input">
+    <button type="button" class="btn-remove-shade" onclick="this.parentElement.remove()" title="Remove variant">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  `;
+  list.appendChild(div);
+}
+
+function renderShadesInForm(shadesArray) {
+  const list = document.getElementById('adminShadesList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (shadesArray && shadesArray.length > 0) {
+    shadesArray.forEach(s => addShadeRow(s.name, s.color || '#C6A675'));
+  } else {
+    addShadeRow('Standard Pack', '#C6A675');
+  }
+}
+
+function collectShadesFromForm() {
+  const rows = document.querySelectorAll('#adminShadesList .shade-builder-row');
+  const shades = [];
+  rows.forEach(row => {
+    const nameInput = row.querySelector('.shade-name-input');
+    const colorInput = row.querySelector('.shade-color-input');
+    if (nameInput && nameInput.value.trim()) {
+      shades.push({
+        name: nameInput.value.trim(),
+        color: colorInput ? colorInput.value : '#C6A675'
+      });
+    }
+  });
+  return shades.length > 0 ? shades : [{ name: 'Standard Pack', color: '#C6A675' }];
+}
+
+function openEditProductModal(productId) {
+  const product = PRODUCTS_DATA.find(p => p.id === productId);
+  if (!product) return;
+
+  document.getElementById('adminEditProductId').value = product.id;
+  document.getElementById('pName').value = product.name || '';
+  document.getElementById('pCategory').value = product.category || 'skincare';
+  document.getElementById('pBadge').value = product.badge || '';
+  document.getElementById('pPrice').value = product.price || 0;
+  document.getElementById('pOriginalPrice').value = product.originalPrice || '';
+  document.getElementById('pDescription').value = product.description || '';
+  document.getElementById('pDetails').value = product.details || '';
+  document.getElementById('pImageUrl').value = product.image || '';
+  document.getElementById('pRating').value = product.rating || 4.9;
+  document.getElementById('pReviewsCount').value = product.reviewsCount || 450;
+
+  updateAdminImagePreview(product.image);
+  renderShadesInForm(product.shades);
+
+  document.getElementById('adminFormModeTitle').textContent = `Edit Product: ${product.name}`;
+  document.getElementById('adminSaveBtnText').textContent = 'Update Product Details';
+  document.getElementById('adminCancelEditBtn').style.display = 'inline-flex';
+
+  switchAdminTab('add-product');
+}
+
+function handleProductFormSubmit(e) {
+  e.preventDefault();
+
+  const editId = document.getElementById('adminEditProductId').value;
+  const name = document.getElementById('pName').value.trim();
+  const category = document.getElementById('pCategory').value;
+  const badge = document.getElementById('pBadge').value.trim();
+  const price = parseInt(document.getElementById('pPrice').value, 10) || 0;
+  const origPriceVal = document.getElementById('pOriginalPrice').value.trim();
+  const originalPrice = origPriceVal ? parseInt(origPriceVal, 10) : undefined;
+  const description = document.getElementById('pDescription').value.trim();
+  const details = document.getElementById('pDetails').value.trim();
+  const image = document.getElementById('pImageUrl').value.trim() || 'assets/images/hero_banner.jpg';
+  const rating = parseFloat(document.getElementById('pRating').value) || 4.9;
+  const reviewsCount = parseInt(document.getElementById('pReviewsCount').value, 10) || 450;
+  const shades = collectShadesFromForm();
+
+  if (editId) {
+    // Updating existing
+    const pIndex = PRODUCTS_DATA.findIndex(p => p.id === parseInt(editId, 10));
+    if (pIndex > -1) {
+      PRODUCTS_DATA[pIndex] = {
+        ...PRODUCTS_DATA[pIndex],
+        name,
+        category,
+        badge,
+        badgeClass: badge.toLowerCase().includes('ruby') || badge.toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
+        price,
+        originalPrice,
+        description,
+        details,
+        image,
+        rating,
+        reviewsCount,
+        shades
+      };
+      persistProducts();
+      showToast(`✓ Updated "${name}" successfully!`);
+    }
+  } else {
+    // Creating new product
+    const maxId = PRODUCTS_DATA.reduce((max, p) => Math.max(max, p.id || 0), 0);
+    const newProduct = {
+      id: maxId + 1,
+      name,
+      category,
+      badge,
+      badgeClass: badge.toLowerCase().includes('ruby') || badge.toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
+      price,
+      originalPrice,
+      description,
+      details,
+      image,
+      rating,
+      reviewsCount,
+      shades
+    };
+    PRODUCTS_DATA.unshift(newProduct); // Add to beginning
+    persistProducts();
+    showToast(`✓ Added new product "${name}" to store catalog!`);
+  }
+
+  resetAdminProductForm();
+  switchAdminTab('catalog');
+}
+
+function deleteProductItem(productId) {
+  const product = PRODUCTS_DATA.find(p => p.id === productId);
+  if (!product) return;
+
+  if (confirm(`Are you sure you want to remove "${product.name}" from your store catalog?`)) {
+    PRODUCTS_DATA = PRODUCTS_DATA.filter(p => p.id !== productId);
+    persistProducts();
+    showToast(`Removed "${product.name.slice(0, 20)}..." from catalog`);
+  }
+}
+
+function exportProductsJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PRODUCTS_DATA, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `shareef_cosmetics_catalog_backup_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast('✓ Catalog backup file downloaded!');
+}
+

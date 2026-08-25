@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=2.7">
+  <link rel="stylesheet" href="style.css?v=3.3">
 </head>
 <body>
 
@@ -63,8 +63,8 @@
       <div class="announcement-actions hide-mobile">
         <span><i class="fa-solid fa-tag"></i> Use Code: <strong>BEAUTY10</strong> for 10% OFF</span>
         <span class="divider">|</span>
-        <a href="https://wa.me/923001234567" target="_blank" class="whatsapp-top-link">
-          <i class="fa-brands fa-whatsapp"></i> WhatsApp Order: +92 300 1234567
+        <a href="https://wa.me/923296209082" target="_blank" class="whatsapp-top-link">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp Order: +92 329 6209082
         </a>
       </div>
     </div>
@@ -167,7 +167,7 @@
         <button class="btn-primary w-100 mb-2" id="openShadeFinderMobileBtn">
           <i class="fa-solid fa-wand-magic-sparkles"></i> Find My Exact Shade (Quiz)
         </button>
-        <a href="https://wa.me/923001234567" target="_blank" class="btn-whatsapp-outline w-100">
+        <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-outline w-100">
           <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
         </a>
       </div>
@@ -516,7 +516,7 @@
           <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
           <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
           <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-          <a href="https://wa.me/923001234567" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="https://wa.me/923296209082" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
         </div>
       </div>
 
@@ -537,7 +537,7 @@
         <h4 class="footer-heading">Locations & Helpline</h4>
         <div class="store-location">
           <p><i class="fa-solid fa-location-dot"></i> Lahore (MM Alam) • Karachi (DHA Phase 6)</p>
-          <p><i class="fa-solid fa-phone"></i> Helpline: +92 300 1234567 / (042) 35789000</p>
+          <p><i class="fa-solid fa-phone"></i> Helpline: +92 329 6209082 / (042) 35789000</p>
           <p><i class="fa-solid fa-envelope"></i> care@shareefcosmetics.pk</p>
         </div>
         <div class="payment-badges-row">
@@ -552,7 +552,10 @@
     <div class="footer-bottom">
       <div class="container footer-bottom-inner">
         <p>&copy; 2026 Shareef Cosmetics Pakistan. All Rights Reserved.</p>
-        <p class="credits">100% Genuine Pakistani Cosmetics • Halal Certified</p>
+        <p class="credits">
+          100% Genuine Pakistani Cosmetics • Halal Certified • 
+          <a href="#" id="openAdminLoginBtn" class="admin-portal-link"><i class="fa-solid fa-lock"></i> Store Admin Portal</a>
+        </p>
       </div>
     </div>
   </footer>
@@ -778,10 +781,10 @@
             We have received your order. Our team in Lahore will dispatch your parcel via TCS / Pakistan Post Express.
           </p>
           <div class="success-action-btns">
-            <button class="btn-whatsapp-outline" id="successWhatsAppShareBtn">
-              <i class="fa-brands fa-whatsapp"></i> Send Order Details to WhatsApp
-            </button>
-            <button class="btn-luxury-primary" id="successContinueShoppingBtn">
+            <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-primary" id="successWhatsAppShareBtn">
+              <i class="fa-brands fa-whatsapp"></i> Tap to Send Order Details to WhatsApp (03296209082)
+            </a>
+            <button type="button" class="btn-luxury-secondary" id="successContinueShoppingBtn">
               Continue Shopping
             </button>
           </div>
@@ -927,6 +930,434 @@
   </div>
 
   <!-- =================================================================
+       ADMIN AUTHENTICATION MODAL (LOGIN)
+  ================================================================= -->
+  <div class="modal-overlay" id="adminLoginModalOverlay">
+    <div class="modal-card admin-login-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-user-shield text-gold"></i>
+          <h3>Store Manager Access</h3>
+        </div>
+        <button class="modal-close-btn" id="closeAdminLoginBtn" aria-label="Close Login">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body admin-login-body">
+        <div class="admin-login-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h4>Shareef Cosmetics Catalog Portal</h4>
+        <p class="admin-login-sub">Enter your store administrator password or PIN to manage products, update live prices, and customize inventory.</p>
+        
+        <form id="adminLoginForm" class="admin-login-form">
+          <div class="form-group">
+            <label for="adminPasswordInput"><i class="fa-solid fa-key"></i> Administrator Password / PIN</label>
+            <input type="password" id="adminPasswordInput" placeholder="Enter PIN (Default: shareef2026)" required autocomplete="current-password">
+          </div>
+          <div id="adminLoginError" class="admin-error-msg"></div>
+          <button type="submit" class="btn-luxury-primary w-100">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Store Dashboard
+          </button>
+          <div class="admin-login-hint">
+            <i class="fa-solid fa-circle-info"></i> Default PIN is <code>shareef2026</code> (can be changed in settings).
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       ADMIN PRODUCT & PRICE MANAGEMENT DASHBOARD (FULL MODAL)
+  ================================================================= -->
+  <div class="modal-overlay admin-dashboard-overlay" id="adminDashboardModalOverlay">
+    <div class="modal-card admin-dashboard-card">
+      <!-- Admin Top Bar -->
+      <div class="modal-header admin-dashboard-header">
+        <div class="admin-header-brand">
+          <div class="admin-badge-pill"><i class="fa-solid fa-sliders"></i> ADMIN CONTROL CENTER</div>
+          <h3>Shareef Cosmetics • Product & Price Management</h3>
+        </div>
+        <div class="admin-header-actions">
+          <button class="btn-admin-logout" id="adminLogoutBtn" title="Logout from Admin">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+          </button>
+          <button class="modal-close-btn" id="closeAdminDashboardBtn" aria-label="Close Dashboard">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Tabs Navigation -->
+      <div class="admin-tabs-bar">
+        <button class="admin-tab-btn active" data-admin-tab="catalog">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          <span>Products & Live Prices (<span id="adminTotalCountBadge">0</span>)</span>
+        </button>
+        <button class="admin-tab-btn" data-admin-tab="orders" id="adminOrdersTabBtn">
+          <i class="fa-solid fa-boxes-packing"></i>
+          <span>Customer Orders (<span id="adminOrdersCountBadge">0</span>)</span>
+        </button>
+        <button class="admin-tab-btn" data-admin-tab="add-product" id="adminAddProductTabBtn">
+          <i class="fa-solid fa-circle-plus"></i>
+          <span>Add New Product</span>
+        </button>
+        <button class="admin-tab-btn" data-admin-tab="settings">
+          <i class="fa-solid fa-gear"></i>
+          <span>Store Settings & Backup</span>
+        </button>
+      </div>
+
+      <!-- Admin Tab Content Body -->
+      <div class="modal-body admin-dashboard-body">
+
+        <!-- TAB 1: PRODUCT CATALOG & INSTANT PRICE EDITING -->
+        <div class="admin-tab-pane active" id="adminTabCatalog">
+          <!-- Summary Stats Strip -->
+          <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminStatTotal">20</span>
+                <span class="stat-label">Total Store Products</span>
+              </div>
+            </div>
+            <div class="admin-stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-spa"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminStatSkincare">0</span>
+                <span class="stat-label">Skincare & Creams</span>
+              </div>
+            </div>
+            <div class="admin-stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-palette"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminStatFace">0</span>
+                <span class="stat-label">Face & Lips Makeup</span>
+              </div>
+            </div>
+            <div class="admin-stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-seedling"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminStatHaircare">0</span>
+                <span class="stat-label">Herbal Haircare</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Controls Toolbar -->
+          <div class="admin-toolbar">
+            <div class="admin-search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="adminSearchInput" placeholder="Search products by brand, title, or category...">
+            </div>
+            <div class="admin-filter-group">
+              <select id="adminCategoryFilter" class="admin-select">
+                <option value="all">All Categories</option>
+                <option value="skincare">Skincare</option>
+                <option value="face">Face & Foundation</option>
+                <option value="lips">Lips</option>
+                <option value="haircare">Haircare</option>
+              </select>
+              <button class="btn-luxury-primary btn-sm" id="adminAddNewTopBtn">
+                <i class="fa-solid fa-plus"></i> Add Product
+              </button>
+            </div>
+          </div>
+
+          <!-- Products Table -->
+          <div class="admin-table-container">
+            <table class="admin-products-table">
+              <thead>
+                <tr>
+                  <th style="width:60px;">Image</th>
+                  <th>Product Details</th>
+                  <th>Category</th>
+                  <th style="width:140px;">Current Price (PKR)</th>
+                  <th style="width:130px;">Original Price</th>
+                  <th>Shades</th>
+                  <th style="width:130px; text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTableBody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 2: CUSTOMER ORDERS MANAGER & LIVE TRACKING -->
+        <div class="admin-tab-pane" id="adminTabOrders">
+          <!-- Orders Summary Stats -->
+          <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+              <div class="stat-icon"><i class="fa-solid fa-cart-flatbed"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminOrdersTotalCount">0</span>
+                <span class="stat-label">Total Orders Placed</span>
+              </div>
+            </div>
+            <div class="admin-stat-card">
+              <div class="stat-icon" style="color:var(--accent-gold);"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminOrdersPendingCount">0</span>
+                <span class="stat-label">Pending / Processing</span>
+              </div>
+            </div>
+            <div class="admin-stat-card">
+              <div class="stat-icon" style="color:#2196F3;"><i class="fa-solid fa-truck-fast"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminOrdersDispatchedCount">0</span>
+                <span class="stat-label">Dispatched (TCS/Post)</span>
+              </div>
+            </div>
+            <div class="admin-stat-card">
+              <div class="stat-icon" style="color:var(--accent-success);"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+              <div class="stat-info">
+                <span class="stat-num" id="adminOrdersRevenueSum">Rs. 0</span>
+                <span class="stat-label">Total Store Revenue</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orders Toolbar -->
+          <div class="admin-toolbar">
+            <div class="admin-search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="adminOrdersSearchInput" placeholder="Search by Order ID, Customer Name, Phone, or City...">
+            </div>
+            <div class="admin-filter-group">
+              <select id="adminOrderStatusFilter" class="admin-select">
+                <option value="all">All Order Statuses</option>
+                <option value="pending">🟡 Pending</option>
+                <option value="confirmed">🔵 Confirmed</option>
+                <option value="dispatched">🚚 Dispatched</option>
+                <option value="delivered">🟢 Delivered</option>
+                <option value="cancelled">🔴 Cancelled</option>
+              </select>
+              <button type="button" class="btn-luxury-secondary btn-sm" id="adminExportOrdersCsvBtn">
+                <i class="fa-solid fa-file-csv"></i> Export Orders (CSV/Excel)
+              </button>
+            </div>
+          </div>
+
+          <!-- Orders Data Table -->
+          <div class="admin-table-container">
+            <table class="admin-products-table admin-orders-table">
+              <thead>
+                <tr>
+                  <th style="width:130px;">Order ID & Date</th>
+                  <th>Customer & Delivery Address</th>
+                  <th>Ordered Items & Shades</th>
+                  <th style="width:120px;">Bill Total</th>
+                  <th style="width:140px;">Delivery Status</th>
+                  <th style="width:110px; text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminOrdersTableBody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: ADD / EDIT PRODUCT FORM -->
+        <div class="admin-tab-pane" id="adminTabAddProduct">
+          <form id="adminProductForm" class="admin-product-form">
+            <input type="hidden" id="adminEditProductId" value="">
+            
+            <div class="form-header-banner">
+              <h3 id="adminFormModeTitle">Add New Product to Store Catalog</h3>
+              <p>Fill out the details below. Changes will immediately sync to the home page, collection grid, and checkout.</p>
+            </div>
+
+            <div class="admin-form-grid">
+              <!-- Left Column: Core Info -->
+              <div class="admin-form-col">
+                <div class="form-group">
+                  <label for="pName"><i class="fa-solid fa-tag"></i> Product Name & Packaging Size *</label>
+                  <input type="text" id="pName" placeholder="e.g. Medora Velvet Matte Lipstick (Ruby Surkh)" required>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label for="pCategory"><i class="fa-solid fa-layer-group"></i> Category *</label>
+                    <select id="pCategory" class="admin-select" required>
+                      <option value="skincare">Skincare & Creams</option>
+                      <option value="face">Face & Foundation</option>
+                      <option value="lips">Lipsticks & Tints</option>
+                      <option value="haircare">Herbal Haircare</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="pBadge"><i class="fa-solid fa-certificate"></i> Badge / Highlight Tag</label>
+                    <input type="text" id="pBadge" placeholder="e.g. Pakistan Bestseller, 20% OFF">
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label for="pPrice"><i class="fa-solid fa-money-bill-wave"></i> Selling Price (PKR) *</label>
+                    <input type="number" id="pPrice" placeholder="e.g. 650" min="0" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="pOriginalPrice"><i class="fa-solid fa-tags"></i> Original / Strikethrough Price (PKR)</label>
+                    <input type="number" id="pOriginalPrice" placeholder="e.g. 800" min="0">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="pDescription"><i class="fa-solid fa-align-left"></i> Product Description</label>
+                  <textarea id="pDescription" rows="3" placeholder="Describe the formula, Pakistani skin suitability, ingredients, and key benefits..."></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="pDetails"><i class="fa-solid fa-list-check"></i> Key Bullet Highlights (Separated by •)</label>
+                  <input type="text" id="pDetails" placeholder="e.g. 100% Halal • Oil Free • All Day Hydration">
+                </div>
+              </div>
+
+              <!-- Right Column: Image & Shades -->
+              <div class="admin-form-col">
+                <!-- Image Upload & Preview -->
+                <div class="form-group">
+                  <label><i class="fa-solid fa-image"></i> Product Image (Upload File or Enter URL) *</label>
+                  <div class="admin-image-upload-wrap">
+                    <div class="image-preview-box" id="adminImagePreviewBox">
+                      <img id="adminImagePreviewImg" src="assets/images/hero_banner.jpg" alt="Preview">
+                      <span id="adminImagePlaceholderText"><i class="fa-solid fa-cloud-arrow-up"></i><br>Image Preview</span>
+                    </div>
+                    <div class="image-inputs-side">
+                      <label class="btn-upload-file">
+                        <i class="fa-solid fa-upload"></i> Upload Image from Device
+                        <input type="file" id="adminImageFileInput" accept="image/*" style="display:none;">
+                      </label>
+                      <span class="or-divider">OR</span>
+                      <input type="text" id="pImageUrl" placeholder="Paste Image URL (or path)...">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dynamic Shades Builder -->
+                <div class="form-group">
+                  <label><i class="fa-solid fa-palette"></i> Product Shades / Variants</label>
+                  <div class="admin-shades-builder">
+                    <div id="adminShadesList" class="admin-shades-list">
+                      <!-- Dynamic shade rows -->
+                    </div>
+                    <button type="button" class="btn-add-shade" id="adminAddShadeBtn">
+                      <i class="fa-solid fa-plus"></i> Add Another Shade / Variant
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label for="pRating"><i class="fa-solid fa-star text-gold"></i> Rating (1 - 5)</label>
+                    <input type="number" id="pRating" step="0.1" min="1" max="5" value="4.9">
+                  </div>
+                  <div class="form-group">
+                    <label for="pReviewsCount"><i class="fa-solid fa-comments"></i> Reviews Count</label>
+                    <input type="number" id="pReviewsCount" min="0" value="450">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Action Buttons -->
+            <div class="admin-form-actions">
+              <button type="button" class="btn-luxury-secondary" id="adminCancelEditBtn" style="display:none;">
+                <i class="fa-solid fa-ban"></i> Cancel Edit
+              </button>
+              <button type="submit" class="btn-luxury-primary" id="adminSaveProductBtn">
+                <i class="fa-solid fa-floppy-disk"></i> <span id="adminSaveBtnText">Save & Publish Product</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 3: BACKUP, RESTORE & SECURITY -->
+        <div class="admin-tab-pane" id="adminTabSettings">
+          <div class="admin-settings-grid">
+            <!-- Store WhatsApp & Email Notifications Config -->
+            <div class="admin-settings-card" style="grid-column: 1 / -1; border-color: var(--accent-gold); background: #FFFDF9;">
+              <div class="settings-icon text-gold"><i class="fa-brands fa-whatsapp"></i></div>
+              <h4>Order Notification Settings (WhatsApp & Email)</h4>
+              <p>Configure where customer orders are sent immediately upon checkout. Customer details and ordered items will be automatically dispatched to this WhatsApp and Email.</p>
+              
+              <form id="adminStoreContactForm" class="store-contact-settings-form" style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                  <label for="settingStoreWhatsApp"><i class="fa-brands fa-whatsapp text-success"></i> Store WhatsApp Number (e.g. 923296209082) *</label>
+                  <input type="text" id="settingStoreWhatsApp" placeholder="e.g. 923296209082" value="923296209082" required style="width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
+                  <small style="color:var(--text-muted); font-size:0.72rem;">Enter with Pakistan country code (e.g. 923296209082 without + or spaces).</small>
+                </div>
+                <div class="form-group">
+                  <label for="settingStoreEmail"><i class="fa-solid fa-envelope"></i> Store Notification Email *</label>
+                  <input type="email" id="settingStoreEmail" placeholder="e.g. orders@shareefcosmetics.pk" required style="width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
+                  <small style="color:var(--text-muted); font-size:0.72rem;">Receive digital copies of customer invoices.</small>
+                </div>
+                <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end;">
+                  <button type="submit" class="btn-luxury-primary btn-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Notification Settings
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Backup & Export -->
+            <div class="admin-settings-card">
+              <div class="settings-icon"><i class="fa-solid fa-file-export"></i></div>
+              <h4>Export & Backup Catalog</h4>
+              <p>Download a complete JSON backup of all current products, custom shades, and edited prices to keep safe on your computer.</p>
+              <button type="button" class="btn-luxury-primary" id="adminExportJsonBtn">
+                <i class="fa-solid fa-download"></i> Download Catalog JSON Backup
+              </button>
+            </div>
+
+            <!-- Restore from Backup -->
+            <div class="admin-settings-card">
+              <div class="settings-icon"><i class="fa-solid fa-file-import"></i></div>
+              <h4>Restore from Backup</h4>
+              <p>Upload a previously exported catalog JSON file to restore all your products and prices instantly.</p>
+              <label class="btn-luxury-secondary w-100 text-center" style="cursor:pointer; display:inline-block;">
+                <i class="fa-solid fa-upload"></i> Upload Backup File (.json)
+                <input type="file" id="adminImportJsonInput" accept=".json" style="display:none;">
+              </label>
+            </div>
+
+            <!-- Reset to Defaults -->
+            <div class="admin-settings-card danger-card">
+              <div class="settings-icon text-ruby"><i class="fa-solid fa-rotate-left"></i></div>
+              <h4>Reset to Default Pakistani Catalog</h4>
+              <p>Reverts all customizations, custom products, and prices back to the initial 20 authentic Pakistani cosmetic items.</p>
+              <button type="button" class="btn-danger" id="adminResetDefaultBtn">
+                <i class="fa-solid fa-triangle-exclamation"></i> Reset to Factory Defaults
+              </button>
+            </div>
+
+            <!-- Change Password -->
+            <div class="admin-settings-card">
+              <div class="settings-icon"><i class="fa-solid fa-shield-keyhole"></i></div>
+              <h4>Change Admin Password / PIN</h4>
+              <p>Update the password used to access this management dashboard.</p>
+              <form id="adminChangePinForm" class="change-pin-form">
+                <div class="form-group">
+                  <input type="password" id="newAdminPinInput" placeholder="Enter New Password / PIN" required>
+                </div>
+                <button type="submit" class="btn-luxury-primary btn-sm">
+                  <i class="fa-solid fa-check"></i> Update Password
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
        STICKY MOBILE BOTTOM NAVIGATION BAR
   ================================================================= -->
   <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
@@ -949,7 +1380,7 @@
       </div>
       <span>Bag</span>
     </button>
-    <a href="https://wa.me/923001234567" target="_blank" class="mobile-bottom-item whatsapp-item">
+    <a href="https://wa.me/923296209082" target="_blank" class="mobile-bottom-item whatsapp-item">
       <i class="fa-brands fa-whatsapp"></i>
       <span>WhatsApp</span>
     </a>
@@ -958,7 +1389,7 @@
   <!-- =================================================================
        FLOATING WHATSAPP BUTTON (Nationwide Pakistan)
   ================================================================= -->
-  <a href="https://wa.me/923001234567?text=Assalam-o-Alaikum%20Shareef%20Cosmetics!%20I%20would%20like%20to%20inquire%20about%20your%20products." 
+  <a href="https://wa.me/923296209082?text=Assalam-o-Alaikum%20Shareef%20Cosmetics!%20I%20would%20like%20to%20inquire%20about%20your%20products." 
      target="_blank" 
      class="floating-whatsapp-btn" 
      aria-label="Order on WhatsApp"
@@ -971,6 +1402,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=2.7"></script>
+  <script src="app.js?v=3.3"></script>
 </body>
 </html>

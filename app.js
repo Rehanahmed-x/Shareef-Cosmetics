@@ -415,6 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateWishlistUI();
   setupEventListeners();
   initAdminDashboard();
+  initReviewSystem();
 });
 
 // =================================================================
@@ -1153,9 +1154,14 @@ function openQuickView(productId) {
         <i class="fa-solid fa-truck-fast text-gold"></i> 100% Genuine Guaranteed • Fast 2-3 Day Nationwide Delivery via TCS / Pakistan Post (COD Available)
       </div>
 
-      <button class="btn-luxury-primary w-100" id="qvAddToCartBtn">
-        <i class="fa-solid fa-bag-shopping"></i> Add to Beauty Bag
-      </button>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-luxury-primary w-100" id="qvAddToCartBtn">
+          <i class="fa-solid fa-bag-shopping"></i> Add to Beauty Bag
+        </button>
+        <button type="button" class="btn-luxury-outline w-100" style="padding: 10px 16px; font-size: 0.82rem; border-color: var(--border-medium); justify-content: center; background: transparent; cursor: pointer;" onclick="openReviewModalForProduct(${product.id})">
+          <i class="fa-solid fa-pen-to-square text-gold"></i> Write a Review for this Product
+        </button>
+      </div>
     </div>
   `;
 
@@ -1180,6 +1186,382 @@ function closeQuickView() {
   if (modal) {
     modal.classList.remove('active');
     document.body.style.overflow = '';
+  }
+}
+
+// =================================================================
+// 9B. CUSTOMER REVIEWS & REAL-TIME COMMENTS SYSTEM
+// =================================================================
+const DEFAULT_REVIEWS = [
+  {
+    id: 1,
+    name: 'Ayesha Khan',
+    city: 'DHA Phase 6, Karachi',
+    rating: 5,
+    title: 'Lifesaver for Karachi weather!',
+    product: 'Shareef Minute Miracle Palette',
+    comment: 'The Shareef Minute Miracle Palette is a lifesaver for Karachi weather! It doesn\'t melt in humidity and gives that effortlessly glowing look without feeling sticky or heavy. Delivery was super fast via TCS COD.',
+    recommended: true,
+    date: 'Verified Buyer'
+  },
+  {
+    id: 2,
+    name: 'Mahnoor Siddiqui',
+    city: 'Gulberg, Lahore',
+    rating: 5,
+    title: 'Exact match for wheatish Pakistani skin tone',
+    product: 'Masarrat Misbah Silk Foundation',
+    comment: 'Masarrat Misbah silk foundation matched my exact wheatish skin tone perfectly through their Shade Quiz tool. The coverage looks like natural high-end magazine skin. Medora lipsticks are 100% authentic originals!',
+    recommended: true,
+    date: 'Verified Buyer'
+  },
+  {
+    id: 3,
+    name: 'Fatima Zahra',
+    city: 'Sector F-7/2, Islamabad',
+    rating: 5,
+    title: 'Breathtaking Bridal Box & fast 2-day delivery',
+    product: 'Shareef Signature Velvet Vanity Box',
+    comment: 'I ordered the Bridal Vanity Box for my sister\'s wedding. The velvet packaging is breathtaking! Everything was intact and original. Ordered on WhatsApp and arrived within 2 days in Islamabad.',
+    recommended: true,
+    date: 'Verified Buyer'
+  },
+  {
+    id: 4,
+    name: 'Zainab Bukhari',
+    city: 'Cantt, Multan',
+    rating: 5,
+    title: 'Purest Arq-e-Gulab and Face Wash',
+    product: 'Saeed Ghani Pure Damask Rose Water Spray',
+    comment: 'Saeed Ghani Rose Water spray is truly genuine. So refreshing in Multan summer heat. Packed securely with thick bubble wrap and TCS delivered right to my door within 48 hours.',
+    recommended: true,
+    date: 'Verified Buyer'
+  },
+  {
+    id: 5,
+    name: 'Hina Bilal',
+    city: 'Satellite Town, Gujranwala',
+    rating: 5,
+    title: '100% Original Pakistani brands at best prices',
+    product: 'Golden Pearl Beauty Cream & Serum',
+    comment: 'Original Golden Pearl and Himalaya Neem Face wash arrived in perfect condition. Love the easy COD payment and customer care responsiveness on WhatsApp.',
+    recommended: true,
+    date: 'Verified Buyer'
+  },
+  {
+    id: 6,
+    name: 'Sana Tariq',
+    city: 'University Town, Peshawar',
+    rating: 5,
+    title: 'Super smooth Medora shades & fast dispatch',
+    product: 'Medora Matte Lipstick (50+ Shades)',
+    comment: 'Medora matte lipsticks are classic! Authentic batch codes and vibrant colors. Ordered 4 shades and got them safely in Peshawar via TCS in 2 days.',
+    recommended: true,
+    date: 'Verified Buyer'
+  }
+];
+
+function loadStoredReviews() {
+  try {
+    const saved = localStorage.getItem('shareef_customer_reviews');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error('Error loading stored reviews:', e);
+  }
+  return [...DEFAULT_REVIEWS];
+}
+
+let CUSTOMER_REVIEWS = loadStoredReviews();
+
+function persistReviews() {
+  try {
+    localStorage.setItem('shareef_customer_reviews', JSON.stringify(CUSTOMER_REVIEWS));
+  } catch (e) {
+    console.error('Error saving reviews:', e);
+  }
+}
+
+function getInitials(name) {
+  if (!name) return 'SC';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+let isAllReviewsExpanded = false;
+
+function renderReviews(highlightId = null) {
+  const container = document.getElementById('reviewsGrid');
+  if (!container) return;
+
+  // Sort reviews: highest star rating first, then by newest ID
+  const sortedReviews = [...CUSTOMER_REVIEWS].sort((a, b) => {
+    if ((b.rating || 5) !== (a.rating || 5)) {
+      return (b.rating || 5) - (a.rating || 5);
+    }
+    return (b.id || 0) - (a.id || 0);
+  });
+
+  // Display top 3 highest-rated comments by default, or all when expanded
+  let visibleReviews;
+  if (isAllReviewsExpanded) {
+    visibleReviews = sortedReviews;
+  } else {
+    visibleReviews = sortedReviews.slice(0, 3);
+    // If a brand new review was just submitted, ensure it's visible in top 3
+    if (highlightId && !visibleReviews.some(r => r.id === highlightId)) {
+      const highlightedItem = CUSTOMER_REVIEWS.find(r => r.id === highlightId);
+      if (highlightedItem) {
+        visibleReviews = [highlightedItem, ...visibleReviews.slice(0, 2)];
+      }
+    }
+  }
+
+  container.innerHTML = visibleReviews.map(r => {
+    const initials = getInitials(r.name);
+    const isNew = highlightId && r.id === highlightId;
+    return `
+      <div class="review-card ${isNew ? 'newly-added' : ''}" data-review-id="${r.id}">
+        <div>
+          <div class="review-top-bar">
+            <div class="review-stars">
+              ${getStarRatingHtml(r.rating || 5)}
+            </div>
+            ${r.product ? `<span class="review-product-tag" title="${r.product}"><i class="fa-solid fa-sparkles"></i> ${r.product}</span>` : ''}
+          </div>
+
+          ${r.title ? `<h4 class="review-title-heading">"${r.title}"</h4>` : ''}
+          <p class="review-text">"${r.comment}"</p>
+        </div>
+
+        <div>
+          ${r.recommended !== false ? `
+            <div class="review-rec-badge">
+              <i class="fa-solid fa-circle-check"></i> Recommends this brand / product
+            </div>
+          ` : ''}
+
+          <div class="reviewer-meta">
+            <div class="reviewer-avatar">${initials}</div>
+            <div>
+              <h4 class="reviewer-name">${r.name}</h4>
+              <span class="reviewer-loc"><i class="fa-solid fa-location-dot text-gold"></i> ${r.city || 'Pakistan'}</span>
+            </div>
+            <span class="verified-badge"><i class="fa-solid fa-circle-check"></i> ${r.date || 'Verified Buyer'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Update See All Reviews toggle button
+  const expandWrap = document.getElementById('reviewsExpandWrap');
+  const expandText = document.getElementById('reviewsExpandText');
+  const expandIcon = document.getElementById('reviewsExpandIcon');
+  const toggleBtn = document.getElementById('toggleAllReviewsBtn');
+
+  if (expandWrap) {
+    if (sortedReviews.length <= 3) {
+      expandWrap.style.display = 'none';
+    } else {
+      expandWrap.style.display = 'flex';
+      if (expandText && expandIcon && toggleBtn) {
+        if (isAllReviewsExpanded) {
+          expandText.textContent = `Show Top 3 Highest-Rated Reviews`;
+          expandIcon.className = 'fa-solid fa-chevron-up';
+          toggleBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          expandText.textContent = `See All Customer Reviews & Comments (${sortedReviews.length})`;
+          expandIcon.className = 'fa-solid fa-chevron-down';
+          toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+    }
+  }
+}
+
+function populateReviewProductDropdown(selectedProductId = null) {
+  const select = document.getElementById('reviewProductSelect');
+  if (!select) return;
+
+  let optionsHtml = '<option value="">✨ General Shopping & Brand Experience</option>';
+  PRODUCTS_DATA.forEach(p => {
+    const isSelected = selectedProductId && (p.id === selectedProductId || p.id === parseInt(selectedProductId, 10));
+    optionsHtml += `<option value="${p.name}" ${isSelected ? 'selected' : ''}>💄 ${p.name} (Rs. ${p.price.toLocaleString()})</option>`;
+  });
+  select.innerHTML = optionsHtml;
+}
+
+function openReviewModal(productId = null) {
+  const modal = document.getElementById('reviewModalOverlay');
+  if (!modal) return;
+
+  populateReviewProductDropdown(productId);
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    const nameInput = document.getElementById('reviewerName');
+    if (nameInput) nameInput.focus();
+  }, 100);
+}
+
+function closeReviewModal() {
+  const modal = document.getElementById('reviewModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+function openReviewModalForProduct(productId) {
+  closeQuickView();
+  openReviewModal(productId);
+}
+
+function initReviewSystem() {
+  renderReviews();
+  populateReviewProductDropdown();
+
+  const openBtn = document.getElementById('openReviewModalBtn');
+  const closeBtn = document.getElementById('closeReviewModalBtn');
+  const modal = document.getElementById('reviewModalOverlay');
+  const reviewForm = document.getElementById('customerReviewForm');
+  const toggleReviewsBtn = document.getElementById('toggleAllReviewsBtn');
+
+  if (toggleReviewsBtn) {
+    toggleReviewsBtn.addEventListener('click', () => {
+      isAllReviewsExpanded = !isAllReviewsExpanded;
+      renderReviews();
+      if (!isAllReviewsExpanded) {
+        const reviewsSection = document.querySelector('.reviews-section');
+        if (reviewsSection) {
+          reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    });
+  }
+
+  if (openBtn) {
+    openBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openReviewModal();
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeReviewModal);
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeReviewModal();
+    });
+  }
+
+  // Interactive Star Rating
+  const starBtns = document.querySelectorAll('#interactiveStarRating .star-btn');
+  const starScoreInput = document.getElementById('selectedStarRating');
+  const ratingScoreText = document.getElementById('ratingScoreText');
+
+  const ratingDescriptions = {
+    1: '1.0 / 5.0 — Poor',
+    2: '2.0 / 5.0 — Fair',
+    3: '3.0 / 5.0 — Average',
+    4: '4.0 / 5.0 — Very Good',
+    5: '5.0 / 5.0 — Excellent!'
+  };
+
+  function updateStarsUI(rating) {
+    starBtns.forEach(btn => {
+      const r = parseInt(btn.getAttribute('data-rating'), 10);
+      if (r <= rating) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    if (ratingScoreText && ratingDescriptions[rating]) {
+      ratingScoreText.textContent = ratingDescriptions[rating];
+    }
+  }
+
+  starBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rating = parseInt(btn.getAttribute('data-rating'), 10);
+      if (starScoreInput) starScoreInput.value = rating;
+      updateStarsUI(rating);
+    });
+
+    btn.addEventListener('mouseenter', () => {
+      const rating = parseInt(btn.getAttribute('data-rating'), 10);
+      updateStarsUI(rating);
+    });
+  });
+
+  const starContainer = document.getElementById('interactiveStarRating');
+  if (starContainer) {
+    starContainer.addEventListener('mouseleave', () => {
+      const savedRating = parseInt(starScoreInput ? starScoreInput.value : 5, 10) || 5;
+      updateStarsUI(savedRating);
+    });
+  }
+
+  // Review Form Submit Handler
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('reviewerName').value.trim();
+      const city = document.getElementById('reviewerCity').value;
+      const rating = parseInt(document.getElementById('selectedStarRating').value, 10) || 5;
+      const product = document.getElementById('reviewProductSelect').value;
+      const title = document.getElementById('reviewTitle').value.trim();
+      const comment = document.getElementById('reviewComment').value.trim();
+      const recommended = document.getElementById('reviewRecommend').checked;
+
+      if (!name || !comment || !city) {
+        showToast('⚠️ Please fill in all required review fields.');
+        return;
+      }
+
+      const newReview = {
+        id: Date.now(),
+        name,
+        city,
+        rating,
+        product: product || '',
+        title: title || (rating >= 4 ? 'Highly Recommended!' : 'Customer Review'),
+        comment,
+        recommended,
+        date: 'Verified Buyer • Just now'
+      };
+
+      CUSTOMER_REVIEWS.unshift(newReview);
+      persistReviews();
+      renderReviews(newReview.id);
+      closeReviewModal();
+      reviewForm.reset();
+
+      // Reset rating to 5
+      if (starScoreInput) starScoreInput.value = 5;
+      updateStarsUI(5);
+
+      showToast(`✨ Shukriya, ${name}! Your review and comment have been posted.`);
+
+      // Smooth scroll to reviews section
+      const reviewsSection = document.querySelector('.reviews-section');
+      if (reviewsSection) {
+        reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
   }
 }
 

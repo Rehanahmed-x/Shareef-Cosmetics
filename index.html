@@ -419,9 +419,23 @@
         <p class="section-subtitle">
           Over 25,000+ happy customers across Karachi, Lahore, Islamabad, and beyond.
         </p>
+
+        <!-- Customer Reviews Action Bar & Write Review Button -->
+        <div class="reviews-header-actions">
+          <div class="reviews-stat-pill">
+            <i class="fa-solid fa-star text-gold"></i>
+            <span><strong>4.9 / 5.0</strong> Overall Satisfaction</span>
+            <span class="pill-divider">•</span>
+            <span><i class="fa-solid fa-shield-halved text-gold"></i> 100% Genuine Reviews</span>
+          </div>
+          <button type="button" class="btn-luxury-primary" id="openReviewModalBtn" aria-label="Write a Review or Comment">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Write a Review / Add Comment</span>
+          </button>
+        </div>
       </div>
 
-      <div class="reviews-grid">
+      <div class="reviews-grid" id="reviewsGrid">
         <!-- Review 1 -->
         <div class="review-card">
           <div class="review-stars">
@@ -474,7 +488,15 @@
             </div>
             <span class="verified-badge"><i class="fa-solid fa-circle-check"></i> Verified Buyer</span>
           </div>
-        </div>
+      </div>
+
+      <!-- See All Comments / Reviews Expand Toggle -->
+      <div class="reviews-expand-wrap text-center" id="reviewsExpandWrap">
+        <button type="button" class="btn-reviews-expand" id="toggleAllReviewsBtn" aria-expanded="false">
+          <i class="fa-solid fa-comments text-gold"></i>
+          <span id="reviewsExpandText">See All Customer Reviews & Comments</span>
+          <i class="fa-solid fa-chevron-down" id="reviewsExpandIcon"></i>
+        </button>
       </div>
     </div>
   </section>
@@ -665,22 +687,46 @@
                 <input type="tel" id="custPhone" required placeholder="0300-1234567">
               </div>
               <div class="form-group flex-1">
-                <label for="custCity">City *</label>
+                <label for="custCity">City (TCS Door-to-Door Delivery) *</label>
                 <select id="custCity" required class="luxury-select">
-                  <option value="">Select City</option>
-                  <option value="Lahore">Lahore</option>
+                  <option value="">Select Delivery City</option>
                   <option value="Karachi">Karachi</option>
+                  <option value="Lahore">Lahore</option>
                   <option value="Islamabad">Islamabad</option>
                   <option value="Rawalpindi">Rawalpindi</option>
                   <option value="Faisalabad">Faisalabad</option>
                   <option value="Multan">Multan</option>
                   <option value="Peshawar">Peshawar</option>
                   <option value="Quetta">Quetta</option>
-                  <option value="Sialkot">Sialkot</option>
                   <option value="Gujranwala">Gujranwala</option>
+                  <option value="Sialkot">Sialkot</option>
                   <option value="Hyderabad">Hyderabad</option>
+                  <option value="Bahawalpur">Bahawalpur</option>
+                  <option value="Sargodha">Sargodha</option>
                   <option value="Abbottabad">Abbottabad</option>
-                  <option value="Other">Other City (Nationwide)</option>
+                  <option value="Sukkur">Sukkur</option>
+                  <option value="Gujrat">Gujrat</option>
+                  <option value="Sheikhupura">Sheikhupura</option>
+                  <option value="Sahiwal">Sahiwal</option>
+                  <option value="Jhelum">Jhelum</option>
+                  <option value="Mardan">Mardan</option>
+                  <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                  <option value="Kasur">Kasur</option>
+                  <option value="Wah Cantt">Wah Cantt</option>
+                  <option value="Larkana">Larkana</option>
+                  <option value="Nawabshah">Nawabshah</option>
+                  <option value="Muzaffarabad">Muzaffarabad (AJK)</option>
+                  <option value="Mirpur">Mirpur (AJK)</option>
+                  <option value="Okara">Okara</option>
+                  <option value="Chiniot">Chiniot</option>
+                  <option value="Dera Ghazi Khan">Dera Ghazi Khan</option>
+                  <option value="Dera Ismail Khan">Dera Ismail Khan</option>
+                  <option value="Mingora / Swat">Mingora / Swat</option>
+                  <option value="Haripur">Haripur</option>
+                  <option value="Mansehra">Mansehra</option>
+                  <option value="Attock">Attock</option>
+                  <option value="Gwadar">Gwadar</option>
+                  <option value="Other">Other City / Town (Nationwide TCS/Post)</option>
                 </select>
               </div>
             </div>
@@ -943,6 +989,127 @@
 
       <div class="quick-view-grid" id="quickViewContent">
         <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       CUSTOMER REVIEW & COMMENT MODAL
+  ================================================================= -->
+  <div class="modal-overlay" id="reviewModalOverlay">
+    <div class="modal-card review-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-pen-to-square text-gold"></i>
+          <h3>Write a Customer Review & Comment</h3>
+        </div>
+        <button class="modal-close-btn" id="closeReviewModalBtn" aria-label="Close Review Modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body review-modal-body">
+        <p class="review-modal-intro">
+          Share your authentic experience with <strong>Shareef Cosmetics</strong>. Your review helps beauty lovers across Pakistan discover genuine local cosmetics!
+        </p>
+
+        <form id="customerReviewForm" class="customer-review-form">
+          <div class="form-group">
+            <label for="reviewProductSelect">Select Product (Or General Review)</label>
+            <select id="reviewProductSelect" class="luxury-select">
+              <option value="">✨ General Shopping & Brand Experience</option>
+              <!-- Products populated dynamically -->
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="reviewerName">Your Full Name *</label>
+              <input type="text" id="reviewerName" required placeholder="e.g. Areeba Tariq">
+            </div>
+            <div class="form-group flex-1">
+              <label for="reviewerCity">Your City *</label>
+              <select id="reviewerCity" required class="luxury-select">
+                <option value="">Select Your City</option>
+                <option value="Karachi">Karachi</option>
+                <option value="Lahore">Lahore</option>
+                <option value="Islamabad">Islamabad</option>
+                <option value="Rawalpindi">Rawalpindi</option>
+                <option value="Faisalabad">Faisalabad</option>
+                <option value="Multan">Multan</option>
+                <option value="Peshawar">Peshawar</option>
+                <option value="Quetta">Quetta</option>
+                <option value="Gujranwala">Gujranwala</option>
+                <option value="Sialkot">Sialkot</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Bahawalpur">Bahawalpur</option>
+                <option value="Sargodha">Sargodha</option>
+                <option value="Abbottabad">Abbottabad</option>
+                <option value="Sukkur">Sukkur</option>
+                <option value="Gujrat">Gujrat</option>
+                <option value="Sheikhupura">Sheikhupura</option>
+                <option value="Sahiwal">Sahiwal</option>
+                <option value="Jhelum">Jhelum</option>
+                <option value="Mardan">Mardan</option>
+                <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                <option value="Kasur">Kasur</option>
+                <option value="Wah Cantt">Wah Cantt</option>
+                <option value="Larkana">Larkana</option>
+                <option value="Nawabshah">Nawabshah</option>
+                <option value="Muzaffarabad">Muzaffarabad (AJK)</option>
+                <option value="Mirpur">Mirpur (AJK)</option>
+                <option value="Okara">Okara</option>
+                <option value="Chiniot">Chiniot</option>
+                <option value="Dera Ghazi Khan">Dera Ghazi Khan</option>
+                <option value="Dera Ismail Khan">Dera Ismail Khan</option>
+                <option value="Mingora / Swat">Mingora / Swat</option>
+                <option value="Haripur">Haripur</option>
+                <option value="Mansehra">Mansehra</option>
+                <option value="Attock">Attock</option>
+                <option value="Gwadar">Gwadar</option>
+                <option value="Other">Other City / Town</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Your Star Rating *</label>
+            <div class="interactive-star-rating" id="interactiveStarRating">
+              <div class="star-rating-icons">
+                <button type="button" class="star-btn active" data-rating="1" aria-label="1 Star"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="2" aria-label="2 Stars"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="3" aria-label="3 Stars"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="4" aria-label="4 Stars"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="5" aria-label="5 Stars"><i class="fa-solid fa-star"></i></button>
+              </div>
+              <span class="rating-text-label" id="ratingScoreText">5.0 / 5.0 — Excellent!</span>
+              <input type="hidden" id="selectedStarRating" value="5">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reviewTitle">Review Title / Headline</label>
+            <input type="text" id="reviewTitle" placeholder="e.g. 100% Original Pakistani cosmetic, exceptional quality!">
+          </div>
+
+          <div class="form-group">
+            <label for="reviewComment">Your Review & Comments *</label>
+            <textarea id="reviewComment" rows="4" required placeholder="Write your honest comments regarding the texture, longevity, scent, packaging, or door-to-door delivery..."></textarea>
+          </div>
+
+          <div class="form-group review-checkbox-group">
+            <label class="custom-checkbox-wrap">
+              <input type="checkbox" id="reviewRecommend" checked>
+              <span class="checkbox-box"><i class="fa-solid fa-check"></i></span>
+              <span class="checkbox-text">I recommend Shareef Cosmetics to other beauty buyers</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-luxury-primary w-100" id="submitReviewBtn">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Post Customer Review & Comment</span>
+          </button>
+        </form>
       </div>
     </div>
   </div>

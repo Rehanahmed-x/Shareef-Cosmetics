@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=3.7">
+  <link rel="stylesheet" href="style.css?v=4.1">
 </head>
 <body>
 
@@ -541,10 +541,9 @@
           <p><i class="fa-solid fa-envelope"></i> care@shareefcosmetics.pk</p>
         </div>
         <div class="payment-badges-row">
-          <span class="pay-tag"><i class="fa-solid fa-money-bill-wave"></i> COD</span>
+          <span class="pay-tag"><i class="fa-solid fa-money-bill-wave"></i> Cash on Delivery</span>
           <span class="pay-tag"><i class="fa-solid fa-mobile-screen"></i> JazzCash</span>
           <span class="pay-tag"><i class="fa-solid fa-wallet"></i> Easypaisa</span>
-          <span class="pay-tag"><i class="fa-brands fa-cc-visa"></i> Visa</span>
         </div>
       </div>
     </div>
@@ -697,10 +696,10 @@
             </div>
 
             <!-- Payment Method Selection -->
-            <h4 class="form-section-title mt-4"><i class="fa-solid fa-credit-card"></i> Payment Method</h4>
+            <h4 class="form-section-title mt-4"><i class="fa-solid fa-wallet"></i> Payment Method</h4>
             <div class="payment-options-grid">
               <label class="payment-option-card active">
-                <input type="radio" name="paymentMethod" value="COD" checked>
+                <input type="radio" name="paymentMethod" value="Cash on Delivery (COD)" checked>
                 <div class="payment-option-content">
                   <i class="fa-solid fa-money-bill-wave"></i>
                   <div>
@@ -711,26 +710,65 @@
               </label>
 
               <label class="payment-option-card">
-                <input type="radio" name="paymentMethod" value="JazzCash">
+                <input type="radio" name="paymentMethod" value="JazzCash / Easypaisa">
                 <div class="payment-option-content">
                   <i class="fa-solid fa-mobile-screen"></i>
                   <div>
-                    <strong>JazzCash / Easypaisa Wallet</strong>
-                    <span>Instant mobile account transfer</span>
+                    <strong>JazzCash / Easypaisa (Online Mobile Transfer)</strong>
+                    <span>Instant mobile wallet payment before dispatch</span>
                   </div>
                 </div>
               </label>
 
-              <label class="payment-option-card">
-                <input type="radio" name="paymentMethod" value="Card">
-                <div class="payment-option-content">
-                  <i class="fa-brands fa-cc-visa"></i>
-                  <div>
-                    <strong>Debit / Credit Card</strong>
-                    <span>Visa / Mastercard 3D Secure</span>
+              <!-- JazzCash / Easypaisa Account Details Box (Shown when selected) -->
+              <div class="jazzcash-account-box" id="jazzcashAccountBox" style="display: none;">
+                <div class="jazzcash-box-header">
+                  <span class="wallet-badge"><i class="fa-solid fa-mobile-screen"></i> Official Store Wallet</span>
+                </div>
+                <div class="jazzcash-account-details">
+                  <div class="acc-row">
+                    <span class="acc-label">Account Title:</span>
+                    <strong class="acc-val">Shareef Cosmetics</strong>
+                  </div>
+                  <div class="acc-row">
+                    <span class="acc-label">JazzCash / Easypaisa No:</span>
+                    <div class="acc-number-copy-wrap">
+                      <strong class="acc-val highlight-num" id="jazzcashAccNumber">03296209082</strong>
+                      <button type="button" class="btn-copy-acc" id="copyJazzcashNumBtn" title="Copy Number">
+                        <i class="fa-solid fa-copy"></i> Copy
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </label>
+                <div class="jazzcash-receipt-note">
+                  <div class="note-icon"><i class="fa-solid fa-camera"></i></div>
+                  <div class="note-text">
+                    <strong>Important Note:</strong>
+                    After transferring payment, please take a screenshot of your payment receipt and send it to our WhatsApp (<strong>03296209082</strong>) along with your Order Tracking ID for instant dispatch.
+                  </div>
+                </div>
+                <div class="form-group mt-3 mb-0">
+                  <label for="paymentReceiptFile"><i class="fa-solid fa-cloud-arrow-up"></i> Attach Payment Screenshot <span style="color:var(--accent-ruby); font-weight:700;">* (Required to Place Order)</span>:</label>
+                  <div class="receipt-upload-box" id="receiptUploadBox">
+                    <input type="file" id="paymentReceiptFile" accept="image/*" class="receipt-file-input">
+                    <div class="receipt-upload-content" id="receiptUploadPrompt">
+                      <i class="fa-solid fa-camera"></i>
+                      <span>Tap to Choose or Take Screenshot</span>
+                      <small>Supports any screenshot or photo size (Auto-optimized)</small>
+                    </div>
+                    <div class="receipt-preview-wrap" id="receiptPreviewWrap" style="display: none;">
+                      <img id="receiptPreviewImg" src="" alt="Payment Receipt Preview">
+                      <div class="receipt-preview-overlay">
+                        <span class="badge-uploaded"><i class="fa-solid fa-circle-check"></i> Screenshot Attached</span>
+                        <button type="button" class="btn-remove-receipt" id="removeReceiptBtn" title="Remove Screenshot">
+                          <i class="fa-solid fa-trash-can"></i> Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="paymentReceiptBase64" value="">
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1356,6 +1394,31 @@
   </div>
 
   <!-- =================================================================
+       PAYMENT RECEIPT FULLSCREEN LIGHTBOX MODAL
+  ================================================================= -->
+  <div class="modal-overlay receipt-lightbox-overlay" id="receiptLightboxOverlay">
+    <div class="modal-card receipt-lightbox-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-receipt"></i>
+          <h3 id="receiptLightboxTitle">Payment Receipt Proof</h3>
+        </div>
+        <button class="modal-close-btn" id="closeReceiptLightboxBtn" aria-label="Close Receipt">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body text-center p-3">
+        <img id="receiptLightboxImg" src="" alt="Payment Screenshot" class="receipt-full-img">
+        <div class="receipt-lightbox-actions mt-3">
+          <a id="downloadReceiptBtn" href="#" download="payment_receipt.jpg" class="btn-luxury-primary btn-sm">
+            <i class="fa-solid fa-download"></i> Download Full Image
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
        STICKY MOBILE BOTTOM NAVIGATION BAR
   ================================================================= -->
   <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
@@ -1400,6 +1463,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=3.7"></script>
+  <script src="app.js?v=4.1"></script>
 </body>
 </html>

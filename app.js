@@ -839,6 +839,25 @@ function openCheckoutModal() {
   document.getElementById('checkoutForm').style.display = 'grid';
   document.getElementById('orderSuccessScreen').style.display = 'none';
 
+  // Reset payment selection to COD
+  const codRadio = document.querySelector('input[name="paymentMethod"][value*="COD"]');
+  if (codRadio) codRadio.checked = true;
+  const jazzBox = document.getElementById('jazzcashAccountBox');
+  if (jazzBox) jazzBox.style.display = 'none';
+  document.querySelectorAll('.payment-option-card').forEach(card => card.classList.remove('active'));
+  const codCard = codRadio?.closest('.payment-option-card');
+  if (codCard) codCard.classList.add('active');
+
+  // Reset receipt upload state
+  const receiptFile = document.getElementById('paymentReceiptFile');
+  if (receiptFile) receiptFile.value = '';
+  const receiptBase64 = document.getElementById('paymentReceiptBase64');
+  if (receiptBase64) receiptBase64.value = '';
+  const receiptPreview = document.getElementById('receiptPreviewWrap');
+  if (receiptPreview) receiptPreview.style.display = 'none';
+  const receiptPrompt = document.getElementById('receiptUploadPrompt');
+  if (receiptPrompt) receiptPrompt.style.display = 'flex';
+
   if (modal) {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -860,11 +879,31 @@ function handleCheckoutSubmit(e) {
   const phone = document.getElementById('custPhone').value.trim();
   const city = document.getElementById('custCity').value;
   const address = document.getElementById('custAddress').value.trim();
-  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'Cash on Delivery (COD)';
+  let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'Cash on Delivery (COD)';
+  const receiptImage = document.getElementById('paymentReceiptBase64')?.value || null;
 
   if (!name || !phone || !city || !address) {
     showToast('Please fill in all required delivery fields.');
     return;
+  }
+
+  // Mandatory Receipt Screenshot for JazzCash / Easypaisa
+  if (paymentMethod.includes('JazzCash')) {
+    if (!receiptImage) {
+      showToast('⚠️ Please attach your payment screenshot before placing order.');
+      const uploadBox = document.getElementById('receiptUploadBox');
+      if (uploadBox) {
+        uploadBox.style.borderColor = 'var(--accent-ruby)';
+        uploadBox.style.background = '#FFF5F5';
+        uploadBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          uploadBox.style.borderColor = '';
+          uploadBox.style.background = '';
+        }, 3500);
+      }
+      return;
+    }
+    paymentMethod += ' (Screenshot Attached)';
   }
 
   const trackingId = `PK-SHF-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -892,6 +931,7 @@ function handleCheckoutSubmit(e) {
     couponCode: appliedCouponCode,
     grandTotal,
     paymentMethod,
+    receiptImage,
     status: 'pending'
   };
 
@@ -909,7 +949,8 @@ function handleCheckoutSubmit(e) {
   // Prepare WhatsApp message payload with configured store WhatsApp number
   const storePhone = getStoreWhatsAppNumber();
   const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${(i.price * i.qty).toLocaleString()}`).join('\n');
-  const rawMessage = `*Assalam-o-Alaikum Shareef Cosmetics!*\n\n*📦 New Order Placed:* ${trackingId}\n*👤 Customer:* ${name}\n*📞 Phone:* ${phone}\n*📍 City:* ${city}\n*🏠 Address:* ${address}\n*💳 Payment:* ${paymentMethod}\n\n*🛍️ Items Ordered:*\n${itemsText}\n\n*💰 Total Amount:* Rs. ${grandTotal.toLocaleString()}\n\nPlease confirm my order & dispatch tracking. Shukriya!`;
+  const paymentNote = paymentMethod.includes('JazzCash') ? `${paymentMethod} (Receipt Screenshot Attached)` : paymentMethod;
+  const rawMessage = `*Assalam-o-Alaikum Shareef Cosmetics!*\n\n*📦 New Order Placed:* ${trackingId}\n*👤 Customer:* ${name}\n*📞 Phone:* ${phone}\n*📍 City:* ${city}\n*🏠 Address:* ${address}\n*💳 Payment:* ${paymentNote}\n\n*🛍️ Items Ordered:*\n${itemsText}\n\n*💰 Total Amount:* Rs. ${grandTotal.toLocaleString()}\n\nPlease confirm my order & dispatch tracking. Shukriya!`;
 
   const waUrl = `https://wa.me/${storePhone}?text=${encodeURIComponent(rawMessage)}`;
 
@@ -1356,6 +1397,132 @@ function setupEventListeners() {
   if (checkoutForm) checkoutForm.addEventListener('submit', handleCheckoutSubmit);
   if (cartWaBtn) cartWaBtn.addEventListener('click', placeWhatsAppOrderDirect);
   if (successContinueBtn) successContinueBtn.addEventListener('click', closeCheckoutModal);
+
+  // Payment Method Selection & JazzCash Details Box
+  const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]');
+  const jazzcashBox = document.getElementById('jazzcashAccountBox');
+  const copyJazzcashBtn = document.getElementById('copyJazzcashNumBtn');
+
+  paymentMethodRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.payment-option-card').forEach(card => card.classList.remove('active'));
+      const parentCard = radio.closest('.payment-option-card');
+      if (parentCard) parentCard.classList.add('active');
+
+      if (jazzcashBox) {
+        if (radio.value.includes('JazzCash')) {
+          jazzcashBox.style.display = 'block';
+        } else {
+          jazzcashBox.style.display = 'none';
+        }
+      }
+    });
+  });
+
+  if (copyJazzcashBtn) {
+    copyJazzcashBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const num = '03296209082';
+      navigator.clipboard.writeText(num).then(() => {
+        showToast('✓ Account No. 03296209082 copied to clipboard!');
+      }).catch(() => {
+        showToast('Account No: 03296209082');
+      });
+    });
+  }
+
+  // Payment Receipt Screenshot Upload & Smart Auto-Compressor
+  const receiptFileInput = document.getElementById('paymentReceiptFile');
+  const receiptBase64Input = document.getElementById('paymentReceiptBase64');
+  const receiptPreviewWrap = document.getElementById('receiptPreviewWrap');
+  const receiptPreviewImg = document.getElementById('receiptPreviewImg');
+  const receiptUploadPrompt = document.getElementById('receiptUploadPrompt');
+  const removeReceiptBtn = document.getElementById('removeReceiptBtn');
+  const closeReceiptLightboxBtn = document.getElementById('closeReceiptLightboxBtn');
+
+  function compressImageFile(file, maxWidth = 1000, maxHeight = 1000, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to optimized clean JPEG data URL
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedBase64);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  }
+
+  if (receiptFileInput) {
+    receiptFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          if (receiptUploadPrompt) {
+            receiptUploadPrompt.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Optimizing image...</span>';
+          }
+          // Automatically resize and optimize screenshot to crisp ~150KB
+          const optimizedBase64 = await compressImageFile(file);
+          if (receiptBase64Input) receiptBase64Input.value = optimizedBase64;
+          if (receiptPreviewImg) receiptPreviewImg.src = optimizedBase64;
+          if (receiptPreviewWrap) receiptPreviewWrap.style.display = 'block';
+          if (receiptUploadPrompt) {
+            receiptUploadPrompt.style.display = 'none';
+            receiptUploadPrompt.innerHTML = `
+              <i class="fa-solid fa-camera"></i>
+              <span>Tap to Choose or Take Screenshot</span>
+              <small>Any image size (Auto-optimized)</small>
+            `;
+          }
+          showToast('✓ Payment screenshot attached & optimized!');
+        } catch (err) {
+          console.error('Image compression error:', err);
+          showToast('✕ Error reading image file. Please try another screenshot.');
+        }
+      }
+    });
+  }
+
+  if (removeReceiptBtn) {
+    removeReceiptBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (receiptFileInput) receiptFileInput.value = '';
+      if (receiptBase64Input) receiptBase64Input.value = '';
+      if (receiptPreviewWrap) receiptPreviewWrap.style.display = 'none';
+      if (receiptUploadPrompt) receiptUploadPrompt.style.display = 'flex';
+      showToast('Payment screenshot removed.');
+    });
+  }
+
+  if (closeReceiptLightboxBtn) {
+    closeReceiptLightboxBtn.addEventListener('click', closeReceiptLightbox);
+  }
 
   // Shade Quiz Triggers
   const shadeHeroBtn = document.getElementById('openShadeFinderHeroBtn');
@@ -2100,6 +2267,11 @@ function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
         <td>
           <span class="order-bill-total">Rs. ${order.grandTotal.toLocaleString()}</span>
           <span class="order-pay-method">${order.paymentMethod || 'COD'}</span>
+          ${order.receiptImage ? `
+            <button type="button" class="btn-view-receipt" onclick="openReceiptLightbox('${order.id}')" title="View Customer Payment Screenshot">
+              <i class="fa-solid fa-camera"></i> View Receipt
+            </button>
+          ` : ''}
         </td>
         <td>
           <select class="order-status-select ${statusClasses[order.status] || 'status-pending'}" onchange="updateOrderStatus('${order.id}', this.value)">
@@ -2123,6 +2295,40 @@ function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
       </tr>
     `;
   }).join('');
+}
+
+function openReceiptLightbox(orderId) {
+  const orders = loadOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order || !order.receiptImage) {
+    showToast('No receipt screenshot attached for this order.');
+    return;
+  }
+
+  const modal = document.getElementById('receiptLightboxOverlay');
+  const img = document.getElementById('receiptLightboxImg');
+  const title = document.getElementById('receiptLightboxTitle');
+  const dlBtn = document.getElementById('downloadReceiptBtn');
+
+  if (img) img.src = order.receiptImage;
+  if (title) title.textContent = `Receipt Proof - ${order.id} (${order.customer.name})`;
+  if (dlBtn) {
+    dlBtn.href = order.receiptImage;
+    dlBtn.download = `Receipt_${order.id}_${order.customer.name.replace(/\s+/g, '_')}.jpg`;
+  }
+
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeReceiptLightbox() {
+  const modal = document.getElementById('receiptLightboxOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
 }
 
 function updateOrderStatus(orderId, newStatus) {

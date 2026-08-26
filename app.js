@@ -371,8 +371,13 @@ const DEFAULT_PRODUCTS_DATA = [
 // =================================================================
 const API = {
   getBaseUrl() {
-    if (window.location.protocol === 'file:') {
-      return 'http://localhost:5000';
+    if (typeof window !== 'undefined' && window.location) {
+      if (window.location.protocol === 'file:') {
+        return 'http://localhost:5000';
+      }
+      if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port && window.location.port !== '5000') {
+        return 'http://localhost:5000';
+      }
     }
     return '';
   },
@@ -386,11 +391,29 @@ const API = {
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
   },
+  async parseResponse(res) {
+    try {
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (jsonErr) {
+        if (!res.ok) {
+          if (res.status === 404) {
+            return { success: false, error: 'Endpoint not found (404). Please ensure python server is running on http://localhost:5000.' };
+          }
+          return { success: false, error: `Server error (${res.status}). Please check backend server.` };
+        }
+        return { success: false, error: 'Invalid JSON response from server.' };
+      }
+    } catch (e) {
+      return { success: false, error: e.message || 'Error reading server response' };
+    }
+  },
   async fetchProducts() {
     try {
       const res = await fetch(`${this.getBaseUrl()}/api/products`, { cache: 'no-cache' });
       if (res.ok) {
-        const json = await res.json();
+        const json = await this.parseResponse(res);
         if (json && json.success && Array.isArray(json.data)) {
           return json.data;
         }
@@ -407,7 +430,7 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData)
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message || 'Network error' };
     }
@@ -419,7 +442,7 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData)
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message || 'Network error' };
     }
@@ -430,7 +453,7 @@ const API = {
         method: 'DELETE',
         headers: this.getAuthHeaders()
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message || 'Network error' };
     }
@@ -446,7 +469,7 @@ const API = {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       console.error('Admin login error:', e);
       return { success: false, error: e.name === 'AbortError' ? 'Connection timeout. Please check server.' : (e.message || 'Unable to connect to server. Please run run_server.bat') };
@@ -471,7 +494,7 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify({ new_password: newPassword })
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message || 'Network error' };
     }
@@ -485,7 +508,7 @@ const API = {
         headers: this.getAuthHeaders()
       });
       if (res.ok) {
-        const json = await res.json();
+        const json = await this.parseResponse(res);
         return json.data || [];
       }
     } catch (e) {
@@ -500,7 +523,7 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify({ status: newStatus })
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message || 'Network error' };
     }
@@ -511,7 +534,7 @@ const API = {
         method: 'DELETE',
         headers: this.getAuthHeaders()
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message || 'Network error' };
     }
@@ -523,7 +546,7 @@ const API = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       console.error('Order creation failed:', e);
       return { success: false, error: e.message };
@@ -535,7 +558,7 @@ const API = {
         headers: this.getAuthHeaders()
       });
       if (res.ok) {
-        const json = await res.json();
+        const json = await this.parseResponse(res);
         return json.stats;
       }
     } catch (e) {}
@@ -547,7 +570,7 @@ const API = {
         method: 'POST',
         headers: this.getAuthHeaders()
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message };
     }
@@ -555,7 +578,10 @@ const API = {
   async fetchSettings() {
     try {
       const res = await fetch(`${this.getBaseUrl()}/api/settings`);
-      if (res.ok) return (await res.json()).data;
+      if (res.ok) {
+        const json = await this.parseResponse(res);
+        return json.data;
+      }
     } catch(e) {}
     return null;
   },
@@ -566,7 +592,7 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(settings)
       });
-      return await res.json();
+      return await this.parseResponse(res);
     } catch (e) {
       return { success: false, error: e.message };
     }

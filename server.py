@@ -20,7 +20,7 @@ import socket
 # Database file location
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'shareef_cosmetics.db')
-PORT = 5000
+PORT = int(os.environ.get('PORT', 5000))
 HOST = '0.0.0.0'
 
 # Session tokens store (in addition to DB for ultra-fast validation)

@@ -1544,6 +1544,24 @@
               </form>
             </div>
 
+            <!-- Multi-Device Online Cloud Database Connection -->
+            <div class="admin-settings-card" style="grid-column: 1 / -1; border-color: #2196F3; background: #F8FBFF;">
+              <div class="settings-icon" style="color:#2196F3;"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+              <h4>Free Online Cloud Database Connection (Multi-Device Sync Across All Phones & Laptops)</h4>
+              <p>Deploy your free Python backend to <strong>Render.com</strong> or <strong>Railway.app</strong>. Paste your live free backend URL below (e.g. <code>https://shareef-cosmetics-api.onrender.com</code>) so all catalog edits, prices, and orders automatically sync in real-time across all mobile phones and laptops worldwide!</p>
+              
+              <form id="adminCloudDbForm" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+                <input type="url" id="settingCloudApiUrl" placeholder="e.g. https://shareef-cosmetics-api.onrender.com" style="flex:1; min-width:280px; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
+                <button type="submit" class="btn-luxury-primary btn-sm" style="background:#1976D2; border-color:#1976D2;">
+                  <i class="fa-solid fa-link"></i> Connect & Save Live Database
+                </button>
+                <button type="button" class="btn-luxury-secondary btn-sm" id="adminClearCloudApiBtn" title="Reset to default URL">
+                  <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+              </form>
+              <div id="cloudDbStatusMsg" style="font-size:0.8rem; margin-top:8px;"></div>
+            </div>
+
             <!-- Backup & Export -->
             <div class="admin-settings-card">
               <div class="settings-icon"><i class="fa-solid fa-file-export"></i></div>
@@ -1666,6 +1684,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=7.0"></script>
+  <script src="app.js?v=10.0"></script>
 </body>
 </html>

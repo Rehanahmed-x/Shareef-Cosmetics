@@ -1,0 +1,3 @@
+# Shareef Cosmetics Full-Stack Python Backend
+# Pure standard library (Zero heavy external dependencies required)
+gunicorn>=21.2.0

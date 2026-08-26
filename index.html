@@ -51,6 +51,39 @@
     </div>
   </div>
 
+  <script>
+    // Immediate Inline Loader Kickstarter & Curtain Reveal
+    (function() {
+      var p = 0;
+      var el = document.getElementById('loaderPercent');
+      var bar = document.getElementById('loaderProgressBar');
+      var l = document.getElementById('entry-loader');
+      var timer = setInterval(function() {
+        p += 14;
+        if (el) el.textContent = Math.min(p, 100);
+        if (bar) bar.style.width = Math.min(p, 100) + '%';
+        if (p >= 100) {
+          clearInterval(timer);
+          setTimeout(function() {
+            if (l) {
+              l.classList.add('loaded');
+              setTimeout(function() { l.style.display = 'none'; }, 700);
+            }
+          }, 180);
+        }
+      }, 25);
+
+      // Failsafe unlock within 800ms
+      setTimeout(function() {
+        clearInterval(timer);
+        if (l && l.style.display !== 'none') {
+          l.classList.add('loaded');
+          setTimeout(function() { l.style.display = 'none'; }, 500);
+        }
+      }, 800);
+    })();
+  </script>
+
   <!-- =================================================================
        ANNOUNCEMENT BAR
   ================================================================= -->
@@ -167,9 +200,12 @@
         <button class="btn-primary w-100 mb-2" id="openShadeFinderMobileBtn">
           <i class="fa-solid fa-wand-magic-sparkles"></i> Find My Exact Shade (Quiz)
         </button>
-        <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-outline w-100">
+        <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-outline w-100 mb-2">
           <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
         </a>
+        <button type="button" class="btn-luxury-secondary w-100 open-admin-btn" id="openAdminLoginBtnMobile" style="font-size: 0.8rem; padding: 10px;">
+          <i class="fa-solid fa-lock"></i> Store Admin Portal
+        </button>
       </div>
       <div class="drawer-footer">
         <p><i class="fa-solid fa-shield-halved"></i> 100% Authentic Pakistani Cosmetics</p>
@@ -575,7 +611,7 @@
         <p>&copy; 2026 Shareef Cosmetics Pakistan. All Rights Reserved.</p>
         <p class="credits">
           100% Genuine Pakistani Cosmetics • Halal Certified • 
-          <a href="#" id="openAdminLoginBtn" class="admin-portal-link"><i class="fa-solid fa-lock"></i> Store Admin Portal</a>
+          <a href="javascript:void(0);" id="openAdminLoginBtn" class="admin-portal-link open-admin-btn"><i class="fa-solid fa-lock"></i> Store Admin Portal</a>
         </p>
       </div>
     </div>
@@ -1630,6 +1666,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=4.1"></script>
+  <script src="app.js?v=5.0"></script>
 </body>
 </html>

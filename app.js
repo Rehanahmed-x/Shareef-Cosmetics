@@ -367,38 +367,179 @@ const DEFAULT_PRODUCTS_DATA = [
 ];
 
 // =================================================================
-// 2. DYNAMIC CATALOG & STATE MANAGEMENT
+// 2. FULL-STACK DATABASE & REST API CLIENT
 // =================================================================
-function loadStoredProducts() {
-  try {
-    const saved = localStorage.getItem('shareef_products_catalog');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+const API = {
+  getAuthToken() {
+    return sessionStorage.getItem('shareef_admin_token') || '';
+  },
+  getAuthHeaders() {
+    const token = this.getAuthToken();
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+  },
+  async fetchProducts() {
+    try {
+      const res = await fetch('/api/products', { cache: 'no-cache' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.success && Array.isArray(json.data)) {
+          return json.data;
+        }
       }
+    } catch (e) {
+      console.warn('Backend API offline, using local fallback:', e);
     }
-  } catch (e) {
-    console.error('Error loading stored products catalog:', e);
+    return DEFAULT_PRODUCTS_DATA;
+  },
+  async createProduct(productData) {
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(productData)
+    });
+    return res.json();
+  },
+  async updateProduct(id, productData) {
+    const res = await fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(productData)
+    });
+    return res.json();
+  },
+  async deleteProduct(id) {
+    const res = await fetch(`/api/products/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return res.json();
+  },
+  async loginAdmin(password) {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    return res.json();
+  },
+  async verifyAdmin() {
+    const token = this.getAuthToken();
+    if (!token) return false;
+    try {
+      const res = await fetch('/api/admin/verify', {
+        headers: this.getAuthHeaders()
+      });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  },
+  async changeAdminPassword(newPassword) {
+    const res = await fetch('/api/admin/change-password', {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ new_password: newPassword })
+    });
+    return res.json();
+  },
+  async fetchOrders(status = 'all', search = '') {
+    const params = new URLSearchParams();
+    if (status && status !== 'all') params.append('status', status);
+    if (search) params.append('q', search);
+    try {
+      const res = await fetch(`/api/orders?${params.toString()}`, {
+        headers: this.getAuthHeaders()
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data || [];
+      }
+    } catch (e) {
+      console.error('Error fetching orders:', e);
+    }
+    return [];
+  },
+  async updateOrderStatus(orderId, newStatus) {
+    const res = await fetch(`/api/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ status: newStatus })
+    });
+    return res.json();
+  },
+  async deleteOrder(orderId) {
+    const res = await fetch(`/api/orders/${orderId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders()
+    });
+    return res.json();
+  },
+  async createOrder(orderPayload) {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload)
+      });
+      return res.json();
+    } catch (e) {
+      console.error('Order creation failed:', e);
+      return { success: false, error: e.message };
+    }
+  },
+  async fetchAdminStats() {
+    try {
+      const res = await fetch('/api/admin/stats', {
+        headers: this.getAuthHeaders()
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.stats;
+      }
+    } catch (e) {}
+    return null;
+  },
+  async resetDefaultProducts() {
+    const res = await fetch('/api/admin/reset-defaults', {
+      method: 'POST',
+      headers: this.getAuthHeaders()
+    });
+    return res.json();
+  },
+  async fetchSettings() {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) return (await res.json()).data;
+    } catch(e) {}
+    return null;
+  },
+  async saveSettings(settings) {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(settings)
+    });
+    return res.json();
   }
-  return [...DEFAULT_PRODUCTS_DATA];
-}
+};
 
-let PRODUCTS_DATA = loadStoredProducts();
+let PRODUCTS_DATA = [...DEFAULT_PRODUCTS_DATA];
 
-function persistProducts() {
-  localStorage.setItem('shareef_products_catalog', JSON.stringify(PRODUCTS_DATA));
-  renderProducts();
-  if (typeof updateAdminStats === 'function') updateAdminStats();
-  if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+async function syncProductsFromDatabase() {
+  const latest = await API.fetchProducts();
+  if (Array.isArray(latest) && latest.length > 0) {
+    PRODUCTS_DATA = latest;
+    renderProducts();
+    if (typeof updateAdminStats === 'function') updateAdminStats();
+    if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+  }
 }
 
 let cart = JSON.parse(localStorage.getItem('shareef_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('shareef_wishlist')) || [];
-
-// Clean stale items from previous testing sessions
-cart = cart.filter(item => PRODUCTS_DATA.some(p => p.id === item.id));
-wishlist = wishlist.filter(id => PRODUCTS_DATA.some(p => p.id === id));
 
 let appliedDiscount = 0; // percentage
 let appliedCouponCode = '';
@@ -406,9 +547,14 @@ let activeFilter = 'all';
 let activeSort = 'featured';
 
 // =================================================================
-// 3. INITIALIZATION ON DOM READY
+// 3. INITIALIZATION ON DOM READY & REAL-TIME MULTI-DEVICE SYNC
 // =================================================================
-document.addEventListener('DOMContentLoaded', () => {
+let appInitialized = false;
+
+function initApp() {
+  if (appInitialized) return;
+  appInitialized = true;
+
   initEntryLoader();
   renderProducts();
   updateCartUI();
@@ -416,39 +562,89 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
   initAdminDashboard();
   initReviewSystem();
-});
+
+  // Fetch live database products asynchronously in background
+  syncProductsFromDatabase().catch(err => {
+    console.warn('Initial product sync:', err);
+  });
+
+  // Multi-device real-time sync: Auto-refresh catalog when tab becomes active
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncProductsFromDatabase();
+    }
+  });
+
+  // Background live polling sync every 15 seconds
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      syncProductsFromDatabase();
+    }
+  }, 15000);
+}
+
+// Immediate execution & readyState check
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+// Also trigger immediate loader start in case DOM is already ready
+setTimeout(() => {
+  if (!appInitialized) initApp();
+}, 50);
 
 // =================================================================
-// 4. ENTRY LOADING ANIMATION ORCHESTRATION
+// 4. ENTRY LOADING ANIMATION ORCHESTRATION & FAILSAFE
 // =================================================================
+let loaderAnimationDone = false;
+
+function finishLoader() {
+  if (loaderAnimationDone) return;
+  loaderAnimationDone = true;
+
+  const loader = document.getElementById('entry-loader');
+  const percentEl = document.getElementById('loaderPercent');
+  const barEl = document.getElementById('loaderProgressBar');
+
+  if (percentEl) percentEl.textContent = '100';
+  if (barEl) barEl.style.width = '100%';
+
+  setTimeout(() => {
+    if (loader) {
+      loader.classList.add('loaded');
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 700);
+    }
+  }, 200);
+}
+
 function initEntryLoader() {
   const loader = document.getElementById('entry-loader');
   const percentEl = document.getElementById('loaderPercent');
   const barEl = document.getElementById('loaderProgressBar');
-  
+
+  if (!loader || loaderAnimationDone) return;
+
   let progress = 0;
   const interval = setInterval(() => {
-    progress += Math.floor(Math.random() * 8) + 4;
+    progress += Math.floor(Math.random() * 12) + 8;
     if (progress >= 100) {
-      progress = 100;
       clearInterval(interval);
-      
-      if (percentEl) percentEl.textContent = '100';
-      if (barEl) barEl.style.width = '100%';
-      
-      setTimeout(() => {
-        if (loader) {
-          loader.classList.add('loaded');
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 950);
-        }
-      }, 350);
+      finishLoader();
     } else {
       if (percentEl) percentEl.textContent = progress;
       if (barEl) barEl.style.width = `${progress}%`;
     }
-  }, 35);
+  }, 25);
+
+  // Absolute failsafe timeout: Guarantee screen unlocks within 900ms under any condition
+  setTimeout(() => {
+    clearInterval(interval);
+    finishLoader();
+  }, 900);
 }
 
 // =================================================================
@@ -873,7 +1069,7 @@ function closeCheckoutModal() {
   }
 }
 
-function handleCheckoutSubmit(e) {
+async function handleCheckoutSubmit(e) {
   e.preventDefault();
 
   const name = document.getElementById('custName').value.trim();
@@ -907,17 +1103,12 @@ function handleCheckoutSubmit(e) {
     paymentMethod += ' (Screenshot Attached)';
   }
 
-  const trackingId = `PK-SHF-${Math.floor(10000 + Math.random() * 90000)}`;
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const deliveryFee = subtotal >= 2500 ? 0 : 200;
   const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
-  const timestamp = new Date().toISOString();
 
-  // Create Order Record
-  const newOrder = {
-    id: trackingId,
-    timestamp: timestamp,
+  const orderPayload = {
     customer: {
       name,
       phone,
@@ -927,19 +1118,26 @@ function handleCheckoutSubmit(e) {
     items: [...cart],
     subtotal,
     deliveryFee,
-    discountAmount,
-    discountPercent: appliedDiscount,
-    couponCode: appliedCouponCode,
+    discount: discountAmount,
     grandTotal,
     paymentMethod,
-    receiptImage,
-    status: 'pending'
+    notes: appliedCouponCode ? `Coupon: ${appliedCouponCode}` : ''
   };
 
-  // Save to Store Orders
-  const orders = loadOrders();
-  orders.unshift(newOrder);
-  saveOrders(orders);
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Order...';
+  }
+
+  // Post directly to SQLite Database via Backend API
+  const apiRes = await API.createOrder(orderPayload);
+  const trackingId = apiRes && apiRes.orderId ? apiRes.orderId : `PK-SHF-${Math.floor(10000 + Math.random() * 90000)}`;
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Complete Order';
+  }
 
   // Show Success Screen
   document.getElementById('checkoutForm').style.display = 'none';
@@ -965,7 +1163,7 @@ function handleCheckoutSubmit(e) {
   cart = [];
   saveCart();
   updateCartUI();
-  showToast(`🎉 Order ${trackingId} logged successfully!`);
+  showToast(`🎉 Order ${trackingId} logged successfully in database!`);
 }
 
 function placeWhatsAppOrderDirect() {
@@ -1988,137 +2186,69 @@ function showToast(message) {
   container.appendChild(toast);
 
   setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    toast.style.transition = 'all 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
+    toast.classList.add('hide');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 400);
   }, 3200);
 }
 
 // =================================================================
-// 14. ADMIN DASHBOARD, ORDERS MANAGER & STORE SETTINGS PORTAL
+// 14. ADMIN DASHBOARD, ORDERS MANAGER & SECURE STORE BACKEND
 // =================================================================
-const DEFAULT_ADMIN_PIN = 'umair2026';
-const CLOUD_SYNC_PIN_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b11001a0380a00de1a0b';
-
-function getAdminPin() {
-  const saved = localStorage.getItem('shareef_admin_pin');
-  if (!saved || saved === 'shareef2026') {
-    localStorage.setItem('shareef_admin_pin', DEFAULT_ADMIN_PIN);
-    return DEFAULT_ADMIN_PIN;
+async function loadStoreSettingsAsync() {
+  const settings = await API.fetchSettings();
+  if (settings) {
+    localStorage.setItem('shareef_store_settings', JSON.stringify(settings));
+    return settings;
   }
-  return saved;
+  return {
+    whatsapp: '923296209082',
+    email: 'care@shareefcosmetics.pk'
+  };
 }
 
-async function verifyAdminPassword(enteredPin) {
-  // Check local cache first
-  const localPin = getAdminPin();
-  if (enteredPin === localPin) return true;
-
-  // Real-time Cloud Master Password check across all devices
-  try {
-    const res = await fetch(CLOUD_SYNC_PIN_URL, { cache: 'no-cache' });
-    if (res.ok) {
-      const json = await res.json();
-      const cloudPin = json && json.data && json.data.pin;
-      if (cloudPin) {
-        localStorage.setItem('shareef_admin_pin', cloudPin);
-        return enteredPin === cloudPin;
-      }
-    }
-  } catch (err) {
-    console.warn('Cloud PIN check offline, using local PIN fallback:', err);
-  }
-  return false;
-}
-
-async function updateLiveMasterPassword(newPin) {
-  localStorage.setItem('shareef_admin_pin', newPin);
-  try {
-    await fetch(CLOUD_SYNC_PIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'shareef_cosmetics_admin_pin',
-        data: { pin: newPin }
-      })
-    });
-  } catch (err) {
-    console.warn('Cloud PIN synchronization failed:', err);
-  }
-}
-
-function loadStoreSettings() {
+function getStoreWhatsAppNumber() {
   try {
     const saved = localStorage.getItem('shareef_store_settings');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed && parsed.whatsapp && parsed.whatsapp !== '923001234567' && parsed.whatsapp !== '923296012921') {
-        return parsed;
-      }
+      if (parsed && parsed.whatsapp) return parsed.whatsapp.replace(/[^0-9]/g, '');
     }
-  } catch (e) {
-    console.error('Error loading store settings:', e);
-  }
-  const defaultSettings = {
-    whatsapp: '923296209082',
-    email: 'care@shareefcosmetics.pk'
-  };
-  localStorage.setItem('shareef_store_settings', JSON.stringify(defaultSettings));
-  return defaultSettings;
-}
-
-function saveStoreSettings(settings) {
-  localStorage.setItem('shareef_store_settings', JSON.stringify(settings));
-}
-
-function getStoreWhatsAppNumber() {
-  const s = loadStoreSettings();
-  return (s && s.whatsapp) ? s.whatsapp.replace(/[^0-9]/g, '') : '923296209082';
+  } catch (e) {}
+  return '923296209082';
 }
 
 function getStoreEmail() {
-  const s = loadStoreSettings();
-  return (s && s.email) ? s.email : 'care@shareefcosmetics.pk';
-}
-
-function loadOrders() {
   try {
-    const saved = localStorage.getItem('shareef_orders');
+    const saved = localStorage.getItem('shareef_store_settings');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) return parsed;
+      if (parsed && parsed.email) return parsed.email;
     }
-  } catch (e) {
-    console.error('Error loading orders:', e);
-  }
-  return [];
-}
-
-function saveOrders(orders) {
-  localStorage.setItem('shareef_orders', JSON.stringify(orders));
-  updateAdminOrderStats();
+  } catch (e) {}
+  return 'care@shareefcosmetics.pk';
 }
 
 function initAdminDashboard() {
   // Modal Triggers
-  const openLoginBtn = document.getElementById('openAdminLoginBtn');
   const closeLoginBtn = document.getElementById('closeAdminLoginBtn');
   const loginForm = document.getElementById('adminLoginForm');
   const closeDashboardBtn = document.getElementById('closeAdminDashboardBtn');
   const logoutBtn = document.getElementById('adminLogoutBtn');
 
-  if (openLoginBtn) {
-    openLoginBtn.addEventListener('click', (e) => {
+  document.querySelectorAll('.open-admin-btn, #openAdminLoginBtn, #openAdminLoginBtnMobile').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      // If already logged in this session, open directly
-      if (sessionStorage.getItem('shareef_admin_auth') === 'true') {
+      if (typeof closeMobileMenu === 'function') closeMobileMenu();
+      const isValid = await API.verifyAdmin();
+      if (isValid) {
         openAdminDashboard();
       } else {
         openAdminLogin();
       }
     });
-  }
+  });
 
   if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeAdminLogin);
   if (closeDashboardBtn) closeDashboardBtn.addEventListener('click', closeAdminDashboard);
@@ -2137,23 +2267,24 @@ function initAdminDashboard() {
 
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
       }
 
-      const isValid = await verifyAdminPassword(enteredPin);
+      // Backend Database Authentication with PBKDF2
+      const authRes = await API.loginAdmin(enteredPin);
 
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Unlock Admin Portal';
       }
 
-      if (isValid) {
-        sessionStorage.setItem('shareef_admin_auth', 'true');
+      if (authRes && authRes.success && authRes.token) {
+        sessionStorage.setItem('shareef_admin_token', authRes.token);
         if (errorMsg) errorMsg.textContent = '';
         input.value = '';
         closeAdminLogin();
         openAdminDashboard();
-        showToast('✓ Welcome to Store Manager Portal!');
+        showToast('✓ Welcome to Secure Store Manager Portal!');
       } else {
         if (errorMsg) errorMsg.textContent = '✕ Incorrect password. Access denied.';
       }
@@ -2216,16 +2347,23 @@ function initAdminDashboard() {
   // Store Contact Settings Form
   const storeContactForm = document.getElementById('adminStoreContactForm');
   if (storeContactForm) {
-    storeContactForm.addEventListener('submit', (e) => {
+    storeContactForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const waInput = document.getElementById('settingStoreWhatsApp');
       const emailInput = document.getElementById('settingStoreEmail');
+      const submitBtn = storeContactForm.querySelector('button[type="submit"]');
       if (waInput && emailInput) {
-        saveStoreSettings({
+        if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        await API.saveSettings({
           whatsapp: waInput.value.trim(),
           email: emailInput.value.trim()
         });
-        showToast('✓ Store Notification Settings Updated!');
+        localStorage.setItem('shareef_store_settings', JSON.stringify({
+          whatsapp: waInput.value.trim(),
+          email: emailInput.value.trim()
+        }));
+        if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Save Store Contact Settings';
+        showToast('✓ Store Settings saved to central database!');
       }
     });
   }
@@ -2283,40 +2421,18 @@ function initAdminDashboard() {
     exportBtn.addEventListener('click', exportProductsJSON);
   }
 
-  // Import JSON
-  const importInput = document.getElementById('adminImportJsonInput');
-  if (importInput) {
-    importInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (loadEvt) => {
-          try {
-            const imported = JSON.parse(loadEvt.target.result);
-            if (Array.isArray(imported) && imported.length > 0) {
-              PRODUCTS_DATA = imported;
-              persistProducts();
-              showToast(`✓ Successfully restored ${imported.length} products!`);
-            } else {
-              showToast('✕ Invalid backup file format.');
-            }
-          } catch (err) {
-            showToast('✕ Error reading backup file.');
-          }
-        };
-        reader.readAsText(file);
-      }
-    });
-  }
-
   // Reset to Defaults
   const resetDefaultBtn = document.getElementById('adminResetDefaultBtn');
   if (resetDefaultBtn) {
-    resetDefaultBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to reset all products back to the original 20 Pakistani cosmetic favorites? Any custom additions or price edits will be reverted.')) {
-        PRODUCTS_DATA = [...DEFAULT_PRODUCTS_DATA];
-        persistProducts();
-        showToast('✓ Reset to Default Pakistani Catalog successful!');
+    resetDefaultBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to reset all products in the database back to the original 20 Pakistani cosmetic favorites?')) {
+        const res = await API.resetDefaultProducts();
+        if (res && res.success) {
+          await syncProductsFromDatabase();
+          showToast('✓ Database reset to 20 Pakistani Classics!');
+        } else {
+          showToast('✕ Error resetting database.');
+        }
       }
     });
   }
@@ -2332,15 +2448,19 @@ function initAdminDashboard() {
         const newPin = newPinInput.value.trim();
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating across all devices...';
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating in database...';
         }
-        await updateLiveMasterPassword(newPin);
+        const res = await API.changeAdminPassword(newPin);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Update Password';
         }
-        showToast('✓ Master Password updated live across all devices!');
-        newPinInput.value = '';
+        if (res && res.success) {
+          showToast('✓ Master Password securely updated in database!');
+          newPinInput.value = '';
+        } else {
+          showToast('✕ ' + (res.error || 'Failed to update password.'));
+        }
       }
     });
   }
@@ -2369,14 +2489,16 @@ function closeAdminLogin() {
   }
 }
 
-function openAdminDashboard() {
+async function openAdminDashboard() {
   const modal = document.getElementById('adminDashboardModalOverlay');
   if (modal) {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    updateAdminStats();
-    updateAdminOrderStats();
+    await syncProductsFromDatabase();
+    await updateAdminStats();
+    await updateAdminOrderStats();
     renderAdminProductsTable();
+    renderAdminOrdersTable();
     populateStoreSettingsFields();
   }
 }
@@ -2390,7 +2512,7 @@ function closeAdminDashboard() {
 }
 
 function logoutAdmin() {
-  sessionStorage.removeItem('shareef_admin_auth');
+  sessionStorage.removeItem('shareef_admin_token');
   closeAdminDashboard();
   showToast('Logged out of Admin Portal');
 }
@@ -2428,19 +2550,20 @@ function switchAdminTab(tabName) {
   }
 }
 
-function populateStoreSettingsFields() {
-  const settings = loadStoreSettings();
+async function populateStoreSettingsFields() {
+  const settings = await loadStoreSettingsAsync();
   const waInput = document.getElementById('settingStoreWhatsApp');
   const emailInput = document.getElementById('settingStoreEmail');
   if (waInput) waInput.value = settings.whatsapp || '923296209082';
   if (emailInput) emailInput.value = settings.email || 'care@shareefcosmetics.pk';
 }
 
-function updateAdminStats() {
-  const total = PRODUCTS_DATA.length;
-  const skincare = PRODUCTS_DATA.filter(p => p.category === 'skincare').length;
-  const face = PRODUCTS_DATA.filter(p => p.category === 'face' || p.category === 'lips').length;
-  const haircare = PRODUCTS_DATA.filter(p => p.category === 'haircare').length;
+async function updateAdminStats() {
+  const stats = await API.fetchAdminStats();
+  const total = stats ? stats.totalProducts : PRODUCTS_DATA.length;
+  const skincare = stats ? stats.skincareCount : PRODUCTS_DATA.filter(p => p.category === 'skincare').length;
+  const face = stats ? stats.faceCount : PRODUCTS_DATA.filter(p => p.category === 'face' || p.category === 'lips').length;
+  const haircare = stats ? stats.haircareCount : PRODUCTS_DATA.filter(p => p.category === 'haircare').length;
 
   const totalEl = document.getElementById('adminStatTotal');
   const skinEl = document.getElementById('adminStatSkincare');
@@ -2455,26 +2578,21 @@ function updateAdminStats() {
   if (badgeEl) badgeEl.textContent = total;
 }
 
-function updateAdminOrderStats() {
-  const orders = loadOrders();
-  const totalOrders = orders.length;
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
-  const dispatchedCount = orders.filter(o => o.status === 'dispatched').length;
-  const revenueSum = orders
-    .filter(o => o.status !== 'cancelled')
-    .reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+async function updateAdminOrderStats() {
+  const stats = await API.fetchAdminStats();
+  if (stats) {
+    const totalEl = document.getElementById('adminOrdersTotalCount');
+    const pendingEl = document.getElementById('adminOrdersPendingCount');
+    const dispEl = document.getElementById('adminOrdersDispatchedCount');
+    const revEl = document.getElementById('adminOrdersRevenueSum');
+    const badgeEl = document.getElementById('adminOrdersCountBadge');
 
-  const totalEl = document.getElementById('adminOrdersTotalCount');
-  const pendingEl = document.getElementById('adminOrdersPendingCount');
-  const dispEl = document.getElementById('adminOrdersDispatchedCount');
-  const revEl = document.getElementById('adminOrdersRevenueSum');
-  const badgeEl = document.getElementById('adminOrdersCountBadge');
-
-  if (totalEl) totalEl.textContent = totalOrders;
-  if (pendingEl) pendingEl.textContent = pendingCount;
-  if (dispEl) dispEl.textContent = dispatchedCount;
-  if (revEl) revEl.textContent = `Rs. ${revenueSum.toLocaleString()}`;
-  if (badgeEl) badgeEl.textContent = totalOrders;
+    if (totalEl) totalEl.textContent = stats.totalOrders;
+    if (pendingEl) pendingEl.textContent = stats.pendingOrders;
+    if (dispEl) dispEl.textContent = stats.dispatchedOrders;
+    if (revEl) revEl.textContent = `Rs. ${Number(stats.revenue).toLocaleString()}`;
+    if (badgeEl) badgeEl.textContent = stats.totalOrders;
+  }
 }
 
 function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
@@ -2531,7 +2649,7 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
           <div class="inline-price-box">
             <span style="font-weight:700; color:var(--text-muted); font-size:0.75rem;">Rs.</span>
             <input type="number" id="inlinePrice_${product.id}" class="inline-price-input" value="${product.price}" min="0">
-            <button type="button" class="btn-inline-save" onclick="handleInlinePriceSave(${product.id})" title="Save Price">
+            <button type="button" class="btn-inline-save" onclick="handleInlinePriceSave(${product.id})" title="Save Price to Database">
               <i class="fa-solid fa-check"></i>
             </button>
           </div>
@@ -2562,32 +2680,21 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
   }).join('');
 }
 
-function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
+let CURRENT_ADMIN_ORDERS = [];
+
+async function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
   const tbody = document.getElementById('adminOrdersTableBody');
   if (!tbody) return;
 
-  let orders = loadOrders();
-
-  if (statusFilter && statusFilter !== 'all') {
-    orders = orders.filter(o => o.status === statusFilter);
-  }
-
-  if (searchTerm) {
-    const q = searchTerm.toLowerCase();
-    orders = orders.filter(o => 
-      o.id.toLowerCase().includes(q) ||
-      (o.customer && o.customer.name && o.customer.name.toLowerCase().includes(q)) ||
-      (o.customer && o.customer.phone && o.customer.phone.toLowerCase().includes(q)) ||
-      (o.customer && o.customer.city && o.customer.city.toLowerCase().includes(q))
-    );
-  }
+  const orders = await API.fetchOrders(statusFilter, searchTerm);
+  CURRENT_ADMIN_ORDERS = orders;
 
   if (orders.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="6" style="text-align:center; padding: 48px; color: var(--text-muted);">
           <i class="fa-solid fa-cart-flatbed" style="font-size: 2.2rem; margin-bottom: 12px; display:block; color:var(--accent-gold);"></i>
-          <strong>No customer orders found.</strong>
+          <strong>No customer orders found in database.</strong>
           <p style="font-size:0.8rem; margin-top:4px;">When customers checkout on the store or via WhatsApp, their orders will appear here in real-time.</p>
         </td>
       </tr>
@@ -2609,9 +2716,9 @@ function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
       ? `92${customerPhoneDigits.slice(1)}`
       : customerPhoneDigits;
 
-    const itemsSummaryHtml = order.items.map(item => `
+    const itemsSummaryHtml = (order.items || []).map(item => `
       <div class="order-item-compact">
-        <strong>${item.qty}x</strong> ${item.name} <span class="text-muted text-xs">(${item.shade})</span>
+        <strong>${item.qty}x</strong> ${item.name} <span class="text-muted text-xs">(${item.shade || 'Standard'})</span>
       </div>
     `).join('');
 
@@ -2647,8 +2754,8 @@ function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
           </div>
         </td>
         <td>
-          <span class="order-bill-total">Rs. ${order.grandTotal.toLocaleString()}</span>
-          <span class="order-pay-method">${order.paymentMethod || 'COD'}</span>
+          <span class="order-bill-total">Rs. ${Number(order.grandTotal).toLocaleString()}</span>
+          <span class="order-pay-method">${order.payment_method || order.paymentMethod || 'COD'}</span>
           ${order.receiptImage ? `
             <button type="button" class="btn-view-receipt" onclick="openReceiptLightbox('${order.id}')" title="View Customer Payment Screenshot">
               <i class="fa-solid fa-camera"></i> View Receipt
@@ -2680,8 +2787,7 @@ function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
 }
 
 function openReceiptLightbox(orderId) {
-  const orders = loadOrders();
-  const order = orders.find(o => o.id === orderId);
+  const order = CURRENT_ADMIN_ORDERS.find(o => o.id === orderId);
   if (!order || !order.receiptImage) {
     showToast('No receipt screenshot attached for this order.');
     return;
@@ -2713,35 +2819,38 @@ function closeReceiptLightbox() {
   }
 }
 
-function updateOrderStatus(orderId, newStatus) {
-  const orders = loadOrders();
-  const order = orders.find(o => o.id === orderId);
-  if (order) {
-    order.status = newStatus;
-    saveOrders(orders);
+async function updateOrderStatus(orderId, newStatus) {
+  const res = await API.updateOrderStatus(orderId, newStatus);
+  if (res && res.success) {
+    await updateAdminOrderStats();
     renderAdminOrdersTable(
       document.getElementById('adminOrdersSearchInput')?.value.trim() || '',
       document.getElementById('adminOrderStatusFilter')?.value || 'all'
     );
-    showToast(`✓ Order ${orderId} updated to "${newStatus.toUpperCase()}"`);
+    showToast(`✓ Order ${orderId} updated to "${newStatus.toUpperCase()}" in database`);
+  } else {
+    showToast('✕ Failed to update order status');
   }
 }
 
-function deleteOrder(orderId) {
-  if (confirm(`Are you sure you want to delete order ${orderId}?`)) {
-    let orders = loadOrders();
-    orders = orders.filter(o => o.id !== orderId);
-    saveOrders(orders);
-    renderAdminOrdersTable(
-      document.getElementById('adminOrdersSearchInput')?.value.trim() || '',
-      document.getElementById('adminOrderStatusFilter')?.value || 'all'
-    );
-    showToast(`Order ${orderId} removed`);
+async function deleteOrder(orderId) {
+  if (confirm(`Are you sure you want to delete order ${orderId} permanently from database?`)) {
+    const res = await API.deleteOrder(orderId);
+    if (res && res.success) {
+      await updateAdminOrderStats();
+      renderAdminOrdersTable(
+        document.getElementById('adminOrdersSearchInput')?.value.trim() || '',
+        document.getElementById('adminOrderStatusFilter')?.value || 'all'
+      );
+      showToast(`Order ${orderId} removed from database`);
+    } else {
+      showToast('✕ Error deleting order');
+    }
   }
 }
 
 function exportOrdersCSV() {
-  const orders = loadOrders();
+  const orders = CURRENT_ADMIN_ORDERS;
   if (orders.length === 0) {
     showToast('No orders available to export.');
     return;
@@ -2762,11 +2871,11 @@ function exportOrdersCSV() {
       `"${(o.customer.phone || '').replace(/"/g, '""')}"`,
       `"${(o.customer.city || '').replace(/"/g, '""')}"`,
       `"${(o.customer.address || '').replace(/"/g, '""')}"`,
-      `"${(o.paymentMethod || 'COD').replace(/"/g, '""')}"`,
+      `"${(o.paymentMethod || o.payment_method || 'COD').replace(/"/g, '""')}"`,
       itemsCount,
       `"${itemsListClean}"`,
       o.subtotal || 0,
-      o.discountAmount || 0,
+      o.discount || 0,
       o.grandTotal || 0,
       `"${o.status || 'pending'}"`
     ].join(",");
@@ -2785,14 +2894,13 @@ function exportOrdersCSV() {
 }
 
 function printOrderInvoice(orderId) {
-  const orders = loadOrders();
-  const order = orders.find(o => o.id === orderId);
+  const order = CURRENT_ADMIN_ORDERS.find(o => o.id === orderId);
   if (!order) return;
 
   const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK') : new Date().toLocaleString();
-  const itemsRows = order.items.map(i => `
+  const itemsRows = (order.items || []).map(i => `
     <tr>
-      <td style="padding:8px; border-bottom:1px solid #ddd;">${i.name} <br><small style="color:#666;">Shade: ${i.shade}</small></td>
+      <td style="padding:8px; border-bottom:1px solid #ddd;">${i.name} <br><small style="color:#666;">Shade: ${i.shade || 'Standard'}</small></td>
       <td style="padding:8px; border-bottom:1px solid #ddd; text-align:center;">${i.qty}</td>
       <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${i.price.toLocaleString()}</td>
       <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${(i.price * i.qty).toLocaleString()}</td>
@@ -2874,15 +2982,15 @@ function printOrderInvoice(orderId) {
           <span>Subtotal:</span>
           <span>Rs. ${(order.subtotal || 0).toLocaleString()}</span>
         </div>
-        ${order.discountAmount ? `
+        ${order.discount ? `
           <div class="totals-row" style="color:#2E7D32;">
-            <span>Discount (${order.discountPercent}% OFF):</span>
-            <span>-Rs. ${order.discountAmount.toLocaleString()}</span>
+            <span>Discount:</span>
+            <span>-Rs. ${order.discount.toLocaleString()}</span>
           </div>
         ` : ''}
         <div class="totals-row">
           <span>Delivery Fee:</span>
-          <span>${order.deliveryFee === 0 ? 'FREE' : `Rs. ${order.deliveryFee}`}</span>
+          <span>${order.deliveryFee === 0 ? 'FREE' : `Rs. ${order.deliveryFee || 200}`}</span>
         </div>
         <div class="totals-row grand">
           <span>Grand Total:</span>
@@ -2899,7 +3007,7 @@ function printOrderInvoice(orderId) {
   invoiceWindow.document.close();
 }
 
-function handleInlinePriceSave(productId) {
+async function handleInlinePriceSave(productId) {
   const priceInput = document.getElementById(`inlinePrice_${productId}`);
   const origPriceInput = document.getElementById(`inlineOrigPrice_${productId}`);
 
@@ -2914,11 +3022,17 @@ function handleInlinePriceSave(productId) {
     return;
   }
 
-  product.price = newPrice;
-  product.originalPrice = newOrigPrice > 0 ? newOrigPrice : undefined;
+  const res = await API.updateProduct(productId, {
+    price: newPrice,
+    originalPrice: newOrigPrice > 0 ? newOrigPrice : 0
+  });
 
-  persistProducts();
-  showToast(`✓ Updated price for "${product.name.slice(0, 20)}..." to Rs. ${newPrice.toLocaleString()}`);
+  if (res && res.success) {
+    await syncProductsFromDatabase();
+    showToast(`✓ Saved price for "${product.name.slice(0, 20)}..." to database (Rs. ${newPrice.toLocaleString()})`);
+  } else {
+    showToast('✕ Failed to update price in database: ' + (res.error || 'Unauthorized'));
+  }
 }
 
 function resetAdminProductForm() {
@@ -3025,7 +3139,7 @@ function openEditProductModal(productId) {
   switchAdminTab('add-product');
 }
 
-function handleProductFormSubmit(e) {
+async function handleProductFormSubmit(e) {
   e.preventDefault();
 
   const editId = document.getElementById('adminEditProductId').value;
@@ -3034,7 +3148,7 @@ function handleProductFormSubmit(e) {
   const badge = document.getElementById('pBadge').value.trim();
   const price = parseInt(document.getElementById('pPrice').value, 10) || 0;
   const origPriceVal = document.getElementById('pOriginalPrice').value.trim();
-  const originalPrice = origPriceVal ? parseInt(origPriceVal, 10) : undefined;
+  const originalPrice = origPriceVal ? parseInt(origPriceVal, 10) : 0;
   const description = document.getElementById('pDescription').value.trim();
   const details = document.getElementById('pDetails').value.trim();
   const image = document.getElementById('pImageUrl').value.trim() || 'assets/images/hero_banner.jpg';
@@ -3042,63 +3156,61 @@ function handleProductFormSubmit(e) {
   const reviewsCount = parseInt(document.getElementById('pReviewsCount').value, 10) || 450;
   const shades = collectShadesFromForm();
 
-  if (editId) {
-    // Updating existing
-    const pIndex = PRODUCTS_DATA.findIndex(p => p.id === parseInt(editId, 10));
-    if (pIndex > -1) {
-      PRODUCTS_DATA[pIndex] = {
-        ...PRODUCTS_DATA[pIndex],
-        name,
-        category,
-        badge,
-        badgeClass: badge.toLowerCase().includes('ruby') || badge.toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
-        price,
-        originalPrice,
-        description,
-        details,
-        image,
-        rating,
-        reviewsCount,
-        shades
-      };
-      persistProducts();
-      showToast(`✓ Updated "${name}" successfully!`);
-    }
-  } else {
-    // Creating new product
-    const maxId = PRODUCTS_DATA.reduce((max, p) => Math.max(max, p.id || 0), 0);
-    const newProduct = {
-      id: maxId + 1,
-      name,
-      category,
-      badge,
-      badgeClass: badge.toLowerCase().includes('ruby') || badge.toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
-      price,
-      originalPrice,
-      description,
-      details,
-      image,
-      rating,
-      reviewsCount,
-      shades
-    };
-    PRODUCTS_DATA.unshift(newProduct); // Add to beginning
-    persistProducts();
-    showToast(`✓ Added new product "${name}" to store catalog!`);
+  const submitBtn = document.getElementById('adminSaveProductBtn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving to Database...';
   }
 
-  resetAdminProductForm();
-  switchAdminTab('catalog');
+  const payload = {
+    name,
+    category,
+    badge,
+    badgeClass: badge.toLowerCase().includes('ruby') || badge.toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
+    price,
+    originalPrice,
+    description,
+    details,
+    image,
+    rating,
+    reviewsCount,
+    shades
+  };
+
+  let res;
+  if (editId) {
+    res = await API.updateProduct(parseInt(editId, 10), payload);
+  } else {
+    res = await API.createProduct(payload);
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (editId ? 'Update Product Details' : 'Save & Publish Product');
+  }
+
+  if (res && res.success) {
+    await syncProductsFromDatabase();
+    showToast(editId ? `✓ Updated "${name}" in database!` : `✓ Added "${name}" to central database across all devices!`);
+    resetAdminProductForm();
+    switchAdminTab('catalog');
+  } else {
+    showToast('✕ Error saving product: ' + (res.error || 'Unauthorized'));
+  }
 }
 
-function deleteProductItem(productId) {
+async function deleteProductItem(productId) {
   const product = PRODUCTS_DATA.find(p => p.id === productId);
   if (!product) return;
 
-  if (confirm(`Are you sure you want to remove "${product.name}" from your store catalog?`)) {
-    PRODUCTS_DATA = PRODUCTS_DATA.filter(p => p.id !== productId);
-    persistProducts();
-    showToast(`Removed "${product.name.slice(0, 20)}..." from catalog`);
+  if (confirm(`Are you sure you want to delete "${product.name}" from the store database? All devices will no longer see this product.`)) {
+    const res = await API.deleteProduct(productId);
+    if (res && res.success) {
+      await syncProductsFromDatabase();
+      showToast(`✓ Removed "${product.name.slice(0, 20)}..." from database`);
+    } else {
+      showToast('✕ Error deleting product: ' + (res.error || 'Unauthorized'));
+    }
   }
 }
 

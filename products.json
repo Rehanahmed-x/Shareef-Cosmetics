@@ -1,0 +1,466 @@
+[
+  {
+    "id": 1,
+    "name": "Pond's Bright Beauty Spot-less Glow Face Wash (100g)",
+    "category": "skincare",
+    "badge": "Pakistan Top Choice",
+    "badgeClass": "badge-gold",
+    "price": 480,
+    "originalPrice": 550,
+    "rating": 4.9,
+    "reviewsCount": 680,
+    "image": "assets/images/products/ponds_facewash.jpg",
+    "description": "Enriched with Vitamin B3+ formula, clinically proven to fade dark spots and remove dead skin cells for a radiant spot-less glowing skin.",
+    "details": "Vitamin B3+ Formula • Removes Dullness • Daily Cleanser",
+    "shades": [
+      {
+        "name": "100g Standard Pack",
+        "color": "#EB4B78"
+      },
+      {
+        "name": "50g Travel Pack",
+        "color": "#F6A4BA"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Pond's Moisturizing Cold Cream (100ml)",
+    "category": "skincare",
+    "badge": "Winter Classic",
+    "badgeClass": "",
+    "price": 390,
+    "originalPrice": 450,
+    "rating": 4.8,
+    "reviewsCount": 540,
+    "image": "assets/images/products/ponds_cold_cream.jpg",
+    "description": "The iconic deep moisturizer infused with vital moisture nutrients to protect against dry, rough skin and provide 24-hour softness.",
+    "details": "Rich Moisture • 24hr Nourishment • Soft Velvety Skin",
+    "shades": [
+      {
+        "name": "100ml Jar",
+        "color": "#325FAF"
+      },
+      {
+        "name": "55ml Tub",
+        "color": "#82A8E5"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Himalaya Purifying Neem Face Wash (150ml)",
+    "category": "skincare",
+    "badge": "Herbal Bestseller",
+    "badgeClass": "badge-gold",
+    "price": 650,
+    "originalPrice": 750,
+    "rating": 4.9,
+    "reviewsCount": 920,
+    "image": "assets/images/products/himalaya_neem_facewash.jpg",
+    "description": "Soap-free herbal formulation that clears impurities and prevents pimples with antibacterial Neem and purifying Turmeric.",
+    "details": "Neem & Turmeric • 100% Herbal Actives • Soap Free",
+    "shades": [
+      {
+        "name": "150ml Value Pump",
+        "color": "#2E7D32"
+      },
+      {
+        "name": "100ml Tube",
+        "color": "#66BB6A"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Himalaya Herbals Nourishing Skin Cream (100ml)",
+    "category": "skincare",
+    "badge": "All Day Hydration",
+    "badgeClass": "",
+    "price": 420,
+    "originalPrice": 500,
+    "rating": 4.8,
+    "reviewsCount": 390,
+    "image": "assets/images/products/himalaya_skin_cream.jpg",
+    "description": "Light and non-greasy daily use cream enriched with Aloe Vera and Winter Cherry to protect skin from pollution and dry weather.",
+    "details": "Aloe Vera & Ashwagandha • Non-Greasy • All Skin Types",
+    "shades": [
+      {
+        "name": "100ml Tub",
+        "color": "#00897B"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Saeed Ghani Pure Damask Rose Water Spray (Arq-e-Gulab 120ml)",
+    "category": "skincare",
+    "badge": "100% Natural Herbal",
+    "badgeClass": "badge-gold",
+    "price": 280,
+    "originalPrice": 350,
+    "rating": 5.0,
+    "reviewsCount": 1150,
+    "image": "assets/images/products/saeed_ghani_arq_e_gulab.jpg",
+    "description": "Traditional steam-distilled pure Damask rose water. Tones pores, balances skin pH, and refreshes the face instantly in Pakistani summers.",
+    "details": "Pure Steam Distilled • Zero Alcohol • Natural Pore Toner",
+    "shades": [
+      {
+        "name": "120ml Mist Spray",
+        "color": "#CD325A"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Saeed Ghani Mughziat 7 Natural Oils Hair Tonic (200ml)",
+    "category": "haircare",
+    "badge": "Heritage Favorite",
+    "badgeClass": "",
+    "price": 590,
+    "originalPrice": 700,
+    "rating": 4.9,
+    "reviewsCount": 780,
+    "image": "assets/images/products/saeed_ghani_mughziat_oil.jpg",
+    "description": "Synergistic blend of 7 ancient herbal hair oils (Almond, Castor, Olive, Mustard, Sesame, Coconut & Clove) for extreme hair strength.",
+    "details": "7 Herbal Oils • Anti-Hairfall • Deep Scalp Nutrition",
+    "shades": [
+      {
+        "name": "200ml Family Bottle",
+        "color": "#4A2810"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Medora of London Matte Long-Lasting Lipstick (Original Pakistani Icon)",
+    "category": "lips",
+    "badge": "National Classic",
+    "badgeClass": "badge-gold",
+    "price": 350,
+    "originalPrice": 420,
+    "rating": 4.9,
+    "reviewsCount": 1420,
+    "image": "assets/images/products/medora_lipstick.jpg",
+    "description": "Pakistan most cherished vintage lipstick brand. Rich pigmentation, non-bleeding formula, and velvety finish trusted by generations of Pakistani brides.",
+    "details": "Creamy Velvet Matte • 12hr Color Stay • Made in Swat/Pakistan",
+    "shades": [
+      {
+        "name": "Red Devil #501",
+        "color": "#A31024"
+      },
+      {
+        "name": "Gypsy Rust #518",
+        "color": "#8C3823"
+      },
+      {
+        "name": "Romantic Pink #544",
+        "color": "#D84A78"
+      },
+      {
+        "name": "Sweet Brown #552",
+        "color": "#6E3628"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Medora Semi-Matte Moisture Kiss Lipstick",
+    "category": "lips",
+    "badge": "Vintage Best Value",
+    "badgeClass": "",
+    "price": 330,
+    "originalPrice": 380,
+    "rating": 4.8,
+    "reviewsCount": 490,
+    "image": "assets/images/products/medora_moisture_lipstick.jpg",
+    "description": "Infused with rich emollients and vitamin E to provide silky glide and vibrant opaque color without drying delicate lips.",
+    "details": "Long-wearing Matte • Vitamin E Enriched • Original Swatch",
+    "shades": [
+      {
+        "name": "Caramel Toffee #212",
+        "color": "#AF6648"
+      },
+      {
+        "name": "True Ruby #201",
+        "color": "#B81432"
+      },
+      {
+        "name": "Soft Peach #228",
+        "color": "#DF7D67"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Medora Flawless Matte Compact Face Powder with Puff",
+    "category": "face",
+    "badge": "Daily Staple",
+    "badgeClass": "",
+    "price": 320,
+    "originalPrice": 400,
+    "rating": 4.7,
+    "reviewsCount": 510,
+    "image": "assets/images/products/medora_compact_powder.jpg",
+    "description": "Silk micro-powder designed to control sweat and shine while giving lightweight buildable coverage for everyday Pakistani college and work wear.",
+    "details": "Mirror & Puff Included • Oil Absorption • Pocket Friendly",
+    "shades": [
+      {
+        "name": "Natural Light #01",
+        "color": "#F6E4D3"
+      },
+      {
+        "name": "Warm Wheatish #02",
+        "color": "#E4C3A3"
+      },
+      {
+        "name": "Medium Olive #03",
+        "color": "#CE9F72"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Rivaj UK HD Matte Mineral Sunblock SPF 60 (100ml)",
+    "category": "skincare",
+    "badge": "Summer Must-Have",
+    "badgeClass": "badge-gold",
+    "price": 950,
+    "originalPrice": 1200,
+    "rating": 4.9,
+    "reviewsCount": 880,
+    "image": "assets/images/products/rivaj_mineral_sunblock.jpg",
+    "description": "Broad spectrum UVA/UVB mineral sun protection formulated for Pakistan hot climate. Sweat-resistant with zero white cast and smooth matte finish.",
+    "details": "SPF 60 PA+++ • Zinc Oxide Mineral Filter • Water Resistant",
+    "shades": [
+      {
+        "name": "100ml Tube (Universal)",
+        "color": "#F08C14"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "name": "Rivaj UK Deep Cleansing Charcoal Peel-Off Black Mask (100ml)",
+    "category": "skincare",
+    "badge": "Pore Detox",
+    "badgeClass": "",
+    "price": 450,
+    "originalPrice": 580,
+    "rating": 4.8,
+    "reviewsCount": 620,
+    "image": "assets/images/products/rivaj_charcoal_mask.jpg",
+    "description": "Activated bamboo charcoal formula that deeply extracts blackheads, unclogs congested pores, and removes facial excess sebum.",
+    "details": "Activated Charcoal • Removes Blackheads • Tightens Pores",
+    "shades": [
+      {
+        "name": "100ml Black Gel Tube",
+        "color": "#282828"
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "name": "Golden Rose Velvet Matte Lipstick Crayon",
+    "category": "lips",
+    "badge": "Trending Beauty",
+    "badgeClass": "",
+    "price": 1150,
+    "originalPrice": 1400,
+    "rating": 4.9,
+    "reviewsCount": 380,
+    "image": "assets/images/products/golden_rose_velvet_lipstick.jpg",
+    "description": "Ultra-creamy matte lipstick crayon that glides effortlessly on lips with precise contouring definition. Non-drying and highly pigmented.",
+    "details": "Velvet Matte Finish • Enriched with Vitamin E • Dermatologically Tested",
+    "shades": [
+      {
+        "name": "Nude Rose #16",
+        "color": "#A5464B"
+      },
+      {
+        "name": "Deep Burgundy #02",
+        "color": "#6A1E2B"
+      },
+      {
+        "name": "Warm Terracotta #24",
+        "color": "#B85842"
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "name": "Christine High Precision Oil-Control Compact Powder",
+    "category": "face",
+    "badge": "Pro Coverage",
+    "badgeClass": "",
+    "price": 680,
+    "originalPrice": 850,
+    "rating": 4.8,
+    "reviewsCount": 490,
+    "image": "assets/images/products/christine_compact_powder.jpg",
+    "description": "Micro-fine pressed powder that locks foundation in place for 12+ hours without caking. Blurs pores and absorbs oil in humid Karachi and Lahore weather.",
+    "details": "High Definition • Velvet Texture • Includes Luxury Mirror",
+    "shades": [
+      {
+        "name": "Ivory #91",
+        "color": "#F5E4D5"
+      },
+      {
+        "name": "Natural Beige #93",
+        "color": "#E5CCA9"
+      },
+      {
+        "name": "Honey Wheat #95",
+        "color": "#D4B38A"
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "name": "Christine Shiny Pearl Single Velvet Eyeshadow & Highlighter",
+    "category": "face",
+    "badge": "Shimmer Glow",
+    "badgeClass": "",
+    "price": 420,
+    "originalPrice": 550,
+    "rating": 4.7,
+    "reviewsCount": 310,
+    "image": "assets/images/products/christine_eyeshadow.jpg",
+    "description": "High-sparkle metallic single eyeshadow pot that doubles as an ultra-radiant cheekbone highlighter. Buttery smooth and easy to blend.",
+    "details": "Intense Pigment • Multi-use Glow • Travel Friendly Single Pot",
+    "shades": [
+      {
+        "name": "Champagne Gold #12",
+        "color": "#D8B47E"
+      },
+      {
+        "name": "Rose Gold Glow #08",
+        "color": "#E29D8D"
+      },
+      {
+        "name": "Bronze Copper #19",
+        "color": "#A75C37"
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "name": "Tibet Snow Iconic Herbal Skin Beauty Cream (Original)",
+    "category": "skincare",
+    "badge": "Pakistani Legend",
+    "badgeClass": "badge-gold",
+    "price": 250,
+    "originalPrice": 300,
+    "rating": 4.9,
+    "reviewsCount": 1650,
+    "image": "assets/images/products/tibet_snow_cream.jpg",
+    "description": "Pakistan most legendary vanishing cream since 1950. Absorbs oil instantly, leaves a matte snow-fresh radiance, and soothes sensitive skin.",
+    "details": "Original Since 1950 • Vanishing Matte Formula • Heritage Skin Treatment",
+    "shades": [
+      {
+        "name": "50g Vintage Glass Jar",
+        "color": "#DDE9F0"
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "name": "Bio Alma Organic Pure Herbal Ubtan Paste for Bridal Glow (150g)",
+    "category": "skincare",
+    "badge": "Bridal Special",
+    "badgeClass": "badge-gold",
+    "price": 480,
+    "originalPrice": 600,
+    "rating": 4.9,
+    "reviewsCount": 640,
+    "image": "assets/images/products/bio_alma_ubtan.jpg",
+    "description": "Traditional Ayurvedic Mayun & Mehndi formula infused with pure Turmeric, Sandalwood, Saffron, and Almond flour for radiant Pakistani bridal glow.",
+    "details": "Real Turmeric & Sandalwood • 100% Organic • Bridal Radiance",
+    "shades": [
+      {
+        "name": "150g Ready-to-Apply Jar",
+        "color": "#E6A817"
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "name": "Hemani 100% Pure Organic Cold-Pressed Castor Oil (100ml)",
+    "category": "haircare",
+    "badge": "Pure Organic",
+    "badgeClass": "",
+    "price": 520,
+    "originalPrice": 650,
+    "rating": 4.8,
+    "reviewsCount": 420,
+    "image": "assets/images/products/hemani_castor_oil.jpg",
+    "description": "Cold-pressed pure Ricinus Communis oil rich in ricinoleic acid for rapid eyebrow, eyelash, and scalp hair follicle growth and density.",
+    "details": "Cold-Pressed • Eyebrow & Hair Thickener • Hexane Free",
+    "shades": [
+      {
+        "name": "100ml Bottle",
+        "color": "#B48228"
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "name": "Hemani Herbal Tea Tree Blemish Clearing Serum (30ml)",
+    "category": "skincare",
+    "badge": "Anti-Acne Herbal",
+    "badgeClass": "badge-gold",
+    "price": 950,
+    "originalPrice": 1250,
+    "rating": 4.9,
+    "reviewsCount": 340,
+    "image": "assets/images/products/hemani_tea_tree_serum.jpg",
+    "description": "Concentrated 100% natural Australian tea tree oil and willow bark extract to target breakouts, reduce redness, and refine enlarged pores.",
+    "details": "Pure Tea Tree Oil • Anti-Blemish • Lightweight Absorption",
+    "shades": [
+      {
+        "name": "30ml Dropper Bottle",
+        "color": "#286E3C"
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "name": "Care Honey & Almond Nourishing Body Lotion (200ml)",
+    "category": "skincare",
+    "badge": "Winter Care Staple",
+    "badgeClass": "",
+    "price": 380,
+    "originalPrice": 480,
+    "rating": 4.8,
+    "reviewsCount": 520,
+    "image": "assets/images/products/care_honey_lotion.jpg",
+    "description": "Deep penetrating daily body lotion packed with pure Honey and Almond oil extracts to restore dry skin elasticity and all-day smoothness.",
+    "details": "Real Honey & Almonds • 24-Hour Softness • Non-Sticky Formula",
+    "shades": [
+      {
+        "name": "200ml Pump Bottle",
+        "color": "#DC961E"
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Glow & Lovely Advanced Multivitamin Daily Glow Cream (50g)",
+    "category": "face",
+    "badge": "Multivitamin Glow",
+    "badgeClass": "",
+    "price": 320,
+    "originalPrice": 390,
+    "rating": 4.8,
+    "reviewsCount": 1240,
+    "image": "assets/images/products/glow_and_lovely_cream.jpg",
+    "description": "Clinically tested with Vitamin B3, Vitamin C, and Vitamin E to even out skin tone, reduce sun spots, and provide sun protection with a matte glow.",
+    "details": "Vitamin B3, C & E • SPF 15 Sun Protection • Matte Radiant Glow",
+    "shades": [
+      {
+        "name": "50g Daily Tube",
+        "color": "#E13C6E"
+      }
+    ]
+  }
+]

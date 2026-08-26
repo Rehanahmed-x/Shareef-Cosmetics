@@ -462,24 +462,41 @@ const API = {
     }
   },
   async fetchProducts() {
-    if (this.isGitHubStatic()) {
-      const local = localStorage.getItem('shareef_custom_catalog');
-      if (local) {
-        try { return JSON.parse(local); } catch(e){}
-      }
-      return DEFAULT_PRODUCTS_DATA;
+    // 1. If backend API or custom cloud URL is active
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl) {
+      try {
+        const res = await fetch(`${baseUrl}/api/products`, { cache: 'no-cache' });
+        if (res.ok) {
+          const json = await this.parseResponse(res);
+          if (json && json.success && Array.isArray(json.data)) {
+            return json.data;
+          }
+        }
+      } catch (e) {}
     }
+
+    // 2. Fetch live products.json directly from GitHub Pages repository
     try {
-      const res = await fetch(`${this.getBaseUrl()}/api/products`, { cache: 'no-cache' });
+      const res = await fetch(`products.json?v=${Date.now()}`, { cache: 'no-cache' });
       if (res.ok) {
-        const json = await this.parseResponse(res);
-        if (json && json.success && Array.isArray(json.data)) {
-          return json.data;
+        const json = await res.json();
+        if (Array.isArray(json) && json.length > 0) {
+          const local = localStorage.getItem('shareef_custom_catalog');
+          if (local) {
+            try {
+              const localParsed = JSON.parse(local);
+              if (Array.isArray(localParsed) && localParsed.length > json.length) {
+                return localParsed;
+              }
+            } catch(e){}
+          }
+          return json;
         }
       }
-    } catch (e) {
-      console.warn('Backend API offline, using local fallback:', e);
-    }
+    } catch (e) {}
+
+    // 3. Local storage or default fallback
     const local = localStorage.getItem('shareef_custom_catalog');
     if (local) {
       try { return JSON.parse(local); } catch(e){}
@@ -3582,10 +3599,10 @@ function exportProductsJSON() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PRODUCTS_DATA, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `shareef_cosmetics_catalog_backup_${new Date().toISOString().slice(0,10)}.json`);
+  downloadAnchor.setAttribute("download", "products.json");
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
-  showToast('✓ Catalog backup file downloaded!');
+  showToast('✓ "products.json" downloaded! Upload it to GitHub to sync all phones worldwide.');
 }
 

@@ -370,6 +370,12 @@ const DEFAULT_PRODUCTS_DATA = [
 // 2. FULL-STACK DATABASE & REST API CLIENT
 // =================================================================
 const API = {
+  getBaseUrl() {
+    if (window.location.protocol === 'file:') {
+      return 'http://localhost:5000';
+    }
+    return '';
+  },
   getAuthToken() {
     return sessionStorage.getItem('shareef_admin_token') || '';
   },
@@ -382,7 +388,7 @@ const API = {
   },
   async fetchProducts() {
     try {
-      const res = await fetch('/api/products', { cache: 'no-cache' });
+      const res = await fetch(`${this.getBaseUrl()}/api/products`, { cache: 'no-cache' });
       if (res.ok) {
         const json = await res.json();
         if (json && json.success && Array.isArray(json.data)) {
@@ -395,41 +401,62 @@ const API = {
     return DEFAULT_PRODUCTS_DATA;
   },
   async createProduct(productData) {
-    const res = await fetch('/api/products', {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(productData)
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/products`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(productData)
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error' };
+    }
   },
   async updateProduct(id, productData) {
-    const res = await fetch(`/api/products/${id}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(productData)
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/products/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(productData)
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error' };
+    }
   },
   async deleteProduct(id) {
-    const res = await fetch(`/api/products/${id}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders()
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/products/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error' };
+    }
   },
   async loginAdmin(password) {
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
-    });
-    return res.json();
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch(`${this.getBaseUrl()}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return await res.json();
+    } catch (e) {
+      console.error('Admin login error:', e);
+      return { success: false, error: e.name === 'AbortError' ? 'Connection timeout. Please check server.' : (e.message || 'Unable to connect to server. Please run run_server.bat') };
+    }
   },
   async verifyAdmin() {
     const token = this.getAuthToken();
     if (!token) return false;
     try {
-      const res = await fetch('/api/admin/verify', {
+      const res = await fetch(`${this.getBaseUrl()}/api/admin/verify`, {
         headers: this.getAuthHeaders()
       });
       return res.ok;
@@ -438,19 +465,23 @@ const API = {
     }
   },
   async changeAdminPassword(newPassword) {
-    const res = await fetch('/api/admin/change-password', {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ new_password: newPassword })
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/admin/change-password`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ new_password: newPassword })
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error' };
+    }
   },
   async fetchOrders(status = 'all', search = '') {
     const params = new URLSearchParams();
     if (status && status !== 'all') params.append('status', status);
     if (search) params.append('q', search);
     try {
-      const res = await fetch(`/api/orders?${params.toString()}`, {
+      const res = await fetch(`${this.getBaseUrl()}/api/orders?${params.toString()}`, {
         headers: this.getAuthHeaders()
       });
       if (res.ok) {
@@ -463,28 +494,36 @@ const API = {
     return [];
   },
   async updateOrderStatus(orderId, newStatus) {
-    const res = await fetch(`/api/orders/${orderId}/status`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ status: newStatus })
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ status: newStatus })
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error' };
+    }
   },
   async deleteOrder(orderId) {
-    const res = await fetch(`/api/orders/${orderId}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders()
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error' };
+    }
   },
   async createOrder(orderPayload) {
     try {
-      const res = await fetch('/api/orders', {
+      const res = await fetch(`${this.getBaseUrl()}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)
       });
-      return res.json();
+      return await res.json();
     } catch (e) {
       console.error('Order creation failed:', e);
       return { success: false, error: e.message };
@@ -492,7 +531,7 @@ const API = {
   },
   async fetchAdminStats() {
     try {
-      const res = await fetch('/api/admin/stats', {
+      const res = await fetch(`${this.getBaseUrl()}/api/admin/stats`, {
         headers: this.getAuthHeaders()
       });
       if (res.ok) {
@@ -503,26 +542,34 @@ const API = {
     return null;
   },
   async resetDefaultProducts() {
-    const res = await fetch('/api/admin/reset-defaults', {
-      method: 'POST',
-      headers: this.getAuthHeaders()
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/admin/reset-defaults`, {
+        method: 'POST',
+        headers: this.getAuthHeaders()
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   },
   async fetchSettings() {
     try {
-      const res = await fetch('/api/settings');
+      const res = await fetch(`${this.getBaseUrl()}/api/settings`);
       if (res.ok) return (await res.json()).data;
     } catch(e) {}
     return null;
   },
   async saveSettings(settings) {
-    const res = await fetch('/api/settings', {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(settings)
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/settings`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(settings)
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
   }
 };
 
@@ -2269,24 +2316,32 @@ function initAdminDashboard() {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
       }
+      if (errorMsg) errorMsg.textContent = '';
 
-      // Backend Database Authentication with PBKDF2
-      const authRes = await API.loginAdmin(enteredPin);
+      try {
+        // Backend Database Authentication with PBKDF2
+        const authRes = await API.loginAdmin(enteredPin);
 
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Unlock Admin Portal';
-      }
-
-      if (authRes && authRes.success && authRes.token) {
-        sessionStorage.setItem('shareef_admin_token', authRes.token);
-        if (errorMsg) errorMsg.textContent = '';
-        input.value = '';
-        closeAdminLogin();
-        openAdminDashboard();
-        showToast('✓ Welcome to Secure Store Manager Portal!');
-      } else {
-        if (errorMsg) errorMsg.textContent = '✕ Incorrect password. Access denied.';
+        if (authRes && authRes.success && authRes.token) {
+          sessionStorage.setItem('shareef_admin_token', authRes.token);
+          if (errorMsg) errorMsg.textContent = '';
+          input.value = '';
+          closeAdminLogin();
+          await openAdminDashboard();
+          showToast('✓ Welcome to Secure Store Manager Portal!');
+        } else {
+          if (errorMsg) {
+            errorMsg.textContent = authRes && authRes.error ? `✕ ${authRes.error}` : '✕ Incorrect password. Access denied.';
+          }
+        }
+      } catch (err) {
+        console.error('Login form error:', err);
+        if (errorMsg) errorMsg.textContent = '✕ Server connection error. Please make sure server is running.';
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i> Unlock Admin Portal';
+        }
       }
     });
   }

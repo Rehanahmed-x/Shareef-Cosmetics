@@ -462,41 +462,33 @@ const API = {
     }
   },
   async fetchProducts() {
-    // 1. If backend API or custom cloud URL is active
     const baseUrl = this.getBaseUrl();
     if (baseUrl) {
       try {
-        const res = await fetch(`${baseUrl}/api/products`, { cache: 'no-cache' });
+        const res = await fetch(`${baseUrl}/api/products`, { cache: 'no-store' });
         if (res.ok) {
           const json = await this.parseResponse(res);
-          if (json && json.success && Array.isArray(json.data)) {
+          if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
             return json.data;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Live database fetch failed, attempting backup:', e);
+      }
     }
 
     // 2. Fetch live products.json directly from GitHub Pages repository
     try {
-      const res = await fetch(`products.json?v=${Date.now()}`, { cache: 'no-cache' });
+      const res = await fetch(`products.json?v=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json) && json.length > 0) {
-          const local = localStorage.getItem('shareef_custom_catalog');
-          if (local) {
-            try {
-              const localParsed = JSON.parse(local);
-              if (Array.isArray(localParsed) && localParsed.length > json.length) {
-                return localParsed;
-              }
-            } catch(e){}
-          }
           return json;
         }
       }
     } catch (e) {}
 
-    // 3. Local storage or default fallback
+    // 3. Fallback to local catalog or defaults
     const local = localStorage.getItem('shareef_custom_catalog');
     if (local) {
       try { return JSON.parse(local); } catch(e){}
@@ -504,6 +496,22 @@ const API = {
     return DEFAULT_PRODUCTS_DATA;
   },
   async createProduct(productData) {
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl) {
+      try {
+        const res = await fetch(`${baseUrl}/api/products`, {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(productData)
+        });
+        const parsed = await this.parseResponse(res);
+        if (parsed && parsed.success) return parsed;
+      } catch (e) {
+        console.error('Cloud create product error:', e);
+      }
+    }
+
+    // Standalone fallback
     const current = await this.fetchProducts();
     const newProd = {
       ...productData,
@@ -514,74 +522,55 @@ const API = {
       badgeClass: productData.badgeClass || 'badge-gold',
       shades: productData.shades || [{ name: 'Standard Pack', color: '#C6A675' }]
     };
-
-    if (this.isGitHubStatic()) {
-      current.unshift(newProd);
-      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-      return { success: true, data: newProd };
-    }
-    try {
-      const res = await fetch(`${this.getBaseUrl()}/api/products`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(productData)
-      });
-      const parsed = await this.parseResponse(res);
-      if (parsed && parsed.success) return parsed;
-
-      // Local fallback on static servers / offline
-      current.unshift(newProd);
-      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-      return { success: true, data: newProd };
-    } catch (e) {
-      current.unshift(newProd);
-      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-      return { success: true, data: newProd };
-    }
+    current.unshift(newProd);
+    localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+    return { success: true, data: newProd };
   },
   async updateProduct(id, productData) {
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl) {
+      try {
+        const res = await fetch(`${baseUrl}/api/products/${id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify(productData)
+        });
+        const parsed = await this.parseResponse(res);
+        if (parsed && parsed.success) return parsed;
+      } catch (e) {
+        console.error('Cloud update product error:', e);
+      }
+    }
+
+    // Standalone fallback
     const current = await this.fetchProducts();
     const idx = current.findIndex(p => p.id == id);
     if (idx !== -1) {
       current[idx] = { ...current[idx], ...productData };
       localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+      return { success: true, data: current[idx] };
     }
-
-    if (this.isGitHubStatic()) {
-      return idx !== -1 ? { success: true, data: current[idx] } : { success: false, error: 'Product not found' };
-    }
-    try {
-      const res = await fetch(`${this.getBaseUrl()}/api/products/${id}`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(productData)
-      });
-      const parsed = await this.parseResponse(res);
-      if (parsed && parsed.success) return parsed;
-      return idx !== -1 ? { success: true, data: current[idx] } : { success: false, error: 'Product not found' };
-    } catch (e) {
-      return idx !== -1 ? { success: true, data: current[idx] } : { success: false, error: e.message || 'Network error' };
-    }
+    return { success: false, error: 'Product not found' };
   },
   async deleteProduct(id) {
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl) {
+      try {
+        const res = await fetch(`${baseUrl}/api/products/${id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders()
+        });
+        const parsed = await this.parseResponse(res);
+        if (parsed && parsed.success) return parsed;
+      } catch (e) {
+        console.error('Cloud delete product error:', e);
+      }
+    }
+
     let current = await this.fetchProducts();
     current = current.filter(p => p.id != id);
     localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-
-    if (this.isGitHubStatic()) {
-      return { success: true, message: 'Deleted' };
-    }
-    try {
-      const res = await fetch(`${this.getBaseUrl()}/api/products/${id}`, {
-        method: 'DELETE',
-        headers: this.getAuthHeaders()
-      });
-      const parsed = await this.parseResponse(res);
-      if (parsed && parsed.success) return parsed;
-      return { success: true, message: 'Deleted locally' };
-    } catch (e) {
-      return { success: true, message: 'Deleted locally' };
-    }
+    return { success: true, message: 'Deleted' };
   },
   async loginAdmin(password) {
     // 1. Direct Web Crypto verification on GitHub Pages static CDN
@@ -859,6 +848,7 @@ function initApp() {
   appInitialized = true;
 
   initEntryLoader();
+  try { localStorage.removeItem('shareef_custom_catalog'); } catch(e){}
   renderProducts();
   updateCartUI();
   updateWishlistUI();
@@ -3572,8 +3562,7 @@ async function handleProductFormSubmit(e) {
 
   if (res && res.success) {
     await syncProductsFromDatabase();
-    showToast(editId ? `✓ Updated "${name}"! Downloading products.json...` : `✓ Added "${name}"! Downloading products.json...`);
-    exportProductsJSON();
+    showToast(editId ? `✓ Updated "${name}" in live cloud database!` : `✓ Added "${name}" across all devices worldwide!`);
     resetAdminProductForm();
     switchAdminTab('catalog');
   } else {

@@ -462,6 +462,7 @@ const API = {
     }
   },
   async fetchProducts() {
+    let prods = null;
     const baseUrl = this.getBaseUrl();
     if (baseUrl) {
       try {
@@ -469,7 +470,7 @@ const API = {
         if (res.ok) {
           const json = await this.parseResponse(res);
           if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
-            return json.data;
+            prods = json.data;
           }
         }
       } catch (e) {
@@ -477,23 +478,40 @@ const API = {
       }
     }
 
-    // 2. Fetch live products.json directly from GitHub Pages repository
+    // 2. Fetch live products.json directly from repository
+    if (!prods) {
+      try {
+        const res = await fetch(`products.json?v=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && json.length > 0) {
+            prods = json;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 3. Fallback to defaults
+    if (!prods || prods.length === 0) {
+      prods = [...DEFAULT_PRODUCTS_DATA];
+    }
+
+    // Merge any custom test products stored locally that aren't already in catalog
     try {
-      const res = await fetch(`products.json?v=${Date.now()}`, { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        if (Array.isArray(json) && json.length > 0) {
-          return json;
+      const local = localStorage.getItem('shareef_custom_catalog');
+      if (local) {
+        const customList = JSON.parse(local);
+        if (Array.isArray(customList)) {
+          customList.forEach(cp => {
+            if (cp && cp.id && !prods.some(p => p.id === cp.id)) {
+              prods.unshift(cp);
+            }
+          });
         }
       }
-    } catch (e) {}
+    } catch(e) {}
 
-    // 3. Fallback to local catalog or defaults
-    const local = localStorage.getItem('shareef_custom_catalog');
-    if (local) {
-      try { return JSON.parse(local); } catch(e){}
-    }
-    return DEFAULT_PRODUCTS_DATA;
+    return prods;
   },
   async createProduct(productData) {
     const baseUrl = this.getBaseUrl();
@@ -848,7 +866,6 @@ function initApp() {
   appInitialized = true;
 
   initEntryLoader();
-  try { localStorage.removeItem('shareef_custom_catalog'); } catch(e){}
   renderProducts();
   updateCartUI();
   updateWishlistUI();
@@ -1000,7 +1017,7 @@ function renderProducts() {
         </button>
 
         <div class="product-image-wrap" onclick="openQuickView(${product.id})">
-          <img src="${product.image}" alt="${product.name}" class="product-img" loading="lazy">
+          <img src="${product.image}" alt="${product.name}" class="product-img" loading="lazy" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
           <button class="quick-view-overlay-btn" onclick="event.stopPropagation(); openQuickView(${product.id})">
             <i class="fa-solid fa-eye"></i> Quick View
           </button>
@@ -1191,7 +1208,7 @@ function updateCartUI() {
     } else {
       itemsContainer.innerHTML = cart.map((item, idx) => `
         <div class="cart-item" style="animation-delay: ${idx * 0.05}s;">
-          <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+          <img src="${item.image}" alt="${item.name}" class="cart-item-img" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
           <div class="cart-item-details">
             <h4 class="cart-item-title">${item.name}</h4>
             <span class="cart-item-shade"><i class="fa-solid fa-tag"></i> ${item.shade}</span>
@@ -1605,7 +1622,7 @@ function openQuickView(productId) {
 
   container.innerHTML = `
     <div class="qv-image-side" style="background:#FFF; display:flex; align-items:center; justify-content:center;">
-      <img src="${product.image}" alt="${product.name}" style="max-height:360px; object-fit:contain; background:#FFF;">
+      <img src="${product.image}" alt="${product.name}" style="max-height:360px; object-fit:contain; background:#FFF;" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
     </div>
     <div class="qv-details-side">
       <span class="product-category-tag">${product.category.toUpperCase()}</span>
@@ -2099,7 +2116,7 @@ function openWishlistModal() {
     } else {
       container.innerHTML = items.map(item => `
         <div class="bundle-item-row" style="padding: 12px 0;">
-          <img src="${item.image}" alt="${item.name}" style="background:#FFF; object-fit:contain;">
+          <img src="${item.image}" alt="${item.name}" style="background:#FFF; object-fit:contain;" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
           <div style="flex: 1;">
             <h4 style="font-size: 0.95rem; font-family: var(--font-serif);">${item.name}</h4>
             <span style="font-weight: 700; color: var(--text-primary); font-size: 0.9rem;">Rs. ${item.price.toLocaleString()}</span>
@@ -2172,7 +2189,7 @@ function initLiveSearch() {
       } else {
         searchDropdown.innerHTML = matches.map(p => `
           <div class="search-result-item" onclick="openQuickView(${p.id}); searchOverlay.classList.remove('active');">
-            <img src="${p.image}" alt="${p.name}" class="search-result-img" style="background:#FFF; object-fit:contain;">
+            <img src="${p.image}" alt="${p.name}" class="search-result-img" style="background:#FFF; object-fit:contain;" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
             <div>
               <strong style="font-size: 0.9rem; display: block;">${p.name}</strong>
               <span style="font-size: 0.8rem; color: var(--accent-gold-dark);">Rs. ${p.price.toLocaleString()} • ${p.category.toUpperCase()}</span>

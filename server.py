@@ -1245,5 +1245,75 @@ def run():
         httpd.server_close()
         print("[SERVER] Stopped.")
 
+# =====================================================================
+# 5. WSGI APPLICATION COMPATIBILITY FOR PYTHONANYWHERE
+# =====================================================================
+def application(environ, start_response):
+    init_database()
+    method = environ.get('REQUEST_METHOD', 'GET').upper()
+    path = environ.get('PATH_INFO', '/')
+    query = environ.get('QUERY_STRING', '')
+    path_with_query = f"{path}?{query}" if query else path
+
+    try:
+        content_length = int(environ.get('CONTENT_LENGTH', 0) or 0)
+    except (ValueError, TypeError):
+        content_length = 0
+
+    input_stream = environ.get('wsgi.input')
+    body_bytes = input_stream.read(content_length) if input_stream and content_length > 0 else b''
+
+    from io import BytesIO
+    raw_headers = []
+    for k, v in environ.items():
+        if k.startswith('HTTP_'):
+            header_name = k[5:].replace('_', '-').title()
+            raw_headers.append(f"{header_name}: {v}\r\n")
+        elif k in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
+            header_name = k.replace('_', '-').title()
+            raw_headers.append(f"{header_name}: {v}\r\n")
+
+    headers_text = "".join(raw_headers) + "\r\n"
+    full_input = f"{method} {path_with_query} HTTP/1.1\r\n{headers_text}".encode('utf-8') + body_bytes
+
+    class MockSocket:
+        def __init__(self, in_data):
+            self.rfile = BytesIO(in_data)
+            self.wfile = BytesIO()
+        def makefile(self, mode, *args, **kwargs):
+            if 'r' in mode:
+                return self.rfile
+            return self.wfile
+        def sendall(self, data):
+            self.wfile.write(data)
+        def close(self):
+            pass
+
+    mock_sock = MockSocket(full_input)
+    try:
+        ShareefAppHandler(mock_sock, ('127.0.0.1', 80), None)
+    except Exception:
+        pass
+
+    output_bytes = mock_sock.wfile.getvalue()
+    if b'\r\n\r\n' in output_bytes:
+        header_part, body_part = output_bytes.split(b'\r\n\r\n', 1)
+        lines = header_part.decode('latin1').split('\r\n')
+        status_line = lines[0]
+        status_code = status_line.split(' ', 2)[1] + ' ' + (status_line.split(' ', 2)[2] if len(status_line.split(' ', 2)) > 2 else 'OK')
+        headers_list = []
+        for h in lines[1:]:
+            if ':' in h:
+                hk, hv = h.split(':', 1)
+                headers_list.append((hk.strip(), hv.strip()))
+        start_response(status_code, headers_list)
+        return [body_part]
+    else:
+        start_response('200 OK', [('Content-Type', 'application/json'), ('Access-Control-Allow-Origin', '*')])
+        return [output_bytes]
+
+app = application
+wsgi_app = application
+
 if __name__ == '__main__':
     run()

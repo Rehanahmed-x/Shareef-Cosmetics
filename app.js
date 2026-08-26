@@ -399,9 +399,10 @@ async function setWebCryptoPassword(newPin) {
   }
 }
 
+const DEFAULT_CLOUD_API_URL = "https://shareefcosmetics.pythonanywhere.com";
+
 const API = {
   getBaseUrl() {
-    // Check if user set a custom live cloud backend in settings (e.g. Render/Railway)
     const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
     if (customApiUrl && customApiUrl.startsWith('http')) {
       return customApiUrl.replace(/\/$/, '');
@@ -411,23 +412,22 @@ const API = {
       if (window.location.protocol === 'file:') {
         return 'http://localhost:5000';
       }
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return window.location.port === '5000' ? '' : 'http://localhost:5000';
+      }
       if (window.location.hostname.includes('github.io')) {
-        // GitHub Pages static CDN
-        return '';
+        return DEFAULT_CLOUD_API_URL;
       }
       if (window.location.port && window.location.port !== '5000') {
         const host = window.location.hostname || 'localhost';
         return `http://${host}:5000`;
       }
     }
-    return '';
+    return DEFAULT_CLOUD_API_URL;
   },
   isGitHubStatic() {
-    if (typeof window !== 'undefined' && window.location) {
-      const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
-      if (customApiUrl && customApiUrl.startsWith('http')) return false;
-      return window.location.hostname.includes('github.io');
-    }
+    const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
+    if (customApiUrl && customApiUrl === 'static') return true;
     return false;
   },
   getAuthToken() {
@@ -3572,7 +3572,8 @@ async function handleProductFormSubmit(e) {
 
   if (res && res.success) {
     await syncProductsFromDatabase();
-    showToast(editId ? `✓ Updated "${name}" in database!` : `✓ Added "${name}" to central database across all devices!`);
+    showToast(editId ? `✓ Updated "${name}"! Downloading products.json...` : `✓ Added "${name}"! Downloading products.json...`);
+    exportProductsJSON();
     resetAdminProductForm();
     switchAdminTab('catalog');
   } else {

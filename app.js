@@ -487,17 +487,18 @@ const API = {
     return DEFAULT_PRODUCTS_DATA;
   },
   async createProduct(productData) {
+    const current = await this.fetchProducts();
+    const newProd = {
+      ...productData,
+      id: Date.now(),
+      rating: productData.rating || 5.0,
+      reviewsCount: productData.reviewsCount || 10,
+      badge: productData.badge || 'New Arrival',
+      badgeClass: productData.badgeClass || 'badge-gold',
+      shades: productData.shades || [{ name: 'Standard Pack', color: '#C6A675' }]
+    };
+
     if (this.isGitHubStatic()) {
-      const current = await this.fetchProducts();
-      const newProd = {
-        ...productData,
-        id: Date.now(),
-        rating: productData.rating || 5.0,
-        reviewsCount: productData.reviewsCount || 10,
-        badge: productData.badge || 'New',
-        badgeClass: productData.badgeClass || 'badge-gold',
-        shades: productData.shades || []
-      };
       current.unshift(newProd);
       localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
       return { success: true, data: newProd };
@@ -508,21 +509,29 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData)
       });
-      return await this.parseResponse(res);
+      const parsed = await this.parseResponse(res);
+      if (parsed && parsed.success) return parsed;
+
+      // Local fallback on static servers / offline
+      current.unshift(newProd);
+      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+      return { success: true, data: newProd };
     } catch (e) {
-      return { success: false, error: e.message || 'Network error' };
+      current.unshift(newProd);
+      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+      return { success: true, data: newProd };
     }
   },
   async updateProduct(id, productData) {
+    const current = await this.fetchProducts();
+    const idx = current.findIndex(p => p.id == id);
+    if (idx !== -1) {
+      current[idx] = { ...current[idx], ...productData };
+      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+    }
+
     if (this.isGitHubStatic()) {
-      const current = await this.fetchProducts();
-      const idx = current.findIndex(p => p.id === id);
-      if (idx !== -1) {
-        current[idx] = { ...current[idx], ...productData };
-        localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-        return { success: true, data: current[idx] };
-      }
-      return { success: false, error: 'Product not found' };
+      return idx !== -1 ? { success: true, data: current[idx] } : { success: false, error: 'Product not found' };
     }
     try {
       const res = await fetch(`${this.getBaseUrl()}/api/products/${id}`, {
@@ -530,16 +539,19 @@ const API = {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData)
       });
-      return await this.parseResponse(res);
+      const parsed = await this.parseResponse(res);
+      if (parsed && parsed.success) return parsed;
+      return idx !== -1 ? { success: true, data: current[idx] } : { success: false, error: 'Product not found' };
     } catch (e) {
-      return { success: false, error: e.message || 'Network error' };
+      return idx !== -1 ? { success: true, data: current[idx] } : { success: false, error: e.message || 'Network error' };
     }
   },
   async deleteProduct(id) {
+    let current = await this.fetchProducts();
+    current = current.filter(p => p.id != id);
+    localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+
     if (this.isGitHubStatic()) {
-      let current = await this.fetchProducts();
-      current = current.filter(p => p.id !== id);
-      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
       return { success: true, message: 'Deleted' };
     }
     try {
@@ -547,9 +559,11 @@ const API = {
         method: 'DELETE',
         headers: this.getAuthHeaders()
       });
-      return await this.parseResponse(res);
+      const parsed = await this.parseResponse(res);
+      if (parsed && parsed.success) return parsed;
+      return { success: true, message: 'Deleted locally' };
     } catch (e) {
-      return { success: false, error: e.message || 'Network error' };
+      return { success: true, message: 'Deleted locally' };
     }
   },
   async loginAdmin(password) {
@@ -2727,9 +2741,32 @@ function initAdminDashboard() {
       if (file) {
         const reader = new FileReader();
         reader.onload = (loadEvt) => {
-          const base64Url = loadEvt.target.result;
-          if (imageUrlInput) imageUrlInput.value = base64Url;
-          updateAdminImagePreview(base64Url);
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_DIM = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > MAX_DIM) {
+                height = Math.round((height * MAX_DIM) / width);
+                width = MAX_DIM;
+              }
+            } else {
+              if (height > MAX_DIM) {
+                width = Math.round((width * MAX_DIM) / height);
+                height = MAX_DIM;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.84);
+            if (imageUrlInput) imageUrlInput.value = optimizedBase64;
+            updateAdminImagePreview(optimizedBase64);
+          };
+          img.src = loadEvt.target.result;
         };
         reader.readAsDataURL(file);
       }

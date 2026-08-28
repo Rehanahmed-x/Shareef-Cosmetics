@@ -1404,10 +1404,10 @@ function updateCartUI() {
   if (progressFill) progressFill.style.width = `${progressPercent}%`;
   if (freeShippingMsg) {
     if (subtotal >= freeShippingThreshold) {
-      freeShippingMsg.innerHTML = '🎉 <strong>Mubarak!</strong> You unlocked <strong>FREE Express Delivery</strong> across Pakistan!';
+      freeShippingMsg.innerHTML = '🎉 <strong>Mubarak!</strong> You unlocked <strong>FREE Delivery</strong> (FREE in Lahore & on orders over Rs. 2,500)!';
     } else {
       const remaining = freeShippingThreshold - subtotal;
-      freeShippingMsg.innerHTML = `Add <strong>Rs. ${remaining.toLocaleString()}</strong> more for <strong>FREE Delivery</strong>!`;
+      freeShippingMsg.innerHTML = `Add <strong>Rs. ${remaining.toLocaleString()}</strong> more for <strong>FREE Delivery</strong> (FREE in Lahore)!`;
     }
   }
 
@@ -1510,19 +1510,20 @@ function applyPromoCode() {
 
   const code = input.value.trim().toUpperCase();
 
-  if (code === 'BEAUTY10') {
-    appliedDiscount = 10;
+  const couponRates = {
+    'GLOW5': 5,
+    'SILK10': 10,
+    'VELVET15': 15
+  };
+
+  if (couponRates[code]) {
+    appliedDiscount = couponRates[code];
     appliedCouponCode = code;
     feedback.style.color = 'var(--accent-success)';
-    feedback.textContent = '✓ 10% Discount applied successfully!';
-  } else if (code === 'SHAREEF20') {
-    appliedDiscount = 20;
-    appliedCouponCode = code;
-    feedback.style.color = 'var(--accent-success)';
-    feedback.textContent = '✓ VIP 20% Discount applied successfully!';
+    feedback.textContent = `✓ ${appliedDiscount}% Discount applied successfully!`;
   } else {
     feedback.style.color = 'var(--accent-ruby)';
-    feedback.textContent = '✕ Invalid promo code. Try BEAUTY10 or SHAREEF20';
+    feedback.textContent = '✕ Invalid or expired promo code';
     return;
   }
   updateCartUI();
@@ -1531,6 +1532,45 @@ function applyPromoCode() {
 // =================================================================
 // 7. CHECKOUT ENGINE & ORDER PROCESSING
 // =================================================================
+function updateCheckoutTotals() {
+  const coSubtotal = document.getElementById('coSubtotal');
+  const coDiscountRow = document.getElementById('coDiscountRow');
+  const coDiscount = document.getElementById('coDiscount');
+  const coShipping = document.getElementById('coShipping');
+  const coGrandTotal = document.getElementById('coGrandTotal');
+  const citySelect = document.getElementById('custCity');
+  const selectedCity = citySelect ? citySelect.value.trim().toLowerCase() : '';
+
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const isFreeDelivery = (selectedCity === 'lahore') && (subtotal >= 2500);
+  const deliveryFee = (isFreeDelivery || subtotal === 0) ? 0 : 200;
+  const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
+  const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
+
+  if (coSubtotal) coSubtotal.textContent = `Rs. ${subtotal.toLocaleString()}`;
+  if (coShipping) {
+    if (deliveryFee === 0 && subtotal > 0) {
+      coShipping.textContent = 'FREE (Lahore 2,500+)';
+      coShipping.style.color = 'var(--accent-success)';
+      coShipping.style.fontWeight = 'bold';
+    } else {
+      coShipping.textContent = `Rs. ${deliveryFee}`;
+      coShipping.style.color = '';
+      coShipping.style.fontWeight = '';
+    }
+  }
+  if (coGrandTotal) coGrandTotal.textContent = `Rs. ${grandTotal.toLocaleString()}`;
+
+  if (coDiscountRow && coDiscount) {
+    if (appliedDiscount > 0) {
+      coDiscountRow.style.display = 'flex';
+      coDiscount.textContent = `-Rs. ${discountAmount.toLocaleString()}`;
+    } else {
+      coDiscountRow.style.display = 'none';
+    }
+  }
+}
+
 function openCheckoutModal() {
   if (cart.length === 0) {
     showToast('Your Bag is empty! Please add products before checkout.');
@@ -1540,16 +1580,6 @@ function openCheckoutModal() {
 
   const modal = document.getElementById('checkoutModalOverlay');
   const preview = document.getElementById('checkoutItemsPreview');
-  const coSubtotal = document.getElementById('coSubtotal');
-  const coDiscountRow = document.getElementById('coDiscountRow');
-  const coDiscount = document.getElementById('coDiscount');
-  const coShipping = document.getElementById('coShipping');
-  const coGrandTotal = document.getElementById('coGrandTotal');
-
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const deliveryFee = subtotal >= 2500 ? 0 : 200;
-  const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
-  const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
   if (preview) {
     preview.innerHTML = cart.map(item => {
@@ -1564,18 +1594,14 @@ function openCheckoutModal() {
     }).join('');
   }
 
-  if (coSubtotal) coSubtotal.textContent = `Rs. ${subtotal.toLocaleString()}`;
-  if (coShipping) coShipping.textContent = deliveryFee === 0 ? 'FREE' : `Rs. ${deliveryFee}`;
-  if (coGrandTotal) coGrandTotal.textContent = `Rs. ${grandTotal.toLocaleString()}`;
-
-  if (coDiscountRow && coDiscount) {
-    if (appliedDiscount > 0) {
-      coDiscountRow.style.display = 'flex';
-      coDiscount.textContent = `-Rs. ${discountAmount.toLocaleString()}`;
-    } else {
-      coDiscountRow.style.display = 'none';
-    }
+  // Bind city selection listener to recalculate delivery fee
+  const citySelect = document.getElementById('custCity');
+  if (citySelect && !citySelect.dataset.listenerAttached) {
+    citySelect.addEventListener('change', updateCheckoutTotals);
+    citySelect.dataset.listenerAttached = 'true';
   }
+
+  updateCheckoutTotals();
 
   // Reset screen states
   document.getElementById('checkoutForm').style.display = 'grid';
@@ -1649,7 +1675,8 @@ async function handleCheckoutSubmit(e) {
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const deliveryFee = subtotal >= 2500 ? 0 : 200;
+  const isFreeDelivery = (city.trim().toLowerCase() === 'lahore') && (subtotal >= 2500);
+  const deliveryFee = isFreeDelivery ? 0 : 200;
   const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
@@ -1723,7 +1750,7 @@ function placeWhatsAppOrderDirect() {
   }
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const deliveryFee = subtotal >= 2500 ? 0 : 200;
+  const deliveryFee = 200;
   const discountAmount = Math.round(subtotal * (appliedDiscount / 100));
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
   const storePhone = getStoreWhatsAppNumber();
@@ -2907,7 +2934,7 @@ function setupEventListeners() {
     newsletterForm.addEventListener('submit', (e) => {
       e.preventDefault();
       newsletterMsg.style.color = 'var(--accent-gold-dark)';
-      newsletterMsg.textContent = '🎉 Mubarak! You are registered. Use code "SHAREEF20" for 20% off your first order.';
+      newsletterMsg.textContent = '🎉 Mubarak! You have been subscribed to exclusive VIP promotions.';
       newsletterForm.reset();
     });
   }
@@ -3636,6 +3663,44 @@ async function toggleProductStock(productId) {
   }
 }
 
+// Time formatting helper for Pakistan / Islamabad Timezone (PKT, UTC+5)
+function formatIslamabadTime(isoOrDbTimestamp, customOptions = {}) {
+  if (!isoOrDbTimestamp) return 'Just now';
+  let dateObj;
+  
+  if (typeof isoOrDbTimestamp === 'string') {
+    let cleanStr = isoOrDbTimestamp.trim();
+    if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}/.test(cleanStr)) {
+      cleanStr = cleanStr.replace(' ', 'T') + 'Z';
+    } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(cleanStr)) {
+      cleanStr = cleanStr + 'Z';
+    }
+    dateObj = new Date(cleanStr);
+  } else {
+    dateObj = new Date(isoOrDbTimestamp);
+  }
+
+  if (isNaN(dateObj.getTime())) {
+    dateObj = new Date(isoOrDbTimestamp);
+  }
+
+  if (isNaN(dateObj.getTime())) {
+    return String(isoOrDbTimestamp);
+  }
+
+  const defaultOptions = {
+    timeZone: 'Asia/Karachi', // Islamabad / Pakistan Standard Time (PKT, UTC+5)
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  };
+
+  return dateObj.toLocaleString('en-PK', { ...defaultOptions, ...customOptions });
+}
+
 let CURRENT_ADMIN_ORDERS = [];
 
 async function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
@@ -3659,13 +3724,7 @@ async function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
   }
 
   tbody.innerHTML = orders.map(order => {
-    const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }) : 'Just now';
+    const dateStr = formatIslamabadTime(order.timestamp);
 
     const customerPhoneDigits = (order.customer.phone || '').replace(/[^0-9]/g, '');
     const cleanWhatsAppPhone = customerPhoneDigits.startsWith('0')
@@ -3821,7 +3880,7 @@ function exportOrdersCSV() {
   csvContent += "Order ID,Date,Customer Name,Phone,City,Delivery Address,Payment Method,Items Count,Items List,Subtotal PKR,Discount PKR,Grand Total PKR,Status\n";
 
   orders.forEach(o => {
-    const dateStr = o.timestamp ? new Date(o.timestamp).toISOString().slice(0, 10) : '';
+    const dateStr = formatIslamabadTime(o.timestamp);
     const itemsListClean = (o.items || []).map(i => `${i.qty}x ${i.name} (${i.shade})`).join(' | ').replace(/"/g, '""');
     const itemsCount = (o.items || []).reduce((sum, i) => sum + i.qty, 0);
 
@@ -3858,7 +3917,7 @@ function printOrderInvoice(orderId) {
   const order = CURRENT_ADMIN_ORDERS.find(o => o.id === orderId);
   if (!order) return;
 
-  const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK') : new Date().toLocaleString();
+  const dateStr = formatIslamabadTime(order.timestamp, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const payMethod = order.paymentMethod || order.payment_method || 'Cash on Delivery (COD)';
   const isOnlinePaid = payMethod.toLowerCase().includes('jazzcash') || payMethod.toLowerCase().includes('online');
 

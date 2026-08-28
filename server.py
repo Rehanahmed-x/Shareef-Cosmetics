@@ -384,6 +384,16 @@ def init_database():
     )
     ''')
 
+    # Safe Schema Migrations for existing SQLite database
+    try:
+        cursor.execute("ALTER TABLE orders ADD COLUMN receipt_image TEXT DEFAULT ''")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE products ADD COLUMN sizes TEXT DEFAULT '[]'")
+    except Exception:
+        pass
+
     # Admin Users Table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS admin_users (
@@ -501,6 +511,12 @@ def format_product_row(row):
             d['shades'] = json.loads(d['shades'])
         except Exception:
             d['shades'] = []
+    # Parse sizes JSON string if present
+    if 'sizes' in d and isinstance(d['sizes'], str):
+        try:
+            d['sizes'] = json.loads(d['sizes'])
+        except Exception:
+            d['sizes'] = []
     # Map original_price to camelCase for frontend compatibility
     d['originalPrice'] = d.get('original_price', 0)
     d['reviewsCount'] = d.get('reviews_count', 0)
@@ -515,6 +531,12 @@ def format_order_row(row):
         except Exception:
             d['items'] = []
     d['grandTotal'] = d.get('grand_total', 0)
+    d['subtotal'] = d.get('subtotal', 0)
+    d['deliveryFee'] = d.get('delivery_fee', 200)
+    d['discount'] = d.get('discount', 0)
+    d['paymentMethod'] = d.get('payment_method') or 'Cash on Delivery (COD)'
+    d['payment_method'] = d['paymentMethod']
+    d['receiptImage'] = d.get('receipt_image') or ''
     d['customer'] = {
         'name': d.get('customer_name', ''),
         'phone': d.get('customer_phone', ''),
@@ -807,6 +829,7 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             image = body.get('image', '').strip() or 'assets/images/products/ponds_facewash.jpg'
             description = body.get('description', '').strip()
             shades = json.dumps(body.get('shades', []))
+            sizes = json.dumps(body.get('sizes', []))
             details = body.get('details', '').strip()
             rating = float(body.get('rating', 5.0))
             reviews_count = int(body.get('reviewsCount', 0))
@@ -821,11 +844,11 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             cursor.execute('''
             INSERT INTO products (
                 name, category, price, original_price, badge, badge_class,
-                rating, reviews_count, image, description, shades, details
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                rating, reviews_count, image, description, shades, sizes, details
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 name, category, price, original_price, badge, badge_class,
-                rating, reviews_count, image, description, shades, details
+                rating, reviews_count, image, description, shades, sizes, details
             ))
             new_id = cursor.lastrowid
             conn.commit()
@@ -878,7 +901,8 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             delivery_fee = int(body.get('deliveryFee', 200))
             discount = int(body.get('discount', 0))
             grand_total = int(body.get('grandTotal', subtotal + delivery_fee - discount))
-            payment_method = body.get('paymentMethod', 'cod')
+            payment_method = body.get('paymentMethod') or body.get('payment_method') or 'Cash on Delivery (COD)'
+            receipt_image = body.get('receiptImage') or body.get('receipt_image') or ''
             notes = body.get('notes', '')
 
             name = customer.get('name', '').strip()
@@ -897,11 +921,11 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             cursor.execute('''
             INSERT INTO orders (
                 id, customer_name, customer_phone, customer_email, customer_address, customer_city,
-                items_json, subtotal, delivery_fee, discount, grand_total, payment_method, status, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                items_json, subtotal, delivery_fee, discount, grand_total, payment_method, receipt_image, status, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 order_id, name, phone, customer.get('email', ''), address, city,
-                json.dumps(items), subtotal, delivery_fee, discount, grand_total, payment_method, 'pending', notes
+                json.dumps(items), subtotal, delivery_fee, discount, grand_total, payment_method, receipt_image, 'pending', notes
             ))
             conn.commit()
             
@@ -993,6 +1017,10 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
                 if 'shades' in body:
                     fields.append("shades = ?")
                     params.append(json.dumps(body['shades']))
+
+                if 'sizes' in body:
+                    fields.append("sizes = ?")
+                    params.append(json.dumps(body['sizes']))
 
                 if fields:
                     fields.append("updated_at = CURRENT_TIMESTAMP")

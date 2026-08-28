@@ -1478,16 +1478,104 @@
                   </div>
                 </div>
 
-                <!-- Dynamic Shades Builder -->
+                <!-- Packaging Sizes / Volume Variants (Admin Choice: None vs Custom Quantity vs Multiple Sizes) -->
                 <div class="form-group">
-                  <label><i class="fa-solid fa-palette"></i> Product Shades / Variants</label>
-                  <div class="admin-shades-builder">
-                    <div id="adminShadesList" class="admin-shades-list">
-                      <!-- Dynamic shade rows -->
-                    </div>
-                    <button type="button" class="btn-add-shade" id="adminAddShadeBtn">
-                      <i class="fa-solid fa-plus"></i> Add Another Shade / Variant
+                  <label><i class="fa-solid fa-flask text-gold"></i> Packaging Quantity / Volume & Pricing Option</label>
+                  <div class="admin-options-bar" id="adminSizeOptionsBar">
+                    <button type="button" class="admin-mode-pill active none-mode" id="adminSizeNoneBtn" onclick="setAdminSizeMode('none')">
+                      <i class="fa-solid fa-ban"></i> None (Single Standard Product)
                     </button>
+                    <button type="button" class="admin-mode-pill" id="adminSizeSingleCustomBtn" onclick="setAdminSizeMode('single-custom')">
+                      <i class="fa-solid fa-pen-to-square text-gold"></i> Custom Quantity (e.g. 50ml, 120g)
+                    </button>
+                    <button type="button" class="admin-mode-pill" id="adminSizeMultiBtn" onclick="setAdminSizeMode('multi')">
+                      <i class="fa-solid fa-boxes-stacked text-gold"></i> Multiple Sizes & Prices (50ml, 100ml)
+                    </button>
+                  </div>
+
+                  <!-- 1. Single Custom Quantity Input Section -->
+                  <div id="adminSingleCustomSizeSection" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 12px; margin-top: 6px;">
+                    <label for="pSingleCustomSize" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; display:block; font-weight:600;"><i class="fa-solid fa-pen-nib text-gold"></i> Custom Product Quantity / Volume Specification:</label>
+                    <input type="text" id="pSingleCustomSize" placeholder="e.g. 50ml Dropper, 75ml Jar, 120g Bottle, 250ml Family Pack...">
+                    <div class="qv-quick-tags" style="margin-top:6px;">
+                      <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">1-Click Quick Pick:</span>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('30ml')">30ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('50ml')">50ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('75ml')">75ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('100ml')">100ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('120g')">120g</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('150ml')">150ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('200ml')">200ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('250ml')">250ml</button>
+                      <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('500ml')">500ml</button>
+                      <button type="button" class="qv-tag-btn" style="color:#C62828;" onclick="setSingleCustomSizeVal('')">Clear</button>
+                    </div>
+                  </div>
+
+                  <!-- 2. Multiple Sizes & Pricing Builder Section -->
+                  <div id="adminMultiSizeSection" style="display: none;">
+                    <div style="margin-bottom: 8px;">
+                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">1-Click Add Size Variant:</span>
+                      <div class="admin-palette-grid">
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('50ml', 450)"><i class="fa-solid fa-plus text-gold"></i> 50ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('100ml', 850)"><i class="fa-solid fa-plus text-gold"></i> 100ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('150ml', 1150)"><i class="fa-solid fa-plus text-gold"></i> 150ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('200ml', 1450)"><i class="fa-solid fa-plus text-gold"></i> 200ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('250ml', 1750)"><i class="fa-solid fa-plus text-gold"></i> 250ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('500ml', 2400)"><i class="fa-solid fa-plus text-gold"></i> 500ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('1 Liter', 3800)"><i class="fa-solid fa-plus text-gold"></i> 1 Liter</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('100g', 550)"><i class="fa-solid fa-plus text-gold"></i> 100g</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('200g', 950)"><i class="fa-solid fa-plus text-gold"></i> 200g</button>
+                      </div>
+                    </div>
+
+                    <div class="admin-sizes-builder">
+                      <div id="adminSizesList" class="admin-sizes-list">
+                        <!-- Dynamic size rows populated by JS -->
+                      </div>
+                      <button type="button" class="btn-add-shade" id="adminAddSizeRowBtn" onclick="addAdminSizeRow('', '')">
+                        <i class="fa-solid fa-plus"></i> Add Custom Size & Price Row
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Product Shades / Variants (Admin Choice: None vs Multiple Shades) -->
+                <div class="form-group">
+                  <label><i class="fa-solid fa-palette text-gold"></i> Product Shading & Color Variants</label>
+                  <div class="admin-options-bar" id="adminShadeOptionsBar">
+                    <button type="button" class="admin-mode-pill active none-mode" id="adminShadeNoneBtn" onclick="setAdminShadeMode('none')">
+                      <i class="fa-solid fa-ban"></i> None (No Shading / Default Formulation)
+                    </button>
+                    <button type="button" class="admin-mode-pill" id="adminShadeCustomBtn" onclick="setAdminShadeMode('custom')">
+                      <i class="fa-solid fa-palette text-gold"></i> Add Multiple Shades & Swatches
+                    </button>
+                  </div>
+
+                  <div id="adminCustomShadeSection" style="display: none;">
+                    <!-- 1-Click Popular Pakistani Shades Palette -->
+                    <div style="margin-bottom: 8px;">
+                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">1-Click Add Shade Preset:</span>
+                      <div class="admin-palette-grid">
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Ivory 01', '#E8D0B3')"><span class="admin-color-dot" style="background:#E8D0B3;"></span> + Ivory 01</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Warm Natural 02', '#D8B28C')"><span class="admin-color-dot" style="background:#D8B28C;"></span> + Warm Natural</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Fair Glow', '#F3DFC8')"><span class="admin-color-dot" style="background:#F3DFC8;"></span> + Fair Glow</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('201 Ruby Surkh', '#881B2C')"><span class="admin-color-dot" style="background:#881B2C;"></span> + Ruby Surkh</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('238 Dusty Rose', '#B86B77')"><span class="admin-color-dot" style="background:#B86B77;"></span> + Dusty Rose</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('215 Mitti Nude', '#B37358')"><span class="admin-color-dot" style="background:#B37358;"></span> + Mitti Nude</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('242 Pink Velvet', '#D97587')"><span class="admin-color-dot" style="background:#D97587;"></span> + Pink Velvet</button>
+                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Champagne Gold', '#E6C896')"><span class="admin-color-dot" style="background:#E6C896;"></span> + Gold Shimmer</button>
+                      </div>
+                    </div>
+
+                    <div class="admin-shades-builder">
+                      <div id="adminShadesList" class="admin-shades-list">
+                        <!-- Dynamic shade rows -->
+                      </div>
+                      <button type="button" class="btn-add-shade" id="adminAddShadeBtn">
+                        <i class="fa-solid fa-plus"></i> Add Custom Shade Row
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -1684,6 +1772,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=17.0"></script>
+  <script src="app.js?v=21.0"></script>
 </body>
 </html>

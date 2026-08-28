@@ -998,16 +998,21 @@ function renderProducts() {
 
   grid.innerHTML = filtered.map(product => {
     const isWishlisted = wishlist.includes(product.id);
-    const swatchesHtml = product.shades.map((shade, idx) => `
-      <div class="swatch-dot ${idx === 0 ? 'active' : ''}" 
-           style="background-color: ${shade.color};" 
-           title="${shade.name}"
-           onclick="event.stopPropagation(); selectCardSwatch(${product.id}, '${shade.name}', this)">
+    const validCardShades = (product.shades || []).filter(s => s && s.name && s.name !== 'Standard Pack' && !s.name.toLowerCase().startsWith('none'));
+    const swatchesHtml = validCardShades.length > 0 ? `
+      <div class="swatches-row">
+        ${validCardShades.map((shade, idx) => `
+          <div class="swatch-dot ${idx === 0 ? 'active' : ''}" 
+               style="background-color: ${shade.color};" 
+               title="${shade.name}"
+               onclick="event.stopPropagation(); selectCardSwatch(${product.id}, '${shade.name.replace(/'/g, "\\'")}', this)">
+          </div>
+        `).join('')}
       </div>
-    `).join('');
+    ` : '';
 
     return `
-      <article class="product-card" data-id="${product.id}">
+      <article class="product-card" data-id="${product.id}" data-selected-shade="${validCardShades.length > 0 ? validCardShades[0].name : 'None'}">
         ${product.badge ? `<span class="product-card-badge ${product.badgeClass}">${product.badge}</span>` : ''}
         
         <button class="wishlist-card-btn ${isWishlisted ? 'active' : ''}" 
@@ -1019,7 +1024,7 @@ function renderProducts() {
         <div class="product-image-wrap" onclick="openQuickView(${product.id})">
           <img src="${product.image}" alt="${product.name}" class="product-img" loading="lazy" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
           <button class="quick-view-overlay-btn" onclick="event.stopPropagation(); openQuickView(${product.id})">
-            <i class="fa-solid fa-eye"></i> Quick View
+            <i class="fa-solid fa-eye"></i> Options & Quick View
           </button>
         </div>
 
@@ -1032,16 +1037,14 @@ function renderProducts() {
             <span>(${product.reviewsCount} reviews)</span>
           </div>
 
-          <div class="swatches-row">
-            ${swatchesHtml}
-          </div>
+          ${swatchesHtml}
 
           <div class="product-pricing">
             <div class="price-box">
               <span class="current-price">Rs. ${product.price.toLocaleString()}</span>
               ${product.originalPrice ? `<span class="old-price">Rs. ${product.originalPrice.toLocaleString()}</span>` : ''}
             </div>
-            <button class="btn-card-add" onclick="quickAddProduct(${product.id})" aria-label="Add to Bag" title="Add to Bag">
+            <button class="btn-card-add" onclick="event.stopPropagation(); quickAddFromCard(${product.id}, this)" aria-label="Add to Bag" title="Add to Bag">
               <i class="fa-solid fa-bag-shopping"></i>
             </button>
           </div>
@@ -1070,7 +1073,14 @@ function selectCardSwatch(productId, shadeName, el) {
   if (!card) return;
   card.querySelectorAll('.swatch-dot').forEach(d => d.classList.remove('active'));
   el.classList.add('active');
-  showToast(`Selected: ${shadeName}`);
+  card.dataset.selectedShade = shadeName;
+  showToast(shadeName === 'None' ? 'Selected: No Shade (Default)' : `Selected Shade: ${shadeName}`);
+}
+
+function quickAddFromCard(productId, btnEl) {
+  const card = btnEl ? btnEl.closest('.product-card') : null;
+  const shade = card && card.dataset.selectedShade ? card.dataset.selectedShade : 'None';
+  quickAddProduct(productId, shade, 'Standard', 1);
 }
 
 // =================================================================
@@ -1106,23 +1116,33 @@ function animateCartIcon() {
   }, 700);
 }
 
-function quickAddProduct(productId, customShade = null) {
+function quickAddProduct(productId, customShade, customVolume, units = 1, customPrice = null) {
   const product = PRODUCTS_DATA.find(p => p.id === productId);
   if (!product) return;
 
-  const shade = customShade || product.shades[0].name;
-  const existingIndex = cart.findIndex(item => item.id === productId && item.shade === shade);
+  const shade = customShade || 'None';
+  const volume = customVolume || 'Standard';
+  const addUnits = units > 0 ? units : 1;
+  const itemPrice = customPrice !== null && !isNaN(customPrice) && customPrice > 0 ? Number(customPrice) : Number(product.price);
+
+  const existingIndex = cart.findIndex(item => 
+    item.id === productId && 
+    (item.shade || 'None') === shade && 
+    (item.volume || 'Standard') === volume
+  );
 
   if (existingIndex > -1) {
-    cart[existingIndex].qty += 1;
+    cart[existingIndex].qty += addUnits;
+    cart[existingIndex].price = itemPrice;
   } else {
     cart.push({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: itemPrice,
       image: product.image,
       shade: shade,
-      qty: 1
+      volume: volume,
+      qty: addUnits
     });
   }
 
@@ -1130,7 +1150,10 @@ function quickAddProduct(productId, customShade = null) {
   updateCartUI();
   animateCartIcon();
   openCartDrawer();
-  showToast(`Added "${product.name.slice(0, 25)}..." to Bag!`);
+  
+  const shadeNotice = shade && shade !== 'None' && !shade.startsWith('None') ? ` (${shade})` : '';
+  const volNotice = volume && volume !== 'Standard' && volume !== 'None' ? ` [${volume}]` : '';
+  showToast(`Added ${addUnits > 1 ? addUnits + 'x ' : ''}"${product.name.slice(0, 22)}..."${shadeNotice}${volNotice} to Bag (Rs. ${itemPrice.toLocaleString()})!`);
 }
 
 function updateCartQty(index, change) {
@@ -1206,26 +1229,34 @@ function updateCartUI() {
         </div>
       `;
     } else {
-      itemsContainer.innerHTML = cart.map((item, idx) => `
-        <div class="cart-item" style="animation-delay: ${idx * 0.05}s;">
-          <img src="${item.image}" alt="${item.name}" class="cart-item-img" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
-          <div class="cart-item-details">
-            <h4 class="cart-item-title">${item.name}</h4>
-            <span class="cart-item-shade"><i class="fa-solid fa-tag"></i> ${item.shade}</span>
-            <span class="cart-item-price">Rs. ${(item.price * item.qty).toLocaleString()}</span>
-            <div class="cart-item-controls">
-              <div class="qty-stepper">
-                <button class="qty-btn" onclick="updateCartQty(${idx}, -1)" aria-label="Decrease quantity">-</button>
-                <span class="qty-val">${item.qty}</span>
-                <button class="qty-btn" onclick="updateCartQty(${idx}, 1)" aria-label="Increase quantity">+</button>
+      itemsContainer.innerHTML = cart.map((item, idx) => {
+        const displayShade = item.shade || 'None';
+        const displayVolume = item.volume || 'Standard';
+
+        return `
+          <div class="cart-item" style="animation-delay: ${idx * 0.05}s;">
+            <img src="${item.image}" alt="${item.name}" class="cart-item-img" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+            <div class="cart-item-details">
+              <h4 class="cart-item-title">${item.name}</h4>
+              <div class="cart-item-meta-tags">
+                <span class="cart-item-tag tag-shade"><i class="fa-solid fa-palette"></i> Shade: ${displayShade}</span>
+                <span class="cart-item-tag tag-volume"><i class="fa-solid fa-flask"></i> Size: ${displayVolume}</span>
               </div>
-              <button class="cart-item-remove" onclick="removeCartItem(${idx})" aria-label="Remove item">
-                <i class="fa-regular fa-trash-can"></i> Remove
-              </button>
+              <span class="cart-item-price">Rs. ${(item.price * item.qty).toLocaleString()}</span>
+              <div class="cart-item-controls">
+                <div class="qty-stepper">
+                  <button class="qty-btn" onclick="updateCartQty(${idx}, -1)" aria-label="Decrease quantity">-</button>
+                  <span class="qty-val">${item.qty}</span>
+                  <button class="qty-btn" onclick="updateCartQty(${idx}, 1)" aria-label="Increase quantity">+</button>
+                </div>
+                <button class="cart-item-remove" onclick="removeCartItem(${idx})" aria-label="Remove item">
+                  <i class="fa-regular fa-trash-can"></i> Remove
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
   }
 
@@ -1321,12 +1352,16 @@ function openCheckoutModal() {
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
   if (preview) {
-    preview.innerHTML = cart.map(item => `
-      <div class="co-item">
-        <span>${item.qty}x ${item.name} (${item.shade})</span>
-        <strong>Rs. ${(item.price * item.qty).toLocaleString()}</strong>
-      </div>
-    `).join('');
+    preview.innerHTML = cart.map(item => {
+      const shadeStr = item.shade && item.shade !== 'None' && !item.shade.startsWith('None') ? `Shade: ${item.shade}` : 'Shade: None';
+      const volStr = item.volume && item.volume !== 'Standard' && item.volume !== 'None' ? item.volume : 'Standard';
+      return `
+        <div class="co-item">
+          <span>${item.qty}x ${item.name} <small class="text-muted">(${shadeStr} | ${volStr})</small></span>
+          <strong>Rs. ${(item.price * item.qty).toLocaleString()}</strong>
+        </div>
+      `;
+    }).join('');
   }
 
   if (coSubtotal) coSubtotal.textContent = `Rs. ${subtotal.toLocaleString()}`;
@@ -1431,6 +1466,7 @@ async function handleCheckoutSubmit(e) {
     discount: discountAmount,
     grandTotal,
     paymentMethod,
+    receiptImage: receiptImage || null,
     notes: appliedCouponCode ? `Coupon: ${appliedCouponCode}` : ''
   };
 
@@ -1457,7 +1493,11 @@ async function handleCheckoutSubmit(e) {
 
   // Prepare WhatsApp message payload with configured store WhatsApp number
   const storePhone = getStoreWhatsAppNumber();
-  const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${(i.price * i.qty).toLocaleString()}`).join('\n');
+  const itemsText = cart.map(i => {
+    const shadeStr = i.shade && i.shade !== 'None' && !i.shade.startsWith('None') ? `Shade: ${i.shade}` : 'Shade: None';
+    const volStr = i.volume && i.volume !== 'Standard' && i.volume !== 'None' ? `Size: ${i.volume}` : 'Size: Standard';
+    return `• ${i.qty}x ${i.name} [${shadeStr} | ${volStr}] - Rs. ${(i.price * i.qty).toLocaleString()}`;
+  }).join('\n');
   const paymentNote = paymentMethod.includes('JazzCash') ? `${paymentMethod} (Receipt Screenshot Attached)` : paymentMethod;
   const rawMessage = `*Assalam-o-Alaikum Shareef Cosmetics!*\n\n*📦 New Order Placed:* ${trackingId}\n*👤 Customer:* ${name}\n*📞 Phone:* ${phone}\n*📍 City:* ${city}\n*🏠 Address:* ${address}\n*💳 Payment:* ${paymentNote}\n\n*🛍️ Items Ordered:*\n${itemsText}\n\n*💰 Total Amount:* Rs. ${grandTotal.toLocaleString()}\n\nPlease confirm my order & dispatch tracking. Shukriya!`;
 
@@ -1488,7 +1528,11 @@ function placeWhatsAppOrderDirect() {
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
   const storePhone = getStoreWhatsAppNumber();
 
-  const itemsText = cart.map(i => `• ${i.qty}x ${i.name} (${i.shade}) - Rs. ${(i.price * i.qty).toLocaleString()}`).join('%0A');
+  const itemsText = cart.map(i => {
+    const shadeStr = i.shade && i.shade !== 'None' && !i.shade.startsWith('None') ? `Shade: ${i.shade}` : 'Shade: None';
+    const volStr = i.volume && i.volume !== 'Standard' && i.volume !== 'None' ? `Size: ${i.volume}` : 'Size: Standard';
+    return `• ${i.qty}x ${i.name} [${shadeStr} | ${volStr}] - Rs. ${(i.price * i.qty).toLocaleString()}`;
+  }).join('%0A');
   const waMsg = `*Assalam-o-Alaikum Shareef Cosmetics!*%0A%0AI would like to place an instant order:%0A%0A*🛍️ Items in Bag:*%0A${itemsText}%0A%0A*💰 Total Bill:*%20Rs.%20${grandTotal.toLocaleString()}%0A%0APlease take my delivery address for Cash on Delivery.`;
 
   window.open(`https://wa.me/${storePhone}?text=${waMsg}`, '_blank');
@@ -1609,8 +1653,33 @@ function renderQuizRecommendation() {
 }
 
 // =================================================================
-// 9. PRODUCT QUICK VIEW MODAL
+// 9. PRODUCT QUICK VIEW MODAL & CUSTOM QUANTITY / SHADE ENGINE
 // =================================================================
+let qvState = {
+  productId: null,
+  shade: 'None',
+  volume: 'Standard',
+  isCustomVol: false,
+  customVolText: '',
+  units: 1,
+  unitPrice: 0
+};
+
+// Rich default Pakistani beauty palette for enriched shading choices
+const POPULAR_PAKISTANI_SHADES = [
+  { name: 'Fair Ivory (MM01)', color: '#F6DFCE' },
+  { name: 'Warm Natural (MM02)', color: '#E8C6A5' },
+  { name: 'Golden Beige (MM03)', color: '#DDB68F' },
+  { name: 'Honey Wheat #95', color: '#D4B38A' },
+  { name: '238 Dusty Rose', color: '#B86B77' },
+  { name: '201 Ruby Surkh', color: '#881B2C' },
+  { name: '215 Mitti Nude', color: '#B37358' },
+  { name: '242 Pink Velvet', color: '#D97587' },
+  { name: 'Nude Rose #16', color: '#A5464B' },
+  { name: 'Champagne Gold', color: '#E6C896' },
+  { name: 'Natural Beige #93', color: '#E5CCA9' }
+];
+
 function openQuickView(productId) {
   const product = PRODUCTS_DATA.find(p => p.id === productId);
   if (!product) return;
@@ -1618,75 +1687,238 @@ function openQuickView(productId) {
   const modal = document.getElementById('quickViewModalOverlay');
   const container = document.getElementById('quickViewContent');
 
-  let selectedShade = product.shades[0].name;
+  // 1. Dynamic Size & Price Detection: Supports objects { name: '50ml', price: 450 } or strings '50ml'
+  const productSizes = [];
+  if (product.sizes && Array.isArray(product.sizes)) {
+    product.sizes.forEach(s => {
+      if (typeof s === 'object' && s !== null && s.name && s.name !== 'None') {
+        productSizes.push({
+          name: String(s.name).trim(),
+          price: parseInt(s.price, 10) || product.price
+        });
+      } else if (typeof s === 'string' && s.trim() && s.trim() !== 'None') {
+        productSizes.push({
+          name: s.trim(),
+          price: product.price
+        });
+      }
+    });
+  }
+
+  // 2. Real Shade Detection: Only show if product actually has cosmetic shades configured
+  const productShades = [];
+  if (product.shades && Array.isArray(product.shades)) {
+    product.shades.forEach(s => {
+      if (s && s.name && s.name !== 'None' && s.name !== 'Standard Pack' && !s.name.toLowerCase().startsWith('none')) {
+        productShades.push(s);
+      }
+    });
+  }
+
+  const hasMultiSizes = productSizes.length > 0;
+  const hasShades = productShades.length > 0;
+  const initialSizeObj = hasMultiSizes ? productSizes[0] : { name: 'Standard', price: product.price };
+
+  // Initialize state
+  qvState = {
+    productId: product.id,
+    shade: hasShades ? productShades[0].name : 'None',
+    volume: initialSizeObj.name,
+    isCustomVol: false,
+    customVolText: '',
+    units: 1,
+    unitPrice: initialSizeObj.price
+  };
 
   container.innerHTML = `
-    <div class="qv-image-side" style="background:#FFF; display:flex; align-items:center; justify-content:center;">
+    <div class="qv-image-side" style="background:#FFF; display:flex; align-items:center; justify-content:center; position:relative;">
       <img src="${product.image}" alt="${product.name}" style="max-height:360px; object-fit:contain; background:#FFF;" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+      ${product.badge ? `<span class="product-card-badge ${product.badgeClass}" style="top:16px; left:16px;">${product.badge}</span>` : ''}
     </div>
     <div class="qv-details-side">
       <span class="product-category-tag">${product.category.toUpperCase()}</span>
-      <h3 class="product-title" style="font-size: 1.35rem; margin-bottom: 8px;">${product.name}</h3>
-      <div class="product-rating" style="margin-bottom: 14px;">
+      <h3 class="product-title" style="font-size: 1.35rem; margin-bottom: 6px;">${product.name}</h3>
+      <div class="product-rating" style="margin-bottom: 12px;">
         ${getStarRatingHtml(product.rating)}
         <span>(${product.reviewsCount} Customer Reviews)</span>
       </div>
       
-      <div class="product-pricing" style="border: none; padding: 0; margin-bottom: 16px;">
+      <div class="product-pricing" style="border: none; padding: 0; margin-bottom: 14px;">
         <div class="price-box">
-          <span class="current-price" style="font-size: 1.5rem;">Rs. ${product.price.toLocaleString()}</span>
+          <span class="current-price" style="font-size: 1.5rem;">Rs. ${initialSizeObj.price.toLocaleString()}</span>
           ${product.originalPrice ? `<span class="old-price">Rs. ${product.originalPrice.toLocaleString()}</span>` : ''}
         </div>
       </div>
 
-      <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 18px;">
+      <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
         ${product.description}
       </p>
 
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">
-          Select Option / Shade: <span id="qvShadeNameLabel" style="color: var(--accent-gold-dark);">${selectedShade}</span>
-        </label>
-        <div class="swatches-row" id="qvSwatchesRow">
-          ${product.shades.map((s, idx) => `
-            <div class="swatch-dot ${idx === 0 ? 'active' : ''}" 
-                 style="background-color: ${s.color}; width: 26px; height: 26px;" 
-                 title="${s.name}"
-                 onclick="selectQuickViewSwatch('${s.name}', this)">
-            </div>
-          `).join('')}
+      <!-- 1. PACKAGING QUANTITY / SIZE (Rendered only if product has multiple sizes) -->
+      ${hasMultiSizes ? `
+        <div style="margin-bottom: 16px;">
+          <div class="qv-section-title">
+            <span><i class="fa-solid fa-flask text-gold"></i> Select Size / Volume:</span>
+            <span class="qv-badge-val" id="qvVolBadge">${initialSizeObj.name} (Rs. ${initialSizeObj.price.toLocaleString()})</span>
+          </div>
+
+          <div class="qv-options-bar" id="qvVolumeBar">
+            ${productSizes.map((sizeObj, idx) => `
+              <button type="button" class="qv-pill-btn ${idx === 0 ? 'active' : ''}" onclick="selectQuickViewVolume('${sizeObj.name.replace(/'/g, "\\'")}', ${sizeObj.price}, this)">
+                <i class="fa-solid fa-flask text-gold"></i> ${sizeObj.name} <span style="font-weight:700; color:var(--accent-gold-dark); margin-left:4px;">Rs. ${sizeObj.price.toLocaleString()}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 2. SHADING / SHADES BAR (Rendered only if product has shades) -->
+      ${hasShades ? `
+        <div style="margin-bottom: 16px;">
+          <div class="qv-section-title">
+            <span><i class="fa-solid fa-palette text-gold"></i> Select Shade:</span>
+            <span class="qv-badge-val" id="qvShadeBadge">${productShades[0].name}</span>
+          </div>
+
+          <div class="qv-swatches-grid" id="qvShadesGrid">
+            ${productShades.map((s, idx) => `
+              <div class="qv-swatch-item ${idx === 0 ? 'active' : ''}" onclick="selectQuickViewShade('${s.name.replace(/'/g, "\\'")}', this)" title="${s.name}">
+                <span class="qv-swatch-circle" style="background-color: ${s.color};"></span>
+                <span>${s.name}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Live Selection Summary Bar -->
+      <div class="qv-summary-bar">
+        <div>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">SELECTION:</span>
+          <div class="qv-summary-chips" id="qvSummaryChips">
+            ${hasShades ? `<span class="qv-chip" id="qvSumShadeChip"><i class="fa-solid fa-palette text-gold"></i> Shade: ${productShades[0].name}</span>` : ''}
+            ${hasMultiSizes ? `<span class="qv-chip" id="qvSumVolChip"><i class="fa-solid fa-flask text-gold"></i> Size: ${initialSizeObj.name}</span>` : ''}
+            ${!hasShades && !hasMultiSizes ? `<span class="qv-chip"><i class="fa-solid fa-check text-gold"></i> Standard Pack (100% Genuine)</span>` : ''}
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 2px;">SUBTOTAL:</span>
+          <strong id="qvSubtotalAmount" style="color: var(--text-primary); font-size: 1.05rem;">Rs. ${initialSizeObj.price.toLocaleString()}</strong>
         </div>
       </div>
 
-      <div style="background: var(--bg-secondary); padding: 12px; border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted); margin-bottom: 20px;">
-        <i class="fa-solid fa-truck-fast text-gold"></i> 100% Genuine Guaranteed • Fast 2-3 Day Nationwide Delivery via TCS / Pakistan Post (COD Available)
-      </div>
+      <!-- Quantity Stepper & Add to Bag -->
+      <div class="qv-qty-controls-row">
+        <div class="qv-qty-stepper">
+          <button type="button" class="qv-qty-btn" onclick="updateQuickViewUnits(-1)" aria-label="Decrease quantity">-</button>
+          <span class="qv-qty-val" id="qvUnitsVal">1</span>
+          <button type="button" class="qv-qty-btn" onclick="updateQuickViewUnits(1)" aria-label="Increase quantity">+</button>
+        </div>
 
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <button class="btn-luxury-primary w-100" id="qvAddToCartBtn">
+        <button class="btn-luxury-primary" id="qvAddToCartBtn" style="flex: 1; justify-content: center;" onclick="handleQuickViewAddToCart()">
           <i class="fa-solid fa-bag-shopping"></i> Add to Beauty Bag
         </button>
-        <button type="button" class="btn-luxury-outline w-100" style="padding: 10px 16px; font-size: 0.82rem; border-color: var(--border-medium); justify-content: center; background: transparent; cursor: pointer;" onclick="openReviewModalForProduct(${product.id})">
-          <i class="fa-solid fa-pen-to-square text-gold"></i> Write a Review for this Product
-        </button>
       </div>
+
+      <button type="button" class="btn-luxury-outline w-100" style="padding: 9px 16px; font-size: 0.8rem; border-color: var(--border-medium); justify-content: center; background: transparent; cursor: pointer;" onclick="openReviewModalForProduct(${product.id})">
+        <i class="fa-solid fa-pen-to-square text-gold"></i> Write a Customer Review for this Product
+      </button>
     </div>
   `;
-
-  document.getElementById('qvAddToCartBtn').onclick = () => {
-    quickAddProduct(product.id, selectedShade);
-    closeQuickView();
-  };
 
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
+function selectQuickViewVolume(sizeName, sizePrice, btnEl) {
+  const bar = document.getElementById('qvVolumeBar');
+  if (bar) {
+    bar.querySelectorAll('.qv-pill-btn').forEach(b => b.classList.remove('active'));
+  }
+  if (btnEl) btnEl.classList.add('active');
+
+  qvState.volume = sizeName;
+  if (sizePrice !== undefined && sizePrice !== null && !isNaN(sizePrice) && sizePrice > 0) {
+    qvState.unitPrice = Number(sizePrice);
+  }
+
+  const volBadge = document.getElementById('qvVolBadge');
+  if (volBadge) {
+    volBadge.textContent = `${sizeName} (Rs. ${qvState.unitPrice.toLocaleString()})`;
+  }
+
+  const currentPriceEl = document.querySelector('#quickViewContent .current-price');
+  if (currentPriceEl) {
+    currentPriceEl.textContent = `Rs. ${qvState.unitPrice.toLocaleString()}`;
+  }
+
+  syncQuickViewSummary();
+}
+
+function handleQuickViewCustomQtyInput(val) {
+  qvState.customVolText = val.trim();
+  qvState.volume = val.trim() ? `${val.trim()} (Custom)` : 'Custom';
+  const volBadge = document.getElementById('qvVolBadge');
+  if (volBadge) volBadge.textContent = qvState.volume;
+  syncQuickViewSummary();
+}
+
+function setQuickViewCustomQty(val) {
+  const input = document.getElementById('qvCustomQtyInput');
+  if (input) input.value = val;
+  handleQuickViewCustomQtyInput(val);
+  showToast(`Quantity set to: ${val}`);
+}
+
+function selectQuickViewShade(shadeName, el) {
+  document.querySelectorAll('#qvShadesGrid .qv-swatch-item').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  qvState.shade = shadeName;
+  const shadeBadge = document.getElementById('qvShadeBadge');
+  if (shadeBadge) {
+    shadeBadge.textContent = shadeName === 'None' ? 'None (No Shade / Default)' : shadeName;
+  }
+  syncQuickViewSummary();
+  if (shadeName !== 'None') {
+    showToast(`Selected Shade: ${shadeName}`);
+  } else {
+    showToast(`Selected: No Shade (Default)`);
+  }
+}
+
+function updateQuickViewUnits(change) {
+  qvState.units = Math.max(1, qvState.units + change);
+  const unitsVal = document.getElementById('qvUnitsVal');
+  if (unitsVal) unitsVal.textContent = qvState.units;
+  syncQuickViewSummary();
+}
+
+function syncQuickViewSummary() {
+  const sumShade = document.getElementById('qvSumShadeChip');
+  const sumVol = document.getElementById('qvSumVolChip');
+  const subtotalText = document.getElementById('qvSubtotalAmount');
+
+  if (sumShade) {
+    sumShade.innerHTML = `<i class="fa-solid fa-palette text-gold"></i> Shade: ${qvState.shade}`;
+  }
+  if (sumVol) {
+    sumVol.innerHTML = `<i class="fa-solid fa-flask text-gold"></i> Size: ${qvState.volume}`;
+  }
+  if (subtotalText) {
+    const total = qvState.unitPrice * qvState.units;
+    subtotalText.textContent = `Rs. ${total.toLocaleString()}`;
+  }
+}
+
+function handleQuickViewAddToCart() {
+  if (!qvState.productId) return;
+  quickAddProduct(qvState.productId, qvState.shade, qvState.volume, qvState.units);
+  closeQuickView();
+}
+
 function selectQuickViewSwatch(shadeName, el) {
-  document.querySelectorAll('#qvSwatchesRow .swatch-dot').forEach(d => d.classList.remove('active'));
-  el.classList.add('active');
-  const label = document.getElementById('qvShadeNameLabel');
-  if (label) label.textContent = shadeName;
+  selectQuickViewShade(shadeName, el);
 }
 
 function closeQuickView() {
@@ -3104,11 +3336,16 @@ async function renderAdminOrdersTable(searchTerm = '', statusFilter = 'all') {
       ? `92${customerPhoneDigits.slice(1)}`
       : customerPhoneDigits;
 
-    const itemsSummaryHtml = (order.items || []).map(item => `
-      <div class="order-item-compact">
-        <strong>${item.qty}x</strong> ${item.name} <span class="text-muted text-xs">(${item.shade || 'Standard'})</span>
-      </div>
-    `).join('');
+    const itemsSummaryHtml = (order.items || []).map(item => {
+      const shadePart = item.shade && item.shade !== 'None' && !item.shade.startsWith('None') ? `Shade: ${item.shade}` : 'Shade: None';
+      const volPart = item.volume && item.volume !== 'Standard' && item.volume !== 'None' ? `Size: ${item.volume}` : '';
+      const metaStr = [shadePart, volPart].filter(Boolean).join(' | ');
+      return `
+        <div class="order-item-compact">
+          <strong>${item.qty}x</strong> ${item.name} <span class="text-muted text-xs">(${metaStr})</span>
+        </div>
+      `;
+    }).join('');
 
     const statusClasses = {
       pending: 'status-pending',
@@ -3286,14 +3523,29 @@ function printOrderInvoice(orderId) {
   if (!order) return;
 
   const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK') : new Date().toLocaleString();
-  const itemsRows = (order.items || []).map(i => `
-    <tr>
-      <td style="padding:8px; border-bottom:1px solid #ddd;">${i.name} <br><small style="color:#666;">Shade: ${i.shade || 'Standard'}</small></td>
-      <td style="padding:8px; border-bottom:1px solid #ddd; text-align:center;">${i.qty}</td>
-      <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${i.price.toLocaleString()}</td>
-      <td style="padding:8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${(i.price * i.qty).toLocaleString()}</td>
-    </tr>
-  `).join('');
+  const payMethod = order.paymentMethod || order.payment_method || 'Cash on Delivery (COD)';
+  const isOnlinePaid = payMethod.toLowerCase().includes('jazzcash') || payMethod.toLowerCase().includes('easypaisa') || payMethod.toLowerCase().includes('online');
+
+  const itemsRows = (order.items || []).map(i => {
+    const shadeStr = i.shade && i.shade !== 'None' && !i.shade.startsWith('None') ? `Shade: ${i.shade}` : 'Shade: None';
+    const volStr = i.volume && i.volume !== 'Standard' && i.volume !== 'None' ? `Size: ${i.volume}` : 'Size: Standard';
+    return `
+      <tr>
+        <td style="padding:10px 8px; border-bottom:1px solid #ddd;">
+          <strong style="font-size:14px;">${i.name}</strong><br>
+          <span style="display:inline-block; margin-top:3px; font-size:11px; background:#F5EFE6; color:#8A6D3B; padding:2px 6px; border-radius:3px;">${shadeStr}</span>
+          <span style="display:inline-block; margin-top:3px; font-size:11px; background:#FFF3E0; color:#E65100; padding:2px 6px; border-radius:3px; margin-left:4px;">${volStr}</span>
+        </td>
+        <td style="padding:10px 8px; border-bottom:1px solid #ddd; text-align:center; font-weight:bold;">${i.qty}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid #ddd; text-align:right;">Rs. ${Number(i.price).toLocaleString()}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid #ddd; text-align:right; font-weight:bold;">Rs. ${(Number(i.price) * Number(i.qty)).toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const paymentBadge = isOnlinePaid
+    ? `<span style="background:#E8F5E9; color:#2E7D32; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:12px; display:inline-block; border:1px solid #C8E6C9;">💳 ${payMethod}</span>`
+    : `<span style="background:#FFF3E0; color:#E65100; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:12px; display:inline-block; border:1px solid #FFE0B2;">💵 Cash on Delivery (COD)</span>`;
 
   const invoiceWindow = window.open('', '_blank', 'width=800,height=900');
   invoiceWindow.document.write(`
@@ -3308,10 +3560,10 @@ function printOrderInvoice(orderId) {
         .brand p { margin: 2px 0 0; color: #C6A675; font-size: 11px; letter-spacing: 1px; font-weight: bold; }
         .order-meta { text-align: right; font-size: 13px; color: #555; }
         .two-col { display: flex; justify-content: space-between; margin-bottom: 24px; }
-        .box { background: #f9f9f9; padding: 14px 18px; border-radius: 6px; width: 46%; }
-        .box h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; color: #8A2D3C; }
+        .box { background: #f9f9f9; padding: 14px 18px; border-radius: 6px; width: 46%; border: 1px solid #eee; }
+        .box h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; color: #8A2D3C; letter-spacing: 0.5px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
-        th { background: #f0ebe5; padding: 8px; text-align: left; border-bottom: 2px solid #ddd; }
+        th { background: #f0ebe5; padding: 10px 8px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 700; color: #333; }
         .totals { margin-left: auto; width: 280px; font-size: 13px; }
         .totals-row { display: flex; justify-content: space-between; padding: 4px 0; }
         .totals-row.grand { border-top: 2px solid #222; font-weight: bold; font-size: 16px; color: #141211; padding-top: 8px; margin-top: 6px; }
@@ -3321,7 +3573,7 @@ function printOrderInvoice(orderId) {
     </head>
     <body>
       <div class="no-print" style="margin-bottom:20px; display:flex; justify-content:space-between;">
-        <button onclick="window.print()" style="padding:10px 20px; background:#141211; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🖨️ Print Invoice Slip</button>
+        <button onclick="window.print()" style="padding:10px 20px; background:#141211; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🖨️ Print Official Invoice</button>
         <button onclick="window.close()" style="padding:10px 20px; background:#eee; border:none; border-radius:4px; cursor:pointer;">Close</button>
       </div>
 
@@ -3331,9 +3583,9 @@ function printOrderInvoice(orderId) {
           <p>PAKISTANI LUXURY BEAUTY • OFFICIAL DISPATCH INVOICE</p>
         </div>
         <div class="order-meta">
-          <strong>Order: ${order.id}</strong><br>
+          <strong>Order ID: ${order.id}</strong><br>
           Date: ${dateStr}<br>
-          Status: <strong>${(order.status || 'PENDING').toUpperCase()}</strong>
+          Status: <strong style="color:#8A2D3C;">${(order.status || 'PENDING').toUpperCase()}</strong>
         </div>
       </div>
 
@@ -3342,19 +3594,22 @@ function printOrderInvoice(orderId) {
           <h3>Customer Details</h3>
           <strong>${order.customer.name}</strong><br>
           Phone: ${order.customer.phone}<br>
-          City: ${order.customer.city}
+          City: <strong>${order.customer.city}</strong>
         </div>
         <div class="box">
-          <h3>Shipping Address</h3>
+          <h3>Delivery & Payment Method</h3>
           ${order.customer.address}<br>
-          <strong>Pakistan (Cash On Delivery)</strong>
+          <strong>${order.customer.city}, Pakistan</strong>
+          <div style="margin-top:8px;">
+            ${paymentBadge}
+          </div>
         </div>
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Product & Shade</th>
+            <th>Item, Shade & Size</th>
             <th style="text-align:center;">Qty</th>
             <th style="text-align:right;">Unit Price</th>
             <th style="text-align:right;">Total</th>
@@ -3387,7 +3642,7 @@ function printOrderInvoice(orderId) {
       </div>
 
       <div class="footer">
-        <p>Thank you for choosing Shareef Cosmetics! 100% Genuine Pakistani Formulations.<br>Helpline: +92 329 6209082 | care@shareefcosmetics.pk</p>
+        <p>Thank you for choosing Shareef Cosmetics! 100% Genuine Pakistani Formulations.<br>Helpline / WhatsApp: +92 329 6209082 | care@shareefcosmetics.pk</p>
       </div>
     </body>
     </html>
@@ -3423,6 +3678,169 @@ async function handleInlinePriceSave(productId) {
   }
 }
 
+function setAdminSizeMode(mode) {
+  const noneBtn = document.getElementById('adminSizeNoneBtn');
+  const singleBtn = document.getElementById('adminSizeSingleCustomBtn');
+  const multiBtn = document.getElementById('adminSizeMultiBtn');
+  const singleSection = document.getElementById('adminSingleCustomSizeSection');
+  const multiSection = document.getElementById('adminMultiSizeSection');
+  const singleInput = document.getElementById('pSingleCustomSize');
+
+  // Reset all mode pills
+  if (noneBtn) noneBtn.className = 'admin-mode-pill';
+  if (singleBtn) singleBtn.className = 'admin-mode-pill';
+  if (multiBtn) multiBtn.className = 'admin-mode-pill';
+
+  if (mode === 'none') {
+    if (noneBtn) noneBtn.className = 'admin-mode-pill active none-mode';
+    if (singleSection) singleSection.style.display = 'none';
+    if (multiSection) multiSection.style.display = 'none';
+    if (singleInput) singleInput.value = '';
+    renderSizesInForm([]);
+  } else if (mode === 'single-custom') {
+    if (singleBtn) singleBtn.className = 'admin-mode-pill active';
+    if (singleSection) singleSection.style.display = 'block';
+    if (multiSection) multiSection.style.display = 'none';
+    if (singleInput && !singleInput.value.trim()) {
+      singleInput.value = '50ml';
+    }
+  } else {
+    // Multi mode
+    if (multiBtn) multiBtn.className = 'admin-mode-pill active';
+    if (singleSection) singleSection.style.display = 'none';
+    if (multiSection) multiSection.style.display = 'block';
+    const currentRows = document.querySelectorAll('#adminSizesList .size-builder-row');
+    if (currentRows.length === 0) {
+      const basePrice = parseInt(document.getElementById('pPrice')?.value || 0, 10);
+      addAdminSizeRow('50ml', basePrice || 450);
+      addAdminSizeRow('100ml', basePrice ? Math.round(basePrice * 1.7) : 850);
+    }
+  }
+}
+
+function setSingleCustomSizeVal(val) {
+  setAdminSizeMode('single-custom');
+  const input = document.getElementById('pSingleCustomSize');
+  if (input) {
+    input.value = val;
+    if (val) {
+      showToast(`Set custom quantity: ${val}`);
+    } else {
+      showToast('Cleared custom quantity');
+    }
+  }
+}
+
+function addAdminSizeRow(name = '50ml', price = '') {
+  const multiBtn = document.getElementById('adminSizeMultiBtn');
+  const noneBtn = document.getElementById('adminSizeNoneBtn');
+  const singleBtn = document.getElementById('adminSizeSingleCustomBtn');
+  const multiSection = document.getElementById('adminMultiSizeSection');
+  const singleSection = document.getElementById('adminSingleCustomSizeSection');
+
+  if (noneBtn) noneBtn.className = 'admin-mode-pill';
+  if (singleBtn) singleBtn.className = 'admin-mode-pill';
+  if (multiBtn) multiBtn.className = 'admin-mode-pill active';
+  if (singleSection) singleSection.style.display = 'none';
+  if (multiSection) multiSection.style.display = 'block';
+
+  const list = document.getElementById('adminSizesList');
+  if (!list) return;
+
+  const defaultBasePrice = parseInt(document.getElementById('pPrice')?.value || 0, 10);
+  const rowPrice = price !== '' && price !== null && price !== undefined ? price : (defaultBasePrice || 500);
+
+  const div = document.createElement('div');
+  div.className = 'size-builder-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Size / Volume (e.g. 50ml)" value="${name}" class="size-name-input" required>
+    <div style="display:flex; align-items:center; gap:4px; flex:1;">
+      <span class="size-price-prefix">Rs.</span>
+      <input type="number" placeholder="Price (PKR)" value="${rowPrice}" class="size-price-input" min="0" required>
+    </div>
+    <button type="button" class="btn-remove-size" onclick="this.parentElement.remove()" title="Remove size variant">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  `;
+  list.appendChild(div);
+  if (name) {
+    showToast(`Added size variant: ${name} (Rs. ${Number(rowPrice).toLocaleString()})`);
+  }
+}
+
+function renderSizesInForm(sizesArray) {
+  const list = document.getElementById('adminSizesList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (Array.isArray(sizesArray) && sizesArray.length > 0) {
+    sizesArray.forEach(s => {
+      if (typeof s === 'object' && s !== null) {
+        addAdminSizeRow(s.name || '50ml', s.price !== undefined ? s.price : '');
+      } else if (typeof s === 'string' && s.trim() && s.trim() !== 'None') {
+        addAdminSizeRow(s.trim(), '');
+      }
+    });
+  }
+}
+
+function collectSizesFromForm() {
+  const isNone = document.getElementById('adminSizeNoneBtn')?.classList.contains('active');
+  if (isNone) return [];
+
+  const isSingleCustom = document.getElementById('adminSizeSingleCustomBtn')?.classList.contains('active');
+  if (isSingleCustom) {
+    const singleInput = document.getElementById('pSingleCustomSize');
+    const val = singleInput ? singleInput.value.trim() : '';
+    const basePrice = parseInt(document.getElementById('pPrice')?.value || 0, 10) || 0;
+    if (val && val !== 'None') {
+      return [{ name: val, price: basePrice }];
+    }
+    return [];
+  }
+
+  // Multi size mode
+  const rows = document.querySelectorAll('#adminSizesList .size-builder-row');
+  const sizes = [];
+  rows.forEach(row => {
+    const nameInput = row.querySelector('.size-name-input');
+    const priceInput = row.querySelector('.size-price-input');
+    if (nameInput && nameInput.value.trim()) {
+      const name = nameInput.value.trim();
+      const price = parseInt(priceInput ? priceInput.value : 0, 10) || 0;
+      sizes.push({ name, price });
+    }
+  });
+  return sizes;
+}
+
+function setAdminShadeMode(mode) {
+  const noneBtn = document.getElementById('adminShadeNoneBtn');
+  const customBtn = document.getElementById('adminShadeCustomBtn');
+  const section = document.getElementById('adminCustomShadeSection');
+
+  if (mode === 'none') {
+    if (noneBtn) noneBtn.className = 'admin-mode-pill active none-mode';
+    if (customBtn) customBtn.className = 'admin-mode-pill';
+    if (section) section.style.display = 'none';
+    renderShadesInForm([]);
+  } else {
+    if (noneBtn) noneBtn.className = 'admin-mode-pill';
+    if (customBtn) customBtn.className = 'admin-mode-pill active';
+    if (section) section.style.display = 'block';
+    const currentRows = document.querySelectorAll('#adminShadesList .shade-builder-row');
+    if (currentRows.length === 0) {
+      addShadeRow('Ivory 01', '#E8D0B3');
+    }
+  }
+}
+
+function addShadePreset(name, color) {
+  setAdminShadeMode('custom');
+  addShadeRow(name, color);
+  showToast(`Added ${name} to product shades`);
+}
+
 function resetAdminProductForm() {
   const form = document.getElementById('adminProductForm');
   if (!form) return;
@@ -3433,12 +3851,10 @@ function resetAdminProductForm() {
   document.getElementById('adminSaveBtnText').textContent = 'Save & Publish Product';
   document.getElementById('adminCancelEditBtn').style.display = 'none';
 
+  setAdminSizeMode('none');
+  setAdminShadeMode('none');
+
   updateAdminImagePreview('');
-  
-  // Set default shade
-  renderShadesInForm([
-    { name: 'Standard Pack', color: '#C6A675' }
-  ]);
 }
 
 function updateAdminImagePreview(src) {
@@ -3464,9 +3880,9 @@ function addShadeRow(name = 'New Shade', color = '#C6A675') {
   const div = document.createElement('div');
   div.className = 'shade-builder-row';
   div.innerHTML = `
-    <input type="text" placeholder="Shade / Size Name" value="${name}" class="shade-name-input" required>
+    <input type="text" placeholder="Shade Name" value="${name}" class="shade-name-input" required>
     <input type="color" value="${color}" class="shade-color-input">
-    <button type="button" class="btn-remove-shade" onclick="this.parentElement.remove()" title="Remove variant">
+    <button type="button" class="btn-remove-shade" onclick="this.parentElement.remove()" title="Remove shade">
       <i class="fa-solid fa-xmark"></i>
     </button>
   `;
@@ -3480,12 +3896,13 @@ function renderShadesInForm(shadesArray) {
 
   if (shadesArray && shadesArray.length > 0) {
     shadesArray.forEach(s => addShadeRow(s.name, s.color || '#C6A675'));
-  } else {
-    addShadeRow('Standard Pack', '#C6A675');
   }
 }
 
 function collectShadesFromForm() {
+  const isNone = document.getElementById('adminShadeNoneBtn')?.classList.contains('active');
+  if (isNone) return [];
+
   const rows = document.querySelectorAll('#adminShadesList .shade-builder-row');
   const shades = [];
   rows.forEach(row => {
@@ -3498,7 +3915,7 @@ function collectShadesFromForm() {
       });
     }
   });
-  return shades.length > 0 ? shades : [{ name: 'Standard Pack', color: '#C6A675' }];
+  return shades;
 }
 
 function openEditProductModal(productId) {
@@ -3517,8 +3934,42 @@ function openEditProductModal(productId) {
   document.getElementById('pRating').value = product.rating || 4.9;
   document.getElementById('pReviewsCount').value = product.reviewsCount || 450;
 
+  // Handle Sizes & Quantity Mode
+  if (product.sizes && Array.isArray(product.sizes) && product.sizes.length > 1) {
+    setAdminSizeMode('multi');
+    renderSizesInForm(product.sizes);
+  } else if (product.sizes && Array.isArray(product.sizes) && product.sizes.length === 1) {
+    setAdminSizeMode('single-custom');
+    const singleObj = product.sizes[0];
+    const singleVal = typeof singleObj === 'object' && singleObj !== null ? singleObj.name : String(singleObj);
+    const singleInput = document.getElementById('pSingleCustomSize');
+    if (singleInput) singleInput.value = singleVal;
+  } else if (typeof product.sizes === 'string' && product.sizes.trim().length > 0 && product.sizes !== 'None') {
+    const parsed = product.sizes.split(',').map(s => s.trim()).filter(Boolean);
+    if (parsed.length > 1) {
+      setAdminSizeMode('multi');
+      renderSizesInForm(parsed.map(s => ({ name: s, price: product.price })));
+    } else if (parsed.length === 1) {
+      setAdminSizeMode('single-custom');
+      const singleInput = document.getElementById('pSingleCustomSize');
+      if (singleInput) singleInput.value = parsed[0];
+    } else {
+      setAdminSizeMode('none');
+    }
+  } else {
+    setAdminSizeMode('none');
+  }
+
+  // Handle Shades Mode
+  const validShades = (product.shades || []).filter(s => s && s.name && s.name !== 'Standard Pack' && !s.name.toLowerCase().startsWith('none'));
+  if (validShades.length > 0) {
+    setAdminShadeMode('custom');
+    renderShadesInForm(validShades);
+  } else {
+    setAdminShadeMode('none');
+  }
+
   updateAdminImagePreview(product.image);
-  renderShadesInForm(product.shades);
 
   document.getElementById('adminFormModeTitle').textContent = `Edit Product: ${product.name}`;
   document.getElementById('adminSaveBtnText').textContent = 'Update Product Details';
@@ -3543,6 +3994,7 @@ async function handleProductFormSubmit(e) {
   const rating = parseFloat(document.getElementById('pRating').value) || 4.9;
   const reviewsCount = parseInt(document.getElementById('pReviewsCount').value, 10) || 450;
   const shades = collectShadesFromForm();
+  const sizes = collectSizesFromForm();
 
   const submitBtn = document.getElementById('adminSaveProductBtn');
   if (submitBtn) {
@@ -3562,7 +4014,8 @@ async function handleProductFormSubmit(e) {
     image,
     rating,
     reviewsCount,
-    shades
+    shades,
+    sizes
   };
 
   let res;

@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shareef Cosmetics | Luxury Pakistani Beauty & Cosmetics</title>
-  <meta name="description" content="Shareef Cosmetics - Effortless luxury beauty, minimalist all-in-one routines, and iconic Pakistani cosmetic favorites. Cash on delivery nationwide across Pakistan.">
-  <meta name="keywords" content="Shareef Cosmetics, Pakistani cosmetics, Masarrat Misbah, Medora, Rivaj UK, bridal makeup Lahore, Karachi beauty shop, halal makeup">
-  
+  <meta name="description"
+    content="Shareef Cosmetics - Effortless luxury beauty, minimalist all-in-one routines, and iconic Pakistani cosmetic favorites. Cash on delivery nationwide across Pakistan.">
+  <meta name="keywords"
+    content="Shareef Cosmetics, Pakistani cosmetics, Masarrat Misbah, Medora, Rivaj UK, bridal makeup Lahore, Karachi beauty shop, halal makeup">
+
   <!-- Google Fonts: Playfair Display + Plus Jakarta Sans + Cormorant Garamond -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  
+
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css?v=6.0">
 </head>
+
 <body>
 
   <!-- =================================================================
@@ -26,25 +32,25 @@
   <div id="entry-loader" class="entry-loader" aria-label="Loading Shareef Cosmetics">
     <div class="loader-curtain curtain-left"></div>
     <div class="loader-curtain curtain-right"></div>
-    
+
     <div class="loader-content">
       <div class="loader-monogram">
         <span class="monogram-letter">S</span>
         <span class="monogram-divider"></span>
         <span class="monogram-letter">C</span>
       </div>
-      
+
       <h1 class="loader-brand-title">SHAREEF COSMETICS</h1>
       <p class="loader-tagline">THE ART OF NATURAL RADIANCE • LUXURY BEAUTY RITUALS</p>
-      
+
       <div class="loader-progress-track">
         <div class="loader-progress-bar" id="loaderProgressBar"></div>
       </div>
-      
+
       <div class="loader-counter">
         <span id="loaderPercent">0</span>%
       </div>
-      
+
       <div class="loader-cities">
         <span>LAHORE</span> • <span>KARACHI</span> • <span>ISLAMABAD</span> • <span>NATIONWIDE DELIVERY</span>
       </div>
@@ -53,32 +59,32 @@
 
   <script>
     // Immediate Inline Loader Kickstarter & Curtain Reveal
-    (function() {
+    (function () {
       var p = 0;
       var el = document.getElementById('loaderPercent');
       var bar = document.getElementById('loaderProgressBar');
       var l = document.getElementById('entry-loader');
-      var timer = setInterval(function() {
+      var timer = setInterval(function () {
         p += 14;
         if (el) el.textContent = Math.min(p, 100);
         if (bar) bar.style.width = Math.min(p, 100) + '%';
         if (p >= 100) {
           clearInterval(timer);
-          setTimeout(function() {
+          setTimeout(function () {
             if (l) {
               l.classList.add('loaded');
-              setTimeout(function() { l.style.display = 'none'; }, 700);
+              setTimeout(function () { l.style.display = 'none'; }, 700);
             }
           }, 180);
         }
       }, 25);
 
       // Failsafe unlock within 800ms
-      setTimeout(function() {
+      setTimeout(function () {
         clearInterval(timer);
         if (l && l.style.display !== 'none') {
           l.classList.add('loaded');
-          setTimeout(function() { l.style.display = 'none'; }, 500);
+          setTimeout(function () { l.style.display = 'none'; }, 500);
         }
       }, 800);
     })();
@@ -96,8 +102,8 @@
       <div class="announcement-actions hide-mobile">
         <span><i class="fa-solid fa-tag"></i> Use Code: <strong>BEAUTY10</strong> for 10% OFF</span>
         <span class="divider">|</span>
-        <a href="https://wa.me/923296209082" target="_blank" class="whatsapp-top-link">
-          <i class="fa-brands fa-whatsapp"></i> WhatsApp Order: +92 329 6209082
+        <a href="https://wa.me/923024317078" target="_blank" class="whatsapp-top-link">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp Order: +92 302 4317078
         </a>
       </div>
     </div>
@@ -164,7 +170,8 @@
     <div class="search-overlay-bar" id="searchOverlay">
       <div class="container search-container">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="liveSearchInput" placeholder="Search foundations, lipsticks, complexion palettes, sunblock..." autocomplete="off">
+        <input type="text" id="liveSearchInput"
+          placeholder="Search foundations, lipsticks, complexion palettes, sunblock..." autocomplete="off">
         <button class="search-close-btn" id="searchCloseBtn" aria-label="Close Search">
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -191,7 +198,8 @@
       <!-- Main Quick Links -->
       <ul class="mobile-nav-list">
         <li><a href="#hero" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
-        <li><a href="#collection" class="mobile-nav-link" data-filter="all"><i class="fa-solid fa-border-all"></i> All Products (Catalog)</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="all"><i class="fa-solid fa-border-all"></i> All
+            Products (Catalog)</a></li>
         <li><a href="#reviewsSection" class="mobile-nav-link"><i class="fa-solid fa-star"></i> Customer Reviews</a></li>
       </ul>
 
@@ -205,38 +213,84 @@
           <input type="text" id="drawerCategorySearch" placeholder="Filter 30+ categories...">
         </div>
         <ul class="drawer-categories-list" id="drawerCategoriesList">
-          <li><a href="#collection" class="drawer-cat-link active" data-filter="all"><i class="fa-solid fa-border-all"></i> <span>All Products</span> <span class="badge-mini" id="drawerCountAll">20</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="new-arrivals"><i class="fa-solid fa-sparkles text-gold"></i> <span>✨ New Arrivals (4 Days)</span> <span class="badge-mini" id="drawerCountNewArrivals">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="cleanser"><i class="fa-solid fa-pump-soap"></i> <span>Face Wash & Cleansers</span> <span class="badge-mini" id="drawerCountCleanser">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="serum"><i class="fa-solid fa-droplet"></i> <span>Serums & Boosters</span> <span class="badge-mini" id="drawerCountSerum">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="moisturizer"><i class="fa-solid fa-cloud"></i> <span>Moisturizers & Creams</span> <span class="badge-mini" id="drawerCountMoisturizer">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="sunblock"><i class="fa-solid fa-sun"></i> <span>Sunscreens & SPF</span> <span class="badge-mini" id="drawerCountSunblock">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="nightcream"><i class="fa-solid fa-moon"></i> <span>Night & Anti-Aging</span> <span class="badge-mini" id="drawerCountNightcream">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="brightening"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>Brightening & Radiance</span> <span class="badge-mini" id="drawerCountBrightening">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="toner"><i class="fa-solid fa-spray-can-sparkles"></i> <span>Toners & Astringents</span> <span class="badge-mini" id="drawerCountToner">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="facemask"><i class="fa-solid fa-mask-face"></i> <span>Face Masks & Packs</span> <span class="badge-mini" id="drawerCountFacemask">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="sheetmask"><i class="fa-solid fa-file-lines"></i> <span>Sheet Masks & Patches</span> <span class="badge-mini" id="drawerCountSheetmask">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="scrub"><i class="fa-solid fa-gem"></i> <span>Scrubs & Exfoliators</span> <span class="badge-mini" id="drawerCountScrub">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="facialoil"><i class="fa-solid fa-bottle-droplet"></i> <span>Facial Oils & Elixirs</span> <span class="badge-mini" id="drawerCountFacialoil">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="acnecare"><i class="fa-solid fa-shield-heart"></i> <span>Acne & Blemish Care</span> <span class="badge-mini" id="drawerCountAcnecare">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="darkspots"><i class="fa-solid fa-circle-dot"></i> <span>Dark Spots & Melasma</span> <span class="badge-mini" id="drawerCountDarkspots">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="eyecream"><i class="fa-solid fa-eye"></i> <span>Under Eye Creams</span> <span class="badge-mini" id="drawerCountEyecream">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="ubtan"><i class="fa-solid fa-leaf"></i> <span>Herbal Ubtan & Pastes</span> <span class="badge-mini" id="drawerCountUbtan">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="bleachcream"><i class="fa-solid fa-certificate"></i> <span>Bleach Creams & Polishers</span> <span class="badge-mini" id="drawerCountBleachcream">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="skinpolisher"><i class="fa-solid fa-star"></i> <span>Skin Polishers & Bleach</span> <span class="badge-mini" id="drawerCountSkinpolisher">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="facemist"><i class="fa-solid fa-wind"></i> <span>Face Mists & Rose Waters</span> <span class="badge-mini" id="drawerCountFacemist">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="micellar"><i class="fa-solid fa-soap"></i> <span>Micellar Water & Removers</span> <span class="badge-mini" id="drawerCountMicellar">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="lipcare"><i class="fa-solid fa-heart"></i> <span>Lip Balms & Lip Care</span> <span class="badge-mini" id="drawerCountLipcare">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="bbcream"><i class="fa-solid fa-magic"></i> <span>BB & CC Creams</span> <span class="badge-mini" id="drawerCountBbcream">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="foundation"><i class="fa-solid fa-palette"></i> <span>Foundations & Complexion</span> <span class="badge-mini" id="drawerCountFoundation">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="compactpowder"><i class="fa-solid fa-circle-notch"></i> <span>Compact & Base Powders</span> <span class="badge-mini" id="drawerCountCompactpowder">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="lipstick"><i class="fa-solid fa-paint-brush"></i> <span>Lipsticks & Liquid Mattes</span> <span class="badge-mini" id="drawerCountLipstick">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="liptint"><i class="fa-solid fa-smile-beam"></i> <span>Lip Tints & Glosses</span> <span class="badge-mini" id="drawerCountLiptint">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="handfoot"><i class="fa-solid fa-hand-sparkles"></i> <span>Hand & Foot Care</span> <span class="badge-mini" id="drawerCountHandfoot">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="bodylotion"><i class="fa-solid fa-flask"></i> <span>Body Lotions & Butters</span> <span class="badge-mini" id="drawerCountBodylotion">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="hairoil"><i class="fa-solid fa-seedling"></i> <span>Herbal Hair Oils</span> <span class="badge-mini" id="drawerCountHairoil">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="haircare"><i class="fa-solid fa-shower"></i> <span>Shampoos & Haircare</span> <span class="badge-mini" id="drawerCountHaircare">0</span></a></li>
-          <li><a href="#collection" class="drawer-cat-link" data-filter="menscare"><i class="fa-solid fa-user-tie"></i> <span>Men’s Skincare & Grooming</span> <span class="badge-mini" id="drawerCountMenscare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link active" data-filter="all"><i
+                class="fa-solid fa-border-all"></i> <span>All Products</span> <span class="badge-mini"
+                id="drawerCountAll">20</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="new-arrivals"><i
+                class="fa-solid fa-sparkles text-gold"></i> <span>✨ New Arrivals (4 Days)</span> <span
+                class="badge-mini" id="drawerCountNewArrivals">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="cleanser"><i class="fa-solid fa-pump-soap"></i>
+              <span>Face Wash & Cleansers</span> <span class="badge-mini" id="drawerCountCleanser">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="serum"><i class="fa-solid fa-droplet"></i>
+              <span>Serums & Boosters</span> <span class="badge-mini" id="drawerCountSerum">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="moisturizer"><i class="fa-solid fa-cloud"></i>
+              <span>Moisturizers & Creams</span> <span class="badge-mini" id="drawerCountMoisturizer">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="sunblock"><i class="fa-solid fa-sun"></i>
+              <span>Sunscreens & SPF</span> <span class="badge-mini" id="drawerCountSunblock">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="nightcream"><i class="fa-solid fa-moon"></i>
+              <span>Night & Anti-Aging</span> <span class="badge-mini" id="drawerCountNightcream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="brightening"><i
+                class="fa-solid fa-wand-magic-sparkles"></i> <span>Brightening & Radiance</span> <span
+                class="badge-mini" id="drawerCountBrightening">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="toner"><i
+                class="fa-solid fa-spray-can-sparkles"></i> <span>Toners & Astringents</span> <span class="badge-mini"
+                id="drawerCountToner">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="facemask"><i class="fa-solid fa-mask-face"></i>
+              <span>Face Masks & Packs</span> <span class="badge-mini" id="drawerCountFacemask">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="sheetmask"><i
+                class="fa-solid fa-file-lines"></i> <span>Sheet Masks & Patches</span> <span class="badge-mini"
+                id="drawerCountSheetmask">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="scrub"><i class="fa-solid fa-gem"></i>
+              <span>Scrubs & Exfoliators</span> <span class="badge-mini" id="drawerCountScrub">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="facialoil"><i
+                class="fa-solid fa-bottle-droplet"></i> <span>Facial Oils & Elixirs</span> <span class="badge-mini"
+                id="drawerCountFacialoil">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="acnecare"><i
+                class="fa-solid fa-shield-heart"></i> <span>Acne & Blemish Care</span> <span class="badge-mini"
+                id="drawerCountAcnecare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="darkspots"><i
+                class="fa-solid fa-circle-dot"></i> <span>Dark Spots & Melasma</span> <span class="badge-mini"
+                id="drawerCountDarkspots">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="eyecream"><i class="fa-solid fa-eye"></i>
+              <span>Under Eye Creams</span> <span class="badge-mini" id="drawerCountEyecream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="ubtan"><i class="fa-solid fa-leaf"></i>
+              <span>Herbal Ubtan & Pastes</span> <span class="badge-mini" id="drawerCountUbtan">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="bleachcream"><i
+                class="fa-solid fa-certificate"></i> <span>Bleach Creams & Polishers</span> <span class="badge-mini"
+                id="drawerCountBleachcream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="skinpolisher"><i class="fa-solid fa-star"></i>
+              <span>Skin Polishers & Bleach</span> <span class="badge-mini" id="drawerCountSkinpolisher">0</span></a>
+          </li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="facemist"><i class="fa-solid fa-wind"></i>
+              <span>Face Mists & Rose Waters</span> <span class="badge-mini" id="drawerCountFacemist">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="micellar"><i class="fa-solid fa-soap"></i>
+              <span>Micellar Water & Removers</span> <span class="badge-mini" id="drawerCountMicellar">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="lipcare"><i class="fa-solid fa-heart"></i>
+              <span>Lip Balms & Lip Care</span> <span class="badge-mini" id="drawerCountLipcare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="bbcream"><i class="fa-solid fa-magic"></i>
+              <span>BB & CC Creams</span> <span class="badge-mini" id="drawerCountBbcream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="foundation"><i class="fa-solid fa-palette"></i>
+              <span>Foundations & Complexion</span> <span class="badge-mini" id="drawerCountFoundation">0</span></a>
+          </li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="compactpowder"><i
+                class="fa-solid fa-circle-notch"></i> <span>Compact & Base Powders</span> <span class="badge-mini"
+                id="drawerCountCompactpowder">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="lipstick"><i
+                class="fa-solid fa-paint-brush"></i> <span>Lipsticks & Liquid Mattes</span> <span class="badge-mini"
+                id="drawerCountLipstick">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="liptint"><i class="fa-solid fa-smile-beam"></i>
+              <span>Lip Tints & Glosses</span> <span class="badge-mini" id="drawerCountLiptint">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="handfoot"><i
+                class="fa-solid fa-hand-sparkles"></i> <span>Hand & Foot Care</span> <span class="badge-mini"
+                id="drawerCountHandfoot">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="bodylotion"><i class="fa-solid fa-flask"></i>
+              <span>Body Lotions & Butters</span> <span class="badge-mini" id="drawerCountBodylotion">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="hairoil"><i class="fa-solid fa-seedling"></i>
+              <span>Herbal Hair Oils</span> <span class="badge-mini" id="drawerCountHairoil">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="haircare"><i class="fa-solid fa-shower"></i>
+              <span>Shampoos & Haircare</span> <span class="badge-mini" id="drawerCountHaircare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="menscare"><i class="fa-solid fa-user-tie"></i>
+              <span>Men’s Skincare & Grooming</span> <span class="badge-mini" id="drawerCountMenscare">0</span></a></li>
         </ul>
       </div>
 
@@ -245,10 +299,11 @@
         <button class="btn-primary w-100 mb-2" id="openShadeFinderMobileBtn">
           <i class="fa-solid fa-wand-magic-sparkles"></i> Find My Exact Shade (Quiz)
         </button>
-        <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-outline w-100 mb-2">
+        <a href="https://wa.me/923024317078" target="_blank" class="btn-whatsapp-outline w-100 mb-2">
           <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
         </a>
-        <button type="button" class="btn-luxury-secondary w-100 open-admin-btn" id="openAdminLoginBtnMobile" style="font-size: 0.8rem; padding: 10px;">
+        <button type="button" class="btn-luxury-secondary w-100 open-admin-btn" id="openAdminLoginBtnMobile"
+          style="font-size: 0.8rem; padding: 10px;">
           <i class="fa-solid fa-lock"></i> Store Admin Portal
         </button>
       </div>
@@ -267,25 +322,26 @@
       <img src="assets/images/hero_banner.jpg" alt="Shareef Cosmetics Luxury Campaign" class="hero-bg-image">
       <div class="hero-gradient-overlay"></div>
     </div>
-    
+
     <div class="container hero-content">
       <div class="hero-badge">
         <span class="pulse-dot"></span>
         <span>THE NATURAL BEAUTY REVOLUTION IN PAKISTAN</span>
       </div>
-      
+
       <h2 class="hero-title">
         The Illusion of <em>Perfection,</em><br>
         Without the Weight.
       </h2>
-      
+
       <p class="hero-description">
-        Crafted specifically for Pakistani skin tones and climates. Discover timeless local classics from Pond's, Himalaya, Saeed Ghani, Medora, Rivaj UK, and Masarrat Misbah.
+        Crafted specifically for Pakistani skin tones and climates. Discover timeless local classics from Pond's,
+        Himalaya, Saeed Ghani, Medora, Rivaj UK, and Masarrat Misbah.
       </p>
-      
+
       <div class="hero-cta-group">
         <a href="#collection" class="btn-luxury-primary">
-          <span>Shop 20 Authentic Products</span>
+          <span>Shop Authentic Products</span>
           <i class="fa-solid fa-arrow-right-long"></i>
         </a>
         <button class="btn-luxury-secondary" id="openShadeFinderHeroBtn">
@@ -332,7 +388,8 @@
         <div class="shade-banner-content">
           <span class="badge-pill"><i class="fa-solid fa-sparkles"></i> VIRTUAL BEAUTY ASSISTANT</span>
           <h2>Not sure about your exact foundation shade?</h2>
-          <p>Take our 1-minute smart Pakistani skin tone quiz to find your exact match across Masarrat Misbah, Christine powder, and Medora lip shades.</p>
+          <p>Take our 1-minute smart Pakistani skin tone quiz to find your exact match across Masarrat Misbah, Christine
+            powder, and Medora lip shades.</p>
           <button class="btn-luxury-primary" id="openShadeFinderQuizBtn">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
             <span>Start Free Shade Quiz</span>
@@ -355,10 +412,11 @@
     <div class="container">
       <div class="section-header text-center">
         <span class="sub-heading">CURATED PAKISTANI COSMETICS</span>
-        <h2 class="section-title">Iconic Pakistani Beauty Favorites (20 Items)</h2>
+        <h2 class="section-title">Iconic Pakistani Beauty Favorites</h2>
         <div class="gold-flourish"></div>
         <p class="section-subtitle">
-          From legendary staples (Pond's, Himalaya, Saeed Ghani, Medora) to pro salon essentials. 100% genuine with money-back guarantee.
+          From legendary staples (Pond's, Himalaya, Saeed Ghani, Medora) to pro salon essentials. 100% genuine with
+          money-back guarantee.
         </p>
       </div>
 
@@ -373,16 +431,19 @@
               <i class="fa-solid fa-border-all"></i> All Products <span class="cat-badge" id="countAll">20</span>
             </button>
             <button class="filter-tab-btn" data-category="new-arrivals" style="border-color: rgba(198, 166, 117, 0.4);">
-              <i class="fa-solid fa-sparkles text-gold"></i> ✨ New Arrivals <span class="cat-badge" id="countNewArrivals">0</span>
+              <i class="fa-solid fa-sparkles text-gold"></i> ✨ New Arrivals <span class="cat-badge"
+                id="countNewArrivals">0</span>
             </button>
             <button class="filter-tab-btn" data-category="cleanser">
-              <i class="fa-solid fa-pump-soap"></i> Face Wash & Cleansers <span class="cat-badge" id="countCleanser">0</span>
+              <i class="fa-solid fa-pump-soap"></i> Face Wash & Cleansers <span class="cat-badge"
+                id="countCleanser">0</span>
             </button>
             <button class="filter-tab-btn" data-category="serum">
               <i class="fa-solid fa-droplet"></i> Serums & Boosters <span class="cat-badge" id="countSerum">0</span>
             </button>
             <button class="filter-tab-btn" data-category="moisturizer">
-              <i class="fa-solid fa-cloud"></i> Moisturizers & Creams <span class="cat-badge" id="countMoisturizer">0</span>
+              <i class="fa-solid fa-cloud"></i> Moisturizers & Creams <span class="cat-badge"
+                id="countMoisturizer">0</span>
             </button>
             <button class="filter-tab-btn" data-category="sunblock">
               <i class="fa-solid fa-sun"></i> Sunscreens & SPF <span class="cat-badge" id="countSunblock">0</span>
@@ -391,28 +452,35 @@
               <i class="fa-solid fa-moon"></i> Night & Anti-Aging <span class="cat-badge" id="countNightcream">0</span>
             </button>
             <button class="filter-tab-btn" data-category="brightening">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> Brightening & Radiance <span class="cat-badge" id="countBrightening">0</span>
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Brightening & Radiance <span class="cat-badge"
+                id="countBrightening">0</span>
             </button>
             <button class="filter-tab-btn" data-category="toner">
-              <i class="fa-solid fa-spray-can-sparkles"></i> Toners & Astringents <span class="cat-badge" id="countToner">0</span>
+              <i class="fa-solid fa-spray-can-sparkles"></i> Toners & Astringents <span class="cat-badge"
+                id="countToner">0</span>
             </button>
             <button class="filter-tab-btn" data-category="facemask">
-              <i class="fa-solid fa-mask-face"></i> Face Masks & Packs <span class="cat-badge" id="countFacemask">0</span>
+              <i class="fa-solid fa-mask-face"></i> Face Masks & Packs <span class="cat-badge"
+                id="countFacemask">0</span>
             </button>
             <button class="filter-tab-btn" data-category="sheetmask">
-              <i class="fa-solid fa-file-lines"></i> Sheet Masks & Patches <span class="cat-badge" id="countSheetmask">0</span>
+              <i class="fa-solid fa-file-lines"></i> Sheet Masks & Patches <span class="cat-badge"
+                id="countSheetmask">0</span>
             </button>
             <button class="filter-tab-btn" data-category="scrub">
               <i class="fa-solid fa-gem"></i> Scrubs & Exfoliators <span class="cat-badge" id="countScrub">0</span>
             </button>
             <button class="filter-tab-btn" data-category="facialoil">
-              <i class="fa-solid fa-bottle-droplet"></i> Facial Oils & Elixirs <span class="cat-badge" id="countFacialoil">0</span>
+              <i class="fa-solid fa-bottle-droplet"></i> Facial Oils & Elixirs <span class="cat-badge"
+                id="countFacialoil">0</span>
             </button>
             <button class="filter-tab-btn" data-category="acnecare">
-              <i class="fa-solid fa-shield-heart"></i> Acne & Blemish Care <span class="cat-badge" id="countAcnecare">0</span>
+              <i class="fa-solid fa-shield-heart"></i> Acne & Blemish Care <span class="cat-badge"
+                id="countAcnecare">0</span>
             </button>
             <button class="filter-tab-btn" data-category="darkspots">
-              <i class="fa-solid fa-circle-dot"></i> Dark Spots & Melasma <span class="cat-badge" id="countDarkspots">0</span>
+              <i class="fa-solid fa-circle-dot"></i> Dark Spots & Melasma <span class="cat-badge"
+                id="countDarkspots">0</span>
             </button>
             <button class="filter-tab-btn" data-category="eyecream">
               <i class="fa-solid fa-eye"></i> Under Eye Creams <span class="cat-badge" id="countEyecream">0</span>
@@ -421,16 +489,20 @@
               <i class="fa-solid fa-leaf"></i> Herbal Ubtan & Pastes <span class="cat-badge" id="countUbtan">0</span>
             </button>
             <button class="filter-tab-btn" data-category="bleachcream">
-              <i class="fa-solid fa-certificate"></i> Bleach Creams & Polishers <span class="cat-badge" id="countBleachcream">0</span>
+              <i class="fa-solid fa-certificate"></i> Bleach Creams & Polishers <span class="cat-badge"
+                id="countBleachcream">0</span>
             </button>
             <button class="filter-tab-btn" data-category="skinpolisher">
-              <i class="fa-solid fa-star"></i> Skin Polishers & Bleach <span class="cat-badge" id="countSkinpolisher">0</span>
+              <i class="fa-solid fa-star"></i> Skin Polishers & Bleach <span class="cat-badge"
+                id="countSkinpolisher">0</span>
             </button>
             <button class="filter-tab-btn" data-category="facemist">
-              <i class="fa-solid fa-wind"></i> Face Mists & Rose Waters <span class="cat-badge" id="countFacemist">0</span>
+              <i class="fa-solid fa-wind"></i> Face Mists & Rose Waters <span class="cat-badge"
+                id="countFacemist">0</span>
             </button>
             <button class="filter-tab-btn" data-category="micellar">
-              <i class="fa-solid fa-soap"></i> Micellar Water & Removers <span class="cat-badge" id="countMicellar">0</span>
+              <i class="fa-solid fa-soap"></i> Micellar Water & Removers <span class="cat-badge"
+                id="countMicellar">0</span>
             </button>
             <button class="filter-tab-btn" data-category="lipcare">
               <i class="fa-solid fa-heart"></i> Lip Balms & Lip Care <span class="cat-badge" id="countLipcare">0</span>
@@ -439,22 +511,28 @@
               <i class="fa-solid fa-magic"></i> BB & CC Creams <span class="cat-badge" id="countBbcream">0</span>
             </button>
             <button class="filter-tab-btn" data-category="foundation">
-              <i class="fa-solid fa-palette"></i> Foundations & Complexion <span class="cat-badge" id="countFoundation">0</span>
+              <i class="fa-solid fa-palette"></i> Foundations & Complexion <span class="cat-badge"
+                id="countFoundation">0</span>
             </button>
             <button class="filter-tab-btn" data-category="compactpowder">
-              <i class="fa-solid fa-circle-notch"></i> Compact & Base Powders <span class="cat-badge" id="countCompactpowder">0</span>
+              <i class="fa-solid fa-circle-notch"></i> Compact & Base Powders <span class="cat-badge"
+                id="countCompactpowder">0</span>
             </button>
             <button class="filter-tab-btn" data-category="lipstick">
-              <i class="fa-solid fa-paint-brush"></i> Lipsticks & Liquid Mattes <span class="cat-badge" id="countLipstick">0</span>
+              <i class="fa-solid fa-paint-brush"></i> Lipsticks & Liquid Mattes <span class="cat-badge"
+                id="countLipstick">0</span>
             </button>
             <button class="filter-tab-btn" data-category="liptint">
-              <i class="fa-solid fa-smile-beam"></i> Lip Tints & Glosses <span class="cat-badge" id="countLiptint">0</span>
+              <i class="fa-solid fa-smile-beam"></i> Lip Tints & Glosses <span class="cat-badge"
+                id="countLiptint">0</span>
             </button>
             <button class="filter-tab-btn" data-category="handfoot">
-              <i class="fa-solid fa-hand-sparkles"></i> Hand & Foot Care <span class="cat-badge" id="countHandfoot">0</span>
+              <i class="fa-solid fa-hand-sparkles"></i> Hand & Foot Care <span class="cat-badge"
+                id="countHandfoot">0</span>
             </button>
             <button class="filter-tab-btn" data-category="bodylotion">
-              <i class="fa-solid fa-flask"></i> Body Lotions & Butters <span class="cat-badge" id="countBodylotion">0</span>
+              <i class="fa-solid fa-flask"></i> Body Lotions & Butters <span class="cat-badge"
+                id="countBodylotion">0</span>
             </button>
             <button class="filter-tab-btn" data-category="hairoil">
               <i class="fa-solid fa-seedling"></i> Herbal Hair Oils <span class="cat-badge" id="countHairoil">0</span>
@@ -463,7 +541,8 @@
               <i class="fa-solid fa-shower"></i> Shampoos & Haircare <span class="cat-badge" id="countHaircare">0</span>
             </button>
             <button class="filter-tab-btn" data-category="menscare">
-              <i class="fa-solid fa-user-tie"></i> Men’s Skincare & Grooming <span class="cat-badge" id="countMenscare">0</span>
+              <i class="fa-solid fa-user-tie"></i> Men’s Skincare & Grooming <span class="cat-badge"
+                id="countMenscare">0</span>
             </button>
           </div>
         </div>
@@ -500,20 +579,26 @@
   ================================================================= -->
   <section class="bridal-spotlight-section">
     <div class="container bridal-spotlight-inner">
-      <div class="bridal-image-box" style="background:#FFF; display:flex; align-items:center; justify-content:center; padding: 20px;">
-        <img src="assets/images/products/masarrat_misbah_foundation.jpg" alt="Masarrat Misbah Silk Foundation" class="bridal-img" style="object-fit:contain; max-height:360px;">
+      <div class="bridal-image-box"
+        style="background:#FFF; display:flex; align-items:center; justify-content:center; padding: 20px;">
+        <img src="assets/images/products/masarrat_misbah_foundation.jpg" alt="Masarrat Misbah Silk Foundation"
+          class="bridal-img" style="object-fit:contain; max-height:360px;">
         <div class="bridal-glow-tag">ICONIC PAKISTANI HERITAGE STAPLES</div>
       </div>
       <div class="bridal-content-box">
         <span class="sub-heading">CURATED FOR PAKISTANI COMPLEXIONS</span>
         <h2>Masarrat Misbah & Saeed Ghani Heritage Ritual</h2>
         <p class="lead-text">
-          Experience authentic Pakistani beauty craftsmanship. Masarrat Misbah 100% Halal Silk Foundation paired with pure Damask Saeed Ghani Arq-e-Gulab, classic Medora Velvet Lipsticks, and Christine HD Powder for all-day luminous skin in Pakistani weather.
+          Experience authentic Pakistani beauty craftsmanship. Masarrat Misbah 100% Halal Silk Foundation paired with
+          pure Damask Saeed Ghani Arq-e-Gulab, classic Medora Velvet Lipsticks, and Christine HD Powder for all-day
+          luminous skin in Pakistani weather.
         </p>
         <div class="bridal-features-list">
           <div class="b-feature"><i class="fa-solid fa-check"></i> 100% Halal Certified & Dermatologically Tested</div>
-          <div class="b-feature"><i class="fa-solid fa-check"></i> Formulated for Warm, Wheatish & Olive Undertones</div>
-          <div class="b-feature"><i class="fa-solid fa-check"></i> Free Nationwide Express Delivery Across Pakistan</div>
+          <div class="b-feature"><i class="fa-solid fa-check"></i> Formulated for Warm, Wheatish & Olive Undertones
+          </div>
+          <div class="b-feature"><i class="fa-solid fa-check"></i> Free Nationwide Express Delivery Across Pakistan
+          </div>
         </div>
         <div class="bridal-pricing">
           <div class="price-wrap">
@@ -532,7 +617,7 @@
   <!-- =================================================================
        REAL CUSTOMER REVIEWS (PAKISTANI BEAUTY ENTHUSIASTS)
   ================================================================= -->
-  <section class="reviews-section">
+  <section class="reviews-section" id="reviewsSection">
     <div class="container">
       <div class="section-header text-center">
         <span class="sub-heading">REAL EXPERIENCES</span>
@@ -550,7 +635,8 @@
             <span class="pill-divider">•</span>
             <span><i class="fa-solid fa-shield-halved text-gold"></i> 100% Genuine Reviews</span>
           </div>
-          <button type="button" class="btn-luxury-primary" id="openReviewModalBtn" aria-label="Write a Review or Comment">
+          <button type="button" class="btn-luxury-primary" id="openReviewModalBtn"
+            aria-label="Write a Review or Comment">
             <i class="fa-solid fa-pen-to-square"></i>
             <span>Write a Review / Add Comment</span>
           </button>
@@ -561,10 +647,12 @@
         <!-- Review 1 -->
         <div class="review-card">
           <div class="review-stars">
-            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+              class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
           </div>
           <p class="review-text">
-            "The Shareef Minute Miracle Palette is a lifesaver for Karachi weather! It doesn't melt in humidity and gives that effortlessly glowing look without feeling sticky or heavy. Delivery was super fast via COD."
+            "The Shareef Minute Miracle Palette is a lifesaver for Karachi weather! It doesn't melt in humidity and
+            gives that effortlessly glowing look without feeling sticky or heavy. Delivery was super fast via COD."
           </p>
           <div class="reviewer-meta">
             <div class="reviewer-avatar">AK</div>
@@ -579,10 +667,13 @@
         <!-- Review 2 -->
         <div class="review-card">
           <div class="review-stars">
-            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+              class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
           </div>
           <p class="review-text">
-            "Masarrat Misbah silk foundation matched my exact wheatish skin tone perfectly through their Shade Quiz tool. The coverage looks like natural high-end magazine skin. Medora lipsticks are 100% authentic originals!"
+            "Masarrat Misbah silk foundation matched my exact wheatish skin tone perfectly through their Shade Quiz
+            tool. The coverage looks like natural high-end magazine skin. Medora lipsticks are 100% authentic
+            originals!"
           </p>
           <div class="reviewer-meta">
             <div class="reviewer-avatar">MS</div>
@@ -597,10 +688,12 @@
         <!-- Review 3 -->
         <div class="review-card">
           <div class="review-stars">
-            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+              class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
           </div>
           <p class="review-text">
-            "I ordered the Bridal Vanity Box for my sister's wedding. The velvet packaging is breathtaking! Everything was intact and original. Ordered on WhatsApp and arrived within 2 days in Islamabad."
+            "I ordered the Bridal Vanity Box for my sister's wedding. The velvet packaging is breathtaking! Everything
+            was intact and original. Ordered on WhatsApp and arrived within 2 days in Islamabad."
           </p>
           <div class="reviewer-meta">
             <div class="reviewer-avatar">FZ</div>
@@ -610,6 +703,7 @@
             </div>
             <span class="verified-badge"><i class="fa-solid fa-circle-check"></i> Verified Buyer</span>
           </div>
+        </div>
       </div>
 
       <!-- See All Comments / Reviews Expand Toggle -->
@@ -620,25 +714,6 @@
           <i class="fa-solid fa-chevron-down" id="reviewsExpandIcon"></i>
         </button>
       </div>
-    </div>
-  </section>
-
-  <!-- =================================================================
-       NEWSLETTER VIP ACCESS
-  ================================================================= -->
-  <section class="newsletter-section">
-    <div class="container newsletter-inner text-center">
-      <span class="sub-heading">JOIN THE VIP BEAUTY CIRCLE</span>
-      <h2>Receive Rs. 500 Off Your First Order</h2>
-      <p>Subscribe for exclusive launches, seasonal Pakistani beauty rituals, and private masterclasses.</p>
-      <form class="newsletter-form" id="newsletterForm">
-        <input type="email" id="newsletterEmail" placeholder="Enter your email address or phone number" required>
-        <button type="submit" class="btn-luxury-primary">
-          <span>Claim VIP Privilege</span>
-          <i class="fa-solid fa-arrow-right"></i>
-        </button>
-      </form>
-      <div id="newsletterMessage" class="newsletter-msg"></div>
     </div>
   </section>
 
@@ -660,7 +735,8 @@
           <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
           <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
           <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-          <a href="https://wa.me/923296209082" target="_blank" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="https://wa.me/923024317078" target="_blank" aria-label="WhatsApp"><i
+              class="fa-brands fa-whatsapp"></i></a>
         </div>
       </div>
 
@@ -681,13 +757,12 @@
         <h4 class="footer-heading">Locations & Helpline</h4>
         <div class="store-location">
           <p><i class="fa-solid fa-location-dot"></i> Lahore (MM Alam) • Karachi (DHA Phase 6)</p>
-          <p><i class="fa-solid fa-phone"></i> Helpline: +92 329 6209082 / (042) 35789000</p>
+          <p><i class="fa-solid fa-phone"></i> Helpline / WhatsApp: +92 302 4317078 / (042) 35789000</p>
           <p><i class="fa-solid fa-envelope"></i> care@shareefcosmetics.pk</p>
         </div>
         <div class="payment-badges-row">
           <span class="pay-tag"><i class="fa-solid fa-money-bill-wave"></i> Cash on Delivery</span>
           <span class="pay-tag"><i class="fa-solid fa-mobile-screen"></i> JazzCash</span>
-          <span class="pay-tag"><i class="fa-solid fa-wallet"></i> Easypaisa</span>
         </div>
       </div>
     </div>
@@ -696,8 +771,9 @@
       <div class="container footer-bottom-inner">
         <p>&copy; 2026 Shareef Cosmetics Pakistan. All Rights Reserved.</p>
         <p class="credits">
-          100% Genuine Pakistani Cosmetics • Halal Certified • 
-          <a href="javascript:void(0);" id="openAdminLoginBtn" class="admin-portal-link open-admin-btn"><i class="fa-solid fa-lock"></i> Store Admin Portal</a>
+          100% Genuine Pakistani Cosmetics • Halal Certified •
+          <a href="javascript:void(0);" id="openAdminLoginBtn" class="admin-portal-link open-admin-btn"><i
+              class="fa-solid fa-lock"></i> Store Admin Portal</a>
         </p>
       </div>
     </div>
@@ -769,7 +845,7 @@
         <i class="fa-solid fa-lock"></i>
         <span>Proceed to Secure Checkout</span>
       </button>
-      
+
       <button class="btn-whatsapp-outline w-100" id="cartWhatsAppOrderBtn">
         <i class="fa-brands fa-whatsapp"></i>
         <span>Instant Order via WhatsApp</span>
@@ -797,7 +873,7 @@
           <!-- Left Col: Customer Shipping Details -->
           <div class="checkout-col customer-details">
             <h4 class="form-section-title"><i class="fa-solid fa-location-dot"></i> Delivery Address in Pakistan</h4>
-            
+
             <div class="form-group">
               <label for="custName">Full Name *</label>
               <input type="text" id="custName" required placeholder="e.g. Ayesha Khan">
@@ -878,17 +954,17 @@
               </label>
 
               <label class="payment-option-card">
-                <input type="radio" name="paymentMethod" value="JazzCash / Easypaisa">
+                <input type="radio" name="paymentMethod" value="JazzCash (Online Mobile Transfer)">
                 <div class="payment-option-content">
                   <i class="fa-solid fa-mobile-screen"></i>
                   <div>
-                    <strong>JazzCash / Easypaisa (Online Mobile Transfer)</strong>
+                    <strong>JazzCash (Online Mobile Transfer)</strong>
                     <span>Instant mobile wallet payment before dispatch</span>
                   </div>
                 </div>
               </label>
 
-              <!-- JazzCash / Easypaisa Account Details Box (Shown when selected) -->
+              <!-- JazzCash Account Details Box (Shown when selected) -->
               <div class="jazzcash-account-box" id="jazzcashAccountBox" style="display: none;">
                 <div class="jazzcash-box-header">
                   <span class="wallet-badge"><i class="fa-solid fa-mobile-screen"></i> Official Store Wallet</span>
@@ -896,12 +972,12 @@
                 <div class="jazzcash-account-details">
                   <div class="acc-row">
                     <span class="acc-label">Account Title:</span>
-                    <strong class="acc-val">Shareef Cosmetics</strong>
+                    <strong class="acc-val">Zubair Amir</strong>
                   </div>
                   <div class="acc-row">
-                    <span class="acc-label">JazzCash / Easypaisa No:</span>
+                    <span class="acc-label">JazzCash Account No:</span>
                     <div class="acc-number-copy-wrap">
-                      <strong class="acc-val highlight-num" id="jazzcashAccNumber">03296209082</strong>
+                      <strong class="acc-val highlight-num" id="jazzcashAccNumber">03289487059</strong>
                       <button type="button" class="btn-copy-acc" id="copyJazzcashNumBtn" title="Copy Number">
                         <i class="fa-solid fa-copy"></i> Copy
                       </button>
@@ -912,11 +988,13 @@
                   <div class="note-icon"><i class="fa-solid fa-camera"></i></div>
                   <div class="note-text">
                     <strong>Important Note:</strong>
-                    After transferring payment, please take a screenshot of your payment receipt and send it to our WhatsApp (<strong>03296209082</strong>) along with your Order Tracking ID for instant dispatch.
+                    After transferring payment, please take a screenshot of your payment receipt and send it to our
+                    WhatsApp (<strong>03024317078</strong>) along with your Order Tracking ID for instant dispatch.
                   </div>
                 </div>
                 <div class="form-group mt-3 mb-0">
-                  <label for="paymentReceiptFile"><i class="fa-solid fa-cloud-arrow-up"></i> Attach Payment Screenshot <span style="color:var(--accent-ruby); font-weight:700;">* (Required to Place Order)</span>:</label>
+                  <label for="paymentReceiptFile"><i class="fa-solid fa-cloud-arrow-up"></i> Attach Payment Screenshot
+                    <span style="color:var(--accent-ruby); font-weight:700;">* (Required to Place Order)</span>:</label>
                   <div class="receipt-upload-box" id="receiptUploadBox">
                     <input type="file" id="paymentReceiptFile" accept="image/*" class="receipt-file-input">
                     <div class="receipt-upload-content" id="receiptUploadPrompt">
@@ -928,7 +1006,8 @@
                       <img id="receiptPreviewImg" src="" alt="Payment Receipt Preview">
                       <div class="receipt-preview-overlay">
                         <span class="badge-uploaded"><i class="fa-solid fa-circle-check"></i> Screenshot Attached</span>
-                        <button type="button" class="btn-remove-receipt" id="removeReceiptBtn" title="Remove Screenshot">
+                        <button type="button" class="btn-remove-receipt" id="removeReceiptBtn"
+                          title="Remove Screenshot">
                           <i class="fa-solid fa-trash-can"></i> Remove
                         </button>
                       </div>
@@ -946,7 +1025,7 @@
             <div class="checkout-items-preview" id="checkoutItemsPreview">
               <!-- Rendered items -->
             </div>
-            
+
             <div class="checkout-totals-box">
               <div class="tot-row">
                 <span>Items Subtotal:</span>
@@ -984,13 +1063,15 @@
           <h3>Order Confirmed!</h3>
           <p class="success-order-num">Tracking Reference: <strong id="successOrderId">PK-SHF-84920</strong></p>
           <p class="success-details-text">
-            Thank you for shopping with Shareef Cosmetics! Your order has been placed and is being prepared for dispatch across Pakistan with <strong>Cash on Delivery</strong>.
+            Thank you for shopping with Shareef Cosmetics! Your order has been placed and is being prepared for dispatch
+            across Pakistan with <strong>Cash on Delivery</strong>.
           </p>
           <div class="success-action-btns">
             <button type="button" class="btn-luxury-primary" id="successContinueShoppingBtn">
               <i class="fa-solid fa-bag-shopping"></i> Continue Shopping
             </button>
-            <a href="https://wa.me/923296209082" target="_blank" class="btn-whatsapp-outline" id="successWhatsAppShareBtn" style="font-size:0.85rem;">
+            <a href="https://wa.me/923024317078" target="_blank" class="btn-whatsapp-outline"
+              id="successWhatsAppShareBtn" style="font-size:0.85rem;">
               <i class="fa-brands fa-whatsapp"></i> Chat with Support on WhatsApp
             </a>
           </div>
@@ -1132,7 +1213,8 @@
 
       <div class="modal-body review-modal-body">
         <p class="review-modal-intro">
-          Share your authentic experience with <strong>Shareef Cosmetics</strong>. Your review helps beauty lovers across Pakistan discover genuine local cosmetics!
+          Share your authentic experience with <strong>Shareef Cosmetics</strong>. Your review helps beauty lovers
+          across Pakistan discover genuine local cosmetics!
         </p>
 
         <form id="customerReviewForm" class="customer-review-form">
@@ -1198,11 +1280,16 @@
             <label>Your Star Rating *</label>
             <div class="interactive-star-rating" id="interactiveStarRating">
               <div class="star-rating-icons">
-                <button type="button" class="star-btn active" data-rating="1" aria-label="1 Star"><i class="fa-solid fa-star"></i></button>
-                <button type="button" class="star-btn active" data-rating="2" aria-label="2 Stars"><i class="fa-solid fa-star"></i></button>
-                <button type="button" class="star-btn active" data-rating="3" aria-label="3 Stars"><i class="fa-solid fa-star"></i></button>
-                <button type="button" class="star-btn active" data-rating="4" aria-label="4 Stars"><i class="fa-solid fa-star"></i></button>
-                <button type="button" class="star-btn active" data-rating="5" aria-label="5 Stars"><i class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="1" aria-label="1 Star"><i
+                    class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="2" aria-label="2 Stars"><i
+                    class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="3" aria-label="3 Stars"><i
+                    class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="4" aria-label="4 Stars"><i
+                    class="fa-solid fa-star"></i></button>
+                <button type="button" class="star-btn active" data-rating="5" aria-label="5 Stars"><i
+                    class="fa-solid fa-star"></i></button>
               </div>
               <span class="rating-text-label" id="ratingScoreText">5.0 / 5.0 — Excellent!</span>
               <input type="hidden" id="selectedStarRating" value="5">
@@ -1211,12 +1298,14 @@
 
           <div class="form-group">
             <label for="reviewTitle">Review Title / Headline</label>
-            <input type="text" id="reviewTitle" placeholder="e.g. 100% Original Pakistani cosmetic, exceptional quality!">
+            <input type="text" id="reviewTitle"
+              placeholder="e.g. 100% Original Pakistani cosmetic, exceptional quality!">
           </div>
 
           <div class="form-group">
             <label for="reviewComment">Your Review & Comments *</label>
-            <textarea id="reviewComment" rows="4" required placeholder="Write your honest comments regarding the texture, longevity, scent, packaging, or door-to-door delivery..."></textarea>
+            <textarea id="reviewComment" rows="4" required
+              placeholder="Write your honest comments regarding the texture, longevity, scent, packaging, or door-to-door delivery..."></textarea>
           </div>
 
           <div class="form-group review-checkbox-group">
@@ -1275,12 +1364,14 @@
           <i class="fa-solid fa-shield-halved"></i>
         </div>
         <h4>Shareef Cosmetics Catalog Portal</h4>
-        <p class="admin-login-sub">Enter your store administrator password or PIN to manage products, update live prices, and customize inventory.</p>
-        
+        <p class="admin-login-sub">Enter your store administrator password or PIN to manage products, update live
+          prices, and customize inventory.</p>
+
         <form id="adminLoginForm" class="admin-login-form">
           <div class="form-group">
             <label for="adminPasswordInput"><i class="fa-solid fa-key"></i> Administrator Password</label>
-            <input type="password" id="adminPasswordInput" placeholder="Enter Administrator Password" required autocomplete="current-password">
+            <input type="password" id="adminPasswordInput" placeholder="Enter Administrator Password" required
+              autocomplete="current-password">
           </div>
           <div id="adminLoginError" class="admin-error-msg"></div>
           <button type="submit" class="btn-luxury-primary w-100">
@@ -1459,7 +1550,8 @@
               </div>
             </div>
             <div class="admin-stat-card">
-              <div class="stat-icon" style="color:var(--accent-gold);"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              <div class="stat-icon" style="color:var(--accent-gold);"><i class="fa-solid fa-clock-rotate-left"></i>
+              </div>
               <div class="stat-info">
                 <span class="stat-num" id="adminOrdersPendingCount">0</span>
                 <span class="stat-label">Pending / Processing</span>
@@ -1473,7 +1565,8 @@
               </div>
             </div>
             <div class="admin-stat-card">
-              <div class="stat-icon" style="color:var(--accent-success);"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+              <div class="stat-icon" style="color:var(--accent-success);"><i
+                  class="fa-solid fa-circle-dollar-to-slot"></i></div>
               <div class="stat-info">
                 <span class="stat-num" id="adminOrdersRevenueSum">Rs. 0</span>
                 <span class="stat-label">Total Store Revenue</span>
@@ -1485,7 +1578,8 @@
           <div class="admin-toolbar">
             <div class="admin-search-wrap">
               <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="adminOrdersSearchInput" placeholder="Search by Order ID, Customer Name, Phone, or City...">
+              <input type="text" id="adminOrdersSearchInput"
+                placeholder="Search by Order ID, Customer Name, Phone, or City...">
             </div>
             <div class="admin-filter-group">
               <select id="adminOrderStatusFilter" class="admin-select">
@@ -1526,10 +1620,11 @@
         <div class="admin-tab-pane" id="adminTabAddProduct">
           <form id="adminProductForm" class="admin-product-form">
             <input type="hidden" id="adminEditProductId" value="">
-            
+
             <div class="form-header-banner">
               <h3 id="adminFormModeTitle">Add New Product to Store Catalog</h3>
-              <p>Fill out the details below. Changes will immediately sync to the home page, collection grid, and checkout.</p>
+              <p>Fill out the details below. Changes will immediately sync to the home page, collection grid, and
+                checkout.</p>
             </div>
 
             <div class="admin-form-grid">
@@ -1600,7 +1695,8 @@
                   </div>
 
                   <div class="form-group">
-                    <label for="pOriginalPrice"><i class="fa-solid fa-tags"></i> Original / Strikethrough Price (PKR)</label>
+                    <label for="pOriginalPrice"><i class="fa-solid fa-tags"></i> Original / Strikethrough Price
+                      (PKR)</label>
                     <input type="number" id="pOriginalPrice" placeholder="e.g. 800" min="0">
                   </div>
                 </div>
@@ -1609,10 +1705,12 @@
                 <div class="form-group">
                   <label><i class="fa-solid fa-boxes-packing text-gold"></i> Stock & Inventory Status *</label>
                   <div class="admin-options-bar" id="adminStockOptionsBar">
-                    <button type="button" class="admin-mode-pill in-stock-mode active" id="adminStockInBtn" onclick="setAdminStockMode(true)">
+                    <button type="button" class="admin-mode-pill in-stock-mode active" id="adminStockInBtn"
+                      onclick="setAdminStockMode(true)">
                       <i class="fa-solid fa-circle-check text-success"></i> 🟢 In Stock (Active for Sale)
                     </button>
-                    <button type="button" class="admin-mode-pill out-of-stock-mode" id="adminStockOutBtn" onclick="setAdminStockMode(false)">
+                    <button type="button" class="admin-mode-pill out-of-stock-mode" id="adminStockOutBtn"
+                      onclick="setAdminStockMode(false)">
                       <i class="fa-solid fa-circle-xmark text-danger"></i> 🔴 Out of Stock (Black & White Photo)
                     </button>
                   </div>
@@ -1621,11 +1719,13 @@
 
                 <div class="form-group">
                   <label for="pDescription"><i class="fa-solid fa-align-left"></i> Product Description</label>
-                  <textarea id="pDescription" rows="3" placeholder="Describe the formula, Pakistani skin suitability, ingredients, and key benefits..."></textarea>
+                  <textarea id="pDescription" rows="3"
+                    placeholder="Describe the formula, Pakistani skin suitability, ingredients, and key benefits..."></textarea>
                 </div>
 
                 <div class="form-group">
-                  <label for="pDetails"><i class="fa-solid fa-list-check"></i> Key Bullet Highlights (Separated by •)</label>
+                  <label for="pDetails"><i class="fa-solid fa-list-check"></i> Key Bullet Highlights (Separated by
+                    •)</label>
                   <input type="text" id="pDetails" placeholder="e.g. 100% Halal • Oil Free • All Day Hydration">
                 </div>
               </div>
@@ -1638,7 +1738,8 @@
                   <div class="admin-image-upload-wrap">
                     <div class="image-preview-box" id="adminImagePreviewBox">
                       <img id="adminImagePreviewImg" src="assets/images/hero_banner.jpg" alt="Preview">
-                      <span id="adminImagePlaceholderText"><i class="fa-solid fa-cloud-arrow-up"></i><br>Image Preview</span>
+                      <span id="adminImagePlaceholderText"><i class="fa-solid fa-cloud-arrow-up"></i><br>Image
+                        Preview</span>
                     </div>
                     <div class="image-inputs-side">
                       <label class="btn-upload-file">
@@ -1653,25 +1754,35 @@
 
                 <!-- Packaging Sizes / Volume Variants (Admin Choice: None vs Custom Quantity vs Multiple Sizes) -->
                 <div class="form-group">
-                  <label><i class="fa-solid fa-flask text-gold"></i> Packaging Quantity / Volume & Pricing Option</label>
+                  <label><i class="fa-solid fa-flask text-gold"></i> Packaging Quantity / Volume & Pricing
+                    Option</label>
                   <div class="admin-options-bar" id="adminSizeOptionsBar">
-                    <button type="button" class="admin-mode-pill active none-mode" id="adminSizeNoneBtn" onclick="setAdminSizeMode('none')">
+                    <button type="button" class="admin-mode-pill active none-mode" id="adminSizeNoneBtn"
+                      onclick="setAdminSizeMode('none')">
                       <i class="fa-solid fa-ban"></i> None (Single Standard Product)
                     </button>
-                    <button type="button" class="admin-mode-pill" id="adminSizeSingleCustomBtn" onclick="setAdminSizeMode('single-custom')">
+                    <button type="button" class="admin-mode-pill" id="adminSizeSingleCustomBtn"
+                      onclick="setAdminSizeMode('single-custom')">
                       <i class="fa-solid fa-pen-to-square text-gold"></i> Custom Quantity (e.g. 50ml, 120g)
                     </button>
-                    <button type="button" class="admin-mode-pill" id="adminSizeMultiBtn" onclick="setAdminSizeMode('multi')">
+                    <button type="button" class="admin-mode-pill" id="adminSizeMultiBtn"
+                      onclick="setAdminSizeMode('multi')">
                       <i class="fa-solid fa-boxes-stacked text-gold"></i> Multiple Sizes & Prices (50ml, 100ml)
                     </button>
                   </div>
 
                   <!-- 1. Single Custom Quantity Input Section -->
-                  <div id="adminSingleCustomSizeSection" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 12px; margin-top: 6px;">
-                    <label for="pSingleCustomSize" style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; display:block; font-weight:600;"><i class="fa-solid fa-pen-nib text-gold"></i> Custom Product Quantity / Volume Specification:</label>
-                    <input type="text" id="pSingleCustomSize" placeholder="e.g. 50ml Dropper, 75ml Jar, 120g Bottle, 250ml Family Pack...">
+                  <div id="adminSingleCustomSizeSection"
+                    style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 12px; margin-top: 6px;">
+                    <label for="pSingleCustomSize"
+                      style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; display:block; font-weight:600;"><i
+                        class="fa-solid fa-pen-nib text-gold"></i> Custom Product Quantity / Volume
+                      Specification:</label>
+                    <input type="text" id="pSingleCustomSize"
+                      placeholder="e.g. 50ml Dropper, 75ml Jar, 120g Bottle, 250ml Family Pack...">
                     <div class="qv-quick-tags" style="margin-top:6px;">
-                      <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">1-Click Quick Pick:</span>
+                      <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">1-Click Quick
+                        Pick:</span>
                       <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('30ml')">30ml</button>
                       <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('50ml')">50ml</button>
                       <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('75ml')">75ml</button>
@@ -1681,24 +1792,35 @@
                       <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('200ml')">200ml</button>
                       <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('250ml')">250ml</button>
                       <button type="button" class="qv-tag-btn" onclick="setSingleCustomSizeVal('500ml')">500ml</button>
-                      <button type="button" class="qv-tag-btn" style="color:#C62828;" onclick="setSingleCustomSizeVal('')">Clear</button>
+                      <button type="button" class="qv-tag-btn" style="color:#C62828;"
+                        onclick="setSingleCustomSizeVal('')">Clear</button>
                     </div>
                   </div>
 
                   <!-- 2. Multiple Sizes & Pricing Builder Section -->
                   <div id="adminMultiSizeSection" style="display: none;">
                     <div style="margin-bottom: 8px;">
-                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">1-Click Add Size Variant:</span>
+                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">1-Click Add Size
+                        Variant:</span>
                       <div class="admin-palette-grid">
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('50ml', 450)"><i class="fa-solid fa-plus text-gold"></i> 50ml</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('100ml', 850)"><i class="fa-solid fa-plus text-gold"></i> 100ml</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('150ml', 1150)"><i class="fa-solid fa-plus text-gold"></i> 150ml</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('200ml', 1450)"><i class="fa-solid fa-plus text-gold"></i> 200ml</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('250ml', 1750)"><i class="fa-solid fa-plus text-gold"></i> 250ml</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('500ml', 2400)"><i class="fa-solid fa-plus text-gold"></i> 500ml</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('1 Liter', 3800)"><i class="fa-solid fa-plus text-gold"></i> 1 Liter</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('100g', 550)"><i class="fa-solid fa-plus text-gold"></i> 100g</button>
-                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('200g', 950)"><i class="fa-solid fa-plus text-gold"></i> 200g</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('50ml', 450)"><i
+                            class="fa-solid fa-plus text-gold"></i> 50ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('100ml', 850)"><i
+                            class="fa-solid fa-plus text-gold"></i> 100ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('150ml', 1150)"><i
+                            class="fa-solid fa-plus text-gold"></i> 150ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('200ml', 1450)"><i
+                            class="fa-solid fa-plus text-gold"></i> 200ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('250ml', 1750)"><i
+                            class="fa-solid fa-plus text-gold"></i> 250ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('500ml', 2400)"><i
+                            class="fa-solid fa-plus text-gold"></i> 500ml</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('1 Liter', 3800)"><i
+                            class="fa-solid fa-plus text-gold"></i> 1 Liter</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('100g', 550)"><i
+                            class="fa-solid fa-plus text-gold"></i> 100g</button>
+                        <button type="button" class="admin-palette-btn" onclick="addAdminSizeRow('200g', 950)"><i
+                            class="fa-solid fa-plus text-gold"></i> 200g</button>
                       </div>
                     </div>
 
@@ -1706,7 +1828,8 @@
                       <div id="adminSizesList" class="admin-sizes-list">
                         <!-- Dynamic size rows populated by JS -->
                       </div>
-                      <button type="button" class="btn-add-shade" id="adminAddSizeRowBtn" onclick="addAdminSizeRow('', '')">
+                      <button type="button" class="btn-add-shade" id="adminAddSizeRowBtn"
+                        onclick="addAdminSizeRow('', '')">
                         <i class="fa-solid fa-plus"></i> Add Custom Size & Price Row
                       </button>
                     </div>
@@ -1717,10 +1840,12 @@
                 <div class="form-group">
                   <label><i class="fa-solid fa-palette text-gold"></i> Product Shading & Color Variants</label>
                   <div class="admin-options-bar" id="adminShadeOptionsBar">
-                    <button type="button" class="admin-mode-pill active none-mode" id="adminShadeNoneBtn" onclick="setAdminShadeMode('none')">
+                    <button type="button" class="admin-mode-pill active none-mode" id="adminShadeNoneBtn"
+                      onclick="setAdminShadeMode('none')">
                       <i class="fa-solid fa-ban"></i> None (No Shading / Default Formulation)
                     </button>
-                    <button type="button" class="admin-mode-pill" id="adminShadeCustomBtn" onclick="setAdminShadeMode('custom')">
+                    <button type="button" class="admin-mode-pill" id="adminShadeCustomBtn"
+                      onclick="setAdminShadeMode('custom')">
                       <i class="fa-solid fa-palette text-gold"></i> Add Multiple Shades & Swatches
                     </button>
                   </div>
@@ -1728,16 +1853,33 @@
                   <div id="adminCustomShadeSection" style="display: none;">
                     <!-- 1-Click Popular Pakistani Shades Palette -->
                     <div style="margin-bottom: 8px;">
-                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">1-Click Add Shade Preset:</span>
+                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">1-Click Add Shade
+                        Preset:</span>
                       <div class="admin-palette-grid">
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Ivory 01', '#E8D0B3')"><span class="admin-color-dot" style="background:#E8D0B3;"></span> + Ivory 01</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Warm Natural 02', '#D8B28C')"><span class="admin-color-dot" style="background:#D8B28C;"></span> + Warm Natural</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Fair Glow', '#F3DFC8')"><span class="admin-color-dot" style="background:#F3DFC8;"></span> + Fair Glow</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('201 Ruby Surkh', '#881B2C')"><span class="admin-color-dot" style="background:#881B2C;"></span> + Ruby Surkh</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('238 Dusty Rose', '#B86B77')"><span class="admin-color-dot" style="background:#B86B77;"></span> + Dusty Rose</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('215 Mitti Nude', '#B37358')"><span class="admin-color-dot" style="background:#B37358;"></span> + Mitti Nude</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('242 Pink Velvet', '#D97587')"><span class="admin-color-dot" style="background:#D97587;"></span> + Pink Velvet</button>
-                        <button type="button" class="admin-palette-btn" onclick="addShadePreset('Champagne Gold', '#E6C896')"><span class="admin-color-dot" style="background:#E6C896;"></span> + Gold Shimmer</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('Ivory 01', '#E8D0B3')"><span class="admin-color-dot"
+                            style="background:#E8D0B3;"></span> + Ivory 01</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('Warm Natural 02', '#D8B28C')"><span class="admin-color-dot"
+                            style="background:#D8B28C;"></span> + Warm Natural</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('Fair Glow', '#F3DFC8')"><span class="admin-color-dot"
+                            style="background:#F3DFC8;"></span> + Fair Glow</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('201 Ruby Surkh', '#881B2C')"><span class="admin-color-dot"
+                            style="background:#881B2C;"></span> + Ruby Surkh</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('238 Dusty Rose', '#B86B77')"><span class="admin-color-dot"
+                            style="background:#B86B77;"></span> + Dusty Rose</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('215 Mitti Nude', '#B37358')"><span class="admin-color-dot"
+                            style="background:#B37358;"></span> + Mitti Nude</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('242 Pink Velvet', '#D97587')"><span class="admin-color-dot"
+                            style="background:#D97587;"></span> + Pink Velvet</button>
+                        <button type="button" class="admin-palette-btn"
+                          onclick="addShadePreset('Champagne Gold', '#E6C896')"><span class="admin-color-dot"
+                            style="background:#E6C896;"></span> + Gold Shimmer</button>
                       </div>
                     </div>
 
@@ -1781,21 +1923,30 @@
         <div class="admin-tab-pane" id="adminTabSettings">
           <div class="admin-settings-grid">
             <!-- Store WhatsApp & Email Notifications Config -->
-            <div class="admin-settings-card" style="grid-column: 1 / -1; border-color: var(--accent-gold); background: #FFFDF9;">
+            <div class="admin-settings-card"
+              style="grid-column: 1 / -1; border-color: var(--accent-gold); background: #FFFDF9;">
               <div class="settings-icon text-gold"><i class="fa-brands fa-whatsapp"></i></div>
               <h4>Order Notification Settings (WhatsApp & Email)</h4>
-              <p>Configure where customer orders are sent immediately upon checkout. Customer details and ordered items will be automatically dispatched to this WhatsApp and Email.</p>
-              
-              <form id="adminStoreContactForm" class="store-contact-settings-form" style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <p>Configure where customer orders are sent immediately upon checkout. Customer details and ordered items
+                will be automatically dispatched to this WhatsApp and Email.</p>
+
+              <form id="adminStoreContactForm" class="store-contact-settings-form"
+                style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="form-group">
-                  <label for="settingStoreWhatsApp"><i class="fa-brands fa-whatsapp text-success"></i> Store WhatsApp Number (e.g. 923296209082) *</label>
-                  <input type="text" id="settingStoreWhatsApp" placeholder="e.g. 923296209082" value="923296209082" required style="width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
-                  <small style="color:var(--text-muted); font-size:0.72rem;">Enter with Pakistan country code (e.g. 923296209082 without + or spaces).</small>
+                  <label for="settingStoreWhatsApp"><i class="fa-brands fa-whatsapp text-success"></i> Store WhatsApp
+                    Number (e.g. 923024317078) *</label>
+                  <input type="text" id="settingStoreWhatsApp" placeholder="e.g. 923024317078" value="923024317078"
+                    required
+                    style="width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
+                  <small style="color:var(--text-muted); font-size:0.72rem;">Enter with Pakistan country code (e.g.
+                    923024317078 without + or spaces).</small>
                 </div>
                 <div class="form-group">
                   <label for="settingStoreEmail"><i class="fa-solid fa-envelope"></i> Store Notification Email *</label>
-                  <input type="email" id="settingStoreEmail" placeholder="e.g. orders@shareefcosmetics.pk" required style="width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
-                  <small style="color:var(--text-muted); font-size:0.72rem;">Receive digital copies of customer invoices.</small>
+                  <input type="email" id="settingStoreEmail" placeholder="e.g. orders@shareefcosmetics.pk" required
+                    style="width:100%; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
+                  <small style="color:var(--text-muted); font-size:0.72rem;">Receive digital copies of customer
+                    invoices.</small>
                 </div>
                 <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end;">
                   <button type="submit" class="btn-luxury-primary btn-sm">
@@ -1809,14 +1960,21 @@
             <div class="admin-settings-card" style="grid-column: 1 / -1; border-color: #2196F3; background: #F8FBFF;">
               <div class="settings-icon" style="color:#2196F3;"><i class="fa-solid fa-cloud-arrow-up"></i></div>
               <h4>Free Online Cloud Database Connection (Multi-Device Sync Across All Phones & Laptops)</h4>
-              <p>Deploy your free Python backend to <strong>Render.com</strong> or <strong>Railway.app</strong>. Paste your live free backend URL below (e.g. <code>https://shareef-cosmetics-api.onrender.com</code>) so all catalog edits, prices, and orders automatically sync in real-time across all mobile phones and laptops worldwide!</p>
-              
-              <form id="adminCloudDbForm" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px;">
-                <input type="url" id="settingCloudApiUrl" placeholder="e.g. https://shareef-cosmetics-api.onrender.com" style="flex:1; min-width:280px; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
-                <button type="submit" class="btn-luxury-primary btn-sm" style="background:#1976D2; border-color:#1976D2;">
+              <p>Deploy your free Python backend to <strong>Render.com</strong> or <strong>Railway.app</strong>. Paste
+                your live free backend URL below (e.g. <code>https://shareef-cosmetics-api.onrender.com</code>) so all
+                catalog edits, prices, and orders automatically sync in real-time across all mobile phones and laptops
+                worldwide!</p>
+
+              <form id="adminCloudDbForm"
+                style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+                <input type="url" id="settingCloudApiUrl" placeholder="e.g. https://shareef-cosmetics-api.onrender.com"
+                  style="flex:1; min-width:280px; padding:10px 14px; border:1px solid var(--border-light); border-radius:var(--radius-sm); font-size:0.85rem;">
+                <button type="submit" class="btn-luxury-primary btn-sm"
+                  style="background:#1976D2; border-color:#1976D2;">
                   <i class="fa-solid fa-link"></i> Connect & Save Live Database
                 </button>
-                <button type="button" class="btn-luxury-secondary btn-sm" id="adminClearCloudApiBtn" title="Reset to default URL">
+                <button type="button" class="btn-luxury-secondary btn-sm" id="adminClearCloudApiBtn"
+                  title="Reset to default URL">
                   <i class="fa-solid fa-rotate-left"></i> Reset
                 </button>
               </form>
@@ -1827,7 +1985,8 @@
             <div class="admin-settings-card">
               <div class="settings-icon"><i class="fa-solid fa-file-export"></i></div>
               <h4>Export & Backup Catalog</h4>
-              <p>Download a complete JSON backup of all current products, custom shades, and edited prices to keep safe on your computer.</p>
+              <p>Download a complete JSON backup of all current products, custom shades, and edited prices to keep safe
+                on your computer.</p>
               <button type="button" class="btn-luxury-primary" id="adminExportJsonBtn">
                 <i class="fa-solid fa-download"></i> Download Catalog JSON Backup
               </button>
@@ -1848,7 +2007,8 @@
             <div class="admin-settings-card danger-card">
               <div class="settings-icon text-ruby"><i class="fa-solid fa-rotate-left"></i></div>
               <h4>Reset to Default Pakistani Catalog</h4>
-              <p>Reverts all customizations, custom products, and prices back to the initial 20 authentic Pakistani cosmetic items.</p>
+              <p>Reverts all customizations, custom products, and prices back to the initial 20 authentic Pakistani
+                cosmetic items.</p>
               <button type="button" class="btn-danger" id="adminResetDefaultBtn">
                 <i class="fa-solid fa-triangle-exclamation"></i> Reset to Factory Defaults
               </button>
@@ -1923,7 +2083,7 @@
       </div>
       <span>Bag</span>
     </button>
-    <a href="https://wa.me/923296209082" target="_blank" class="mobile-bottom-item whatsapp-item">
+    <a href="https://wa.me/923024317078" target="_blank" class="mobile-bottom-item whatsapp-item">
       <i class="fa-brands fa-whatsapp"></i>
       <span>WhatsApp</span>
     </a>
@@ -1932,11 +2092,8 @@
   <!-- =================================================================
        FLOATING WHATSAPP BUTTON (Nationwide Pakistan)
   ================================================================= -->
-  <a href="https://wa.me/923296209082?text=Assalam-o-Alaikum%20Shareef%20Cosmetics!%20I%20would%20like%20to%20inquire%20about%20your%20products." 
-     target="_blank" 
-     class="floating-whatsapp-btn" 
-     aria-label="Order on WhatsApp"
-     id="floatingWhatsApp">
+  <a href="https://wa.me/923024317078?text=Assalam-o-Alaikum%20Shareef%20Cosmetics!%20I%20would%20like%20to%20inquire%20about%20your%20products."
+    target="_blank" class="floating-whatsapp-btn" aria-label="Order on WhatsApp" id="floatingWhatsApp">
     <i class="fa-brands fa-whatsapp"></i>
     <span class="whatsapp-tooltip">Order on WhatsApp</span>
   </a>
@@ -1947,4 +2104,5 @@
   <!-- Application Logic -->
   <script src="app.js?v=25.0"></script>
 </body>
+
 </html>

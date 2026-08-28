@@ -838,7 +838,7 @@ const API = {
       if (saved) {
         try { return JSON.parse(saved); } catch(e){}
       }
-      return { whatsapp: '923296209082', email: 'care@shareefcosmetics.pk' };
+      return { whatsapp: '923024317078', email: 'care@shareefcosmetics.pk' };
     }
     try {
       const res = await fetch(`${this.getBaseUrl()}/api/settings`);
@@ -847,7 +847,7 @@ const API = {
         return json.data;
       }
     } catch(e) {}
-    return { whatsapp: '923296209082', email: 'care@shareefcosmetics.pk' };
+    return { whatsapp: '923024317078', email: 'care@shareefcosmetics.pk' };
   },
   async saveSettings(settings) {
     localStorage.setItem('shareef_store_settings', JSON.stringify(settings));
@@ -1629,7 +1629,7 @@ async function handleCheckoutSubmit(e) {
     return;
   }
 
-  // Mandatory Receipt Screenshot for JazzCash / Easypaisa
+  // Mandatory Receipt Screenshot for JazzCash Online Payment
   if (paymentMethod.includes('JazzCash')) {
     if (!receiptImage) {
       showToast('⚠️ Please attach your payment screenshot before placing order.');
@@ -2661,8 +2661,16 @@ function setupEventListeners() {
   if (mobileOverlay) mobileOverlay.addEventListener('click', closeDrawer);
 
   document.querySelectorAll('.mobile-nav-link').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', (e) => {
       closeDrawer();
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#') && href.length > 1) {
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
       const filter = link.getAttribute('data-filter');
       if (filter) setCategoryFilter(filter);
     });
@@ -2685,7 +2693,15 @@ function setupEventListeners() {
 
   // Nav Filter links
   document.querySelectorAll('.desktop-nav .nav-link, .footer-links a').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('#') && href.length > 1) {
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
       const filter = link.getAttribute('data-filter');
       if (filter) setCategoryFilter(filter);
     });
@@ -2752,11 +2768,12 @@ function setupEventListeners() {
   if (copyJazzcashBtn) {
     copyJazzcashBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const num = '03296209082';
+      const numElem = document.getElementById('jazzcashAccNumber');
+      const num = numElem ? numElem.textContent.trim() : '03289487059';
       navigator.clipboard.writeText(num).then(() => {
-        showToast('✓ Account No. 03296209082 copied to clipboard!');
+        showToast(`✓ Account No. ${num} copied to clipboard!`);
       }).catch(() => {
-        showToast('Account No: 03296209082');
+        showToast(`Account No: ${num}`);
       });
     });
   }
@@ -3032,7 +3049,7 @@ async function loadStoreSettingsAsync() {
     return settings;
   }
   return {
-    whatsapp: '923296209082',
+    whatsapp: '923024317078',
     email: 'care@shareefcosmetics.pk'
   };
 }
@@ -3045,7 +3062,7 @@ function getStoreWhatsAppNumber() {
       if (parsed && parsed.whatsapp) return parsed.whatsapp.replace(/[^0-9]/g, '');
     }
   } catch (e) {}
-  return '923296209082';
+  return '923024317078';
 }
 
 function getStoreEmail() {
@@ -3468,7 +3485,7 @@ async function populateStoreSettingsFields() {
   const settings = await loadStoreSettingsAsync();
   const waInput = document.getElementById('settingStoreWhatsApp');
   const emailInput = document.getElementById('settingStoreEmail');
-  if (waInput) waInput.value = settings.whatsapp || '923296209082';
+  if (waInput) waInput.value = settings.whatsapp || '923024317078';
   if (emailInput) emailInput.value = settings.email || 'care@shareefcosmetics.pk';
 }
 
@@ -3843,7 +3860,7 @@ function printOrderInvoice(orderId) {
 
   const dateStr = order.timestamp ? new Date(order.timestamp).toLocaleString('en-PK') : new Date().toLocaleString();
   const payMethod = order.paymentMethod || order.payment_method || 'Cash on Delivery (COD)';
-  const isOnlinePaid = payMethod.toLowerCase().includes('jazzcash') || payMethod.toLowerCase().includes('easypaisa') || payMethod.toLowerCase().includes('online');
+  const isOnlinePaid = payMethod.toLowerCase().includes('jazzcash') || payMethod.toLowerCase().includes('online');
 
   const itemsRows = (order.items || []).map(i => {
     const shadeStr = i.shade && i.shade !== 'None' && !i.shade.startsWith('None') ? `Shade: ${i.shade}` : 'Shade: None';

@@ -469,7 +469,7 @@ def init_database():
 
     # Seed Settings if not exists
     default_settings = {
-        'whatsapp': '923296209082',
+        'whatsapp': '923024317078',
         'email': 'care@shareefcosmetics.pk',
         'store_name': 'Shareef Cosmetics Pakistan',
         'currency': 'PKR',

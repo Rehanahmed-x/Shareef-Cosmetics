@@ -1710,9 +1710,11 @@ ul {
 /* =================================================================
    CUSTOMER REVIEWS (PAKISTANI BEAUTY ENTHUSIASTS)
 ================================================================= */
-.reviews-section {
+.reviews-section,
+#reviewsSection {
   padding: 80px 0;
   background: var(--bg-primary);
+  scroll-margin-top: 90px;
 }
 
 .reviews-header-actions {
@@ -2947,7 +2949,7 @@ ul {
   color: var(--text-muted);
 }
 
-/* JazzCash & Easypaisa Interactive Account Box */
+/* JazzCash Interactive Account Box */
 .jazzcash-account-box {
   background: #FFFDF9;
   border: 1.5px solid var(--accent-gold);

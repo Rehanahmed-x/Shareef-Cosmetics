@@ -28,6 +28,34 @@ HOST = '0.0.0.0'
 ACTIVE_SESSIONS = {}
 SESSION_DURATION_SECONDS = 7 * 24 * 3600  # 7 days
 
+# Brute-force & rate-limiting protection for admin authentication
+FAILED_LOGINS = {} # ip -> {'count': int, 'lockout_until': float, 'last_attempt': float}
+
+def is_ip_rate_limited(ip):
+    now = time.time()
+    record = FAILED_LOGINS.get(ip)
+    if not record:
+        return False, 0
+    if record.get('lockout_until', 0) > now:
+        remaining = int(record['lockout_until'] - now)
+        return True, remaining
+    if now - record.get('last_attempt', 0) > 900:
+        FAILED_LOGINS.pop(ip, None)
+    return False, 0
+
+def record_failed_login(ip):
+    now = time.time()
+    if ip not in FAILED_LOGINS:
+        FAILED_LOGINS[ip] = {'count': 1, 'last_attempt': now, 'lockout_until': 0}
+    else:
+        FAILED_LOGINS[ip]['count'] += 1
+        FAILED_LOGINS[ip]['last_attempt'] = now
+        if FAILED_LOGINS[ip]['count'] >= 5:
+            FAILED_LOGINS[ip]['lockout_until'] = now + 300
+
+def reset_failed_logins(ip):
+    FAILED_LOGINS.pop(ip, None)
+
 # =====================================================================
 # 1. DATABASE MANAGEMENT & SCHEMA INITIALIZATION
 # =====================================================================
@@ -469,6 +497,15 @@ def init_database():
             ))
         print("[DATABASE] Seeding complete!")
 
+    # Column migrations (in_stock and sizes)
+    cursor.execute("PRAGMA table_info(products)")
+    existing_cols = [c[1] for c in cursor.fetchall()]
+    if 'in_stock' not in existing_cols:
+        cursor.execute("ALTER TABLE products ADD COLUMN in_stock INTEGER DEFAULT 1")
+        print("[DATABASE] Migrated products table: added in_stock column")
+    if 'sizes' not in existing_cols:
+        cursor.execute("ALTER TABLE products ADD COLUMN sizes TEXT DEFAULT '[]'")
+
     conn.commit()
     conn.close()
 
@@ -521,6 +558,8 @@ def format_product_row(row):
     d['originalPrice'] = d.get('original_price', 0)
     d['reviewsCount'] = d.get('reviews_count', 0)
     d['badgeClass'] = d.get('badge_class', '')
+    d['createdAt'] = d.get('created_at', '')
+    d['inStock'] = bool(d.get('in_stock', 1) if d.get('in_stock') is not None else 1)
     return d
 
 def format_order_row(row):
@@ -575,6 +614,14 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             return json.loads(body.decode('utf-8'))
         except Exception:
             return {}
+
+    def _get_client_ip(self):
+        xff = self.headers.get('X-Forwarded-For', '')
+        if xff:
+            return xff.split(',')[0].strip()
+        if hasattr(self, 'client_address') and self.client_address:
+            return str(self.client_address[0])
+        return '127.0.0.1'
 
     # -------------------------------------------------------------
     # GET REQUESTS
@@ -742,8 +789,18 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
         path = parsed_url.path
         body = self._read_json_body()
 
-        # 1. API: Admin Login
+        # 1. API: Admin Login (Protected with Brute-Force Rate Limiting)
         if path == '/api/admin/login':
+            client_ip = self._get_client_ip()
+            is_limited, remaining = is_ip_rate_limited(client_ip)
+            if is_limited:
+                self._set_headers(429)
+                self.wfile.write(json.dumps({
+                    'success': False,
+                    'error': f'Too many failed login attempts. Access temporarily locked for {remaining} seconds for security.'
+                }).encode('utf-8'))
+                return
+
             entered_password = body.get('password', '').strip()
             username = body.get('username', 'admin').strip()
 
@@ -759,6 +816,7 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             conn.close()
 
             if user and verify_password(entered_password, user['password_hash'], user['salt']):
+                reset_failed_logins(client_ip)
                 token = create_session(user['id'], user['username'])
                 self._set_headers(200)
                 self.wfile.write(json.dumps({
@@ -768,6 +826,7 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
                     'message': 'Login successful'
                 }).encode('utf-8'))
             else:
+                record_failed_login(client_ip)
                 self._set_headers(401)
                 self.wfile.write(json.dumps({'success': False, 'error': 'Invalid credentials. Access denied.'}).encode('utf-8'))
             return
@@ -833,6 +892,7 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             details = body.get('details', '').strip()
             rating = float(body.get('rating', 5.0))
             reviews_count = int(body.get('reviewsCount', 0))
+            in_stock = int(1 if body.get('inStock', body.get('in_stock', True)) else 0)
 
             if not name or price <= 0:
                 self._set_headers(400)
@@ -844,17 +904,26 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             cursor.execute('''
             INSERT INTO products (
                 name, category, price, original_price, badge, badge_class,
-                rating, reviews_count, image, description, shades, sizes, details
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                rating, reviews_count, image, description, shades, sizes, details, in_stock
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 name, category, price, original_price, badge, badge_class,
-                rating, reviews_count, image, description, shades, sizes, details
+                rating, reviews_count, image, description, shades, sizes, details, in_stock
             ))
             new_id = cursor.lastrowid
             conn.commit()
             
             cursor.execute("SELECT * FROM products WHERE id = ?", (new_id,))
             created_row = cursor.fetchone()
+
+            try:
+                cursor.execute("SELECT * FROM products ORDER BY id ASC")
+                all_prods = [format_product_row(r) for r in cursor.fetchall()]
+                with open(os.path.join(STATIC_DIR, 'products.json'), 'w', encoding='utf-8') as pf:
+                    json.dump(all_prods, pf, indent=2, ensure_ascii=False)
+            except Exception as pe:
+                print("products.json sync warning:", pe)
+
             conn.close()
 
             self._set_headers(201)
@@ -1014,6 +1083,11 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
                         fields.append(f"{col} = ?")
                         params.append(body[k])
                 
+                if 'inStock' in body or 'in_stock' in body:
+                    stock_val = body.get('inStock', body.get('in_stock'))
+                    fields.append("in_stock = ?")
+                    params.append(1 if stock_val is True or stock_val == 1 or stock_val == '1' else 0)
+
                 if 'shades' in body:
                     fields.append("shades = ?")
                     params.append(json.dumps(body['shades']))
@@ -1031,6 +1105,15 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
 
                 cursor.execute("SELECT * FROM products WHERE id = ?", (pid,))
                 updated_row = cursor.fetchone()
+
+                try:
+                    cursor.execute("SELECT * FROM products ORDER BY id ASC")
+                    all_prods = [format_product_row(r) for r in cursor.fetchall()]
+                    with open(os.path.join(STATIC_DIR, 'products.json'), 'w', encoding='utf-8') as pf:
+                        json.dump(all_prods, pf, indent=2, ensure_ascii=False)
+                except Exception as pe:
+                    print("products.json sync warning:", pe)
+
                 conn.close()
 
                 self._set_headers(200)
@@ -1133,10 +1216,26 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
         else:
             # Clean path to prevent directory traversal
             clean_rel_path = os.path.normpath(req_path.lstrip('/')).replace('\\', '/')
-            if clean_rel_path.startswith('..'):
+            if clean_rel_path.startswith('..') or os.path.isabs(clean_rel_path):
                 self._set_headers(403, 'text/plain')
-                self.wfile.write(b'Access denied')
+                self.wfile.write(b'Access denied: Invalid path')
                 return
+
+            # Security filter: prevent exposure of databases, code scripts, hidden dotfiles, and config
+            parts = [p.lower() for p in clean_rel_path.split('/') if p]
+            if any(p.startswith('.') for p in parts):
+                self._set_headers(403, 'text/plain')
+                self.wfile.write(b'Access forbidden: Hidden files cannot be accessed.')
+                return
+
+            blocked_exts = ('.db', '.sqlite', '.sqlite3', '.py', '.env', '.bat', '.sh', '.yaml', '.yml', '.md', '.log', '.bak', '.sql')
+            blocked_files = ('procfile', 'render.yaml', 'requirements.txt')
+            filename = os.path.basename(clean_rel_path).lower()
+            if filename.endswith(blocked_exts) or filename in blocked_files:
+                self._set_headers(403, 'text/plain')
+                self.wfile.write(b'Access forbidden: System file.')
+                return
+
             file_path = os.path.join(BASE_DIR, clean_rel_path)
 
         if not os.path.isfile(file_path):
@@ -1205,8 +1304,7 @@ def run():
     print(f"[SERVER] Local Access:    http://localhost:{PORT}")
     print(f"[SERVER] Phone / WiFi:    http://{local_ip}:{PORT}")
     print(f"[DATABASE] Connected to:  {DB_PATH}")
-    print(f"[SECURITY] Admin Auth:    PBKDF2-HMAC-SHA256 Token Engine Active")
-    print(f"[SECURITY] Default Login: admin / umair2026")
+    print(f"[SECURITY] Admin Auth:    PBKDF2-HMAC-SHA256 Token Engine Active (Protected)")
     print("\nPress Ctrl+C to stop the server.\n")
     print("=" * 65)
 

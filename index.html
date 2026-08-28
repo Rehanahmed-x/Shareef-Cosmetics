@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=4.1">
+  <link rel="stylesheet" href="style.css?v=6.0">
 </head>
 <body>
 
@@ -122,12 +122,13 @@
       <!-- Desktop Navigation -->
       <nav class="desktop-nav">
         <ul class="nav-list">
-          <li><a href="#signature-ritual" class="nav-link">The Ritual</a></li>
           <li><a href="#collection" class="nav-link" data-filter="all">All Products</a></li>
-          <li><a href="#collection" class="nav-link" data-filter="skincare">Skincare</a></li>
-          <li><a href="#collection" class="nav-link" data-filter="face">Face & Powders</a></li>
-          <li><a href="#collection" class="nav-link" data-filter="lips">Lipsticks</a></li>
-          <li><a href="#collection" class="nav-link" data-filter="haircare">Haircare</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="cleanser">Cleansers</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="moisturizer">Moisturizers</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="serum">Serums</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="sunblock">Sunblock</a></li>
+          <li><a href="#collection" class="nav-link" data-filter="lipstick">Lipsticks</a></li>
+          <li><a href="#reviewsSection" class="nav-link">Customer Reviews</a></li>
         </ul>
       </nav>
 
@@ -187,15 +188,59 @@
       </button>
     </div>
     <div class="drawer-body">
+      <!-- Main Quick Links -->
       <ul class="mobile-nav-list">
         <li><a href="#hero" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
-        <li><a href="#signature-ritual" class="mobile-nav-link"><i class="fa-solid fa-gem"></i> The Signature Ritual</a></li>
-        <li><a href="#collection" class="mobile-nav-link" data-filter="all"><i class="fa-solid fa-bag-shopping"></i> All Products (20)</a></li>
-        <li><a href="#collection" class="mobile-nav-link" data-filter="skincare"><i class="fa-solid fa-spa"></i> Skincare & Creams</a></li>
-        <li><a href="#collection" class="mobile-nav-link" data-filter="face"><i class="fa-solid fa-palette"></i> Face & Foundation</a></li>
-        <li><a href="#collection" class="mobile-nav-link" data-filter="lips"><i class="fa-solid fa-heart"></i> Lipsticks & Tints</a></li>
-        <li><a href="#collection" class="mobile-nav-link" data-filter="haircare"><i class="fa-solid fa-seedling"></i> Herbal Haircare</a></li>
+        <li><a href="#collection" class="mobile-nav-link" data-filter="all"><i class="fa-solid fa-border-all"></i> All Products (Catalog)</a></li>
+        <li><a href="#reviewsSection" class="mobile-nav-link"><i class="fa-solid fa-star"></i> Customer Reviews</a></li>
       </ul>
+
+      <!-- Category Explorer Section (30+ Categories) -->
+      <div class="drawer-categories-section">
+        <div class="drawer-cat-header">
+          <span><i class="fa-solid fa-layer-group text-gold"></i> Skincare & Beauty Categories (30+)</span>
+        </div>
+        <div class="drawer-cat-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="drawerCategorySearch" placeholder="Filter 30+ categories...">
+        </div>
+        <ul class="drawer-categories-list" id="drawerCategoriesList">
+          <li><a href="#collection" class="drawer-cat-link active" data-filter="all"><i class="fa-solid fa-border-all"></i> <span>All Products</span> <span class="badge-mini" id="drawerCountAll">20</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="new-arrivals"><i class="fa-solid fa-sparkles text-gold"></i> <span>✨ New Arrivals (4 Days)</span> <span class="badge-mini" id="drawerCountNewArrivals">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="cleanser"><i class="fa-solid fa-pump-soap"></i> <span>Face Wash & Cleansers</span> <span class="badge-mini" id="drawerCountCleanser">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="serum"><i class="fa-solid fa-droplet"></i> <span>Serums & Boosters</span> <span class="badge-mini" id="drawerCountSerum">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="moisturizer"><i class="fa-solid fa-cloud"></i> <span>Moisturizers & Creams</span> <span class="badge-mini" id="drawerCountMoisturizer">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="sunblock"><i class="fa-solid fa-sun"></i> <span>Sunscreens & SPF</span> <span class="badge-mini" id="drawerCountSunblock">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="nightcream"><i class="fa-solid fa-moon"></i> <span>Night & Anti-Aging</span> <span class="badge-mini" id="drawerCountNightcream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="brightening"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>Brightening & Radiance</span> <span class="badge-mini" id="drawerCountBrightening">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="toner"><i class="fa-solid fa-spray-can-sparkles"></i> <span>Toners & Astringents</span> <span class="badge-mini" id="drawerCountToner">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="facemask"><i class="fa-solid fa-mask-face"></i> <span>Face Masks & Packs</span> <span class="badge-mini" id="drawerCountFacemask">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="sheetmask"><i class="fa-solid fa-file-lines"></i> <span>Sheet Masks & Patches</span> <span class="badge-mini" id="drawerCountSheetmask">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="scrub"><i class="fa-solid fa-gem"></i> <span>Scrubs & Exfoliators</span> <span class="badge-mini" id="drawerCountScrub">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="facialoil"><i class="fa-solid fa-bottle-droplet"></i> <span>Facial Oils & Elixirs</span> <span class="badge-mini" id="drawerCountFacialoil">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="acnecare"><i class="fa-solid fa-shield-heart"></i> <span>Acne & Blemish Care</span> <span class="badge-mini" id="drawerCountAcnecare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="darkspots"><i class="fa-solid fa-circle-dot"></i> <span>Dark Spots & Melasma</span> <span class="badge-mini" id="drawerCountDarkspots">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="eyecream"><i class="fa-solid fa-eye"></i> <span>Under Eye Creams</span> <span class="badge-mini" id="drawerCountEyecream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="ubtan"><i class="fa-solid fa-leaf"></i> <span>Herbal Ubtan & Pastes</span> <span class="badge-mini" id="drawerCountUbtan">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="bleachcream"><i class="fa-solid fa-certificate"></i> <span>Bleach Creams & Polishers</span> <span class="badge-mini" id="drawerCountBleachcream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="skinpolisher"><i class="fa-solid fa-star"></i> <span>Skin Polishers & Bleach</span> <span class="badge-mini" id="drawerCountSkinpolisher">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="facemist"><i class="fa-solid fa-wind"></i> <span>Face Mists & Rose Waters</span> <span class="badge-mini" id="drawerCountFacemist">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="micellar"><i class="fa-solid fa-soap"></i> <span>Micellar Water & Removers</span> <span class="badge-mini" id="drawerCountMicellar">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="lipcare"><i class="fa-solid fa-heart"></i> <span>Lip Balms & Lip Care</span> <span class="badge-mini" id="drawerCountLipcare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="bbcream"><i class="fa-solid fa-magic"></i> <span>BB & CC Creams</span> <span class="badge-mini" id="drawerCountBbcream">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="foundation"><i class="fa-solid fa-palette"></i> <span>Foundations & Complexion</span> <span class="badge-mini" id="drawerCountFoundation">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="compactpowder"><i class="fa-solid fa-circle-notch"></i> <span>Compact & Base Powders</span> <span class="badge-mini" id="drawerCountCompactpowder">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="lipstick"><i class="fa-solid fa-paint-brush"></i> <span>Lipsticks & Liquid Mattes</span> <span class="badge-mini" id="drawerCountLipstick">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="liptint"><i class="fa-solid fa-smile-beam"></i> <span>Lip Tints & Glosses</span> <span class="badge-mini" id="drawerCountLiptint">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="handfoot"><i class="fa-solid fa-hand-sparkles"></i> <span>Hand & Foot Care</span> <span class="badge-mini" id="drawerCountHandfoot">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="bodylotion"><i class="fa-solid fa-flask"></i> <span>Body Lotions & Butters</span> <span class="badge-mini" id="drawerCountBodylotion">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="hairoil"><i class="fa-solid fa-seedling"></i> <span>Herbal Hair Oils</span> <span class="badge-mini" id="drawerCountHairoil">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="haircare"><i class="fa-solid fa-shower"></i> <span>Shampoos & Haircare</span> <span class="badge-mini" id="drawerCountHaircare">0</span></a></li>
+          <li><a href="#collection" class="drawer-cat-link" data-filter="menscare"><i class="fa-solid fa-user-tie"></i> <span>Men’s Skincare & Grooming</span> <span class="badge-mini" id="drawerCountMenscare">0</span></a></li>
+        </ul>
+      </div>
+
+      <!-- Quick Actions -->
       <div class="mobile-drawer-cta">
         <button class="btn-primary w-100 mb-2" id="openShadeFinderMobileBtn">
           <i class="fa-solid fa-wand-magic-sparkles"></i> Find My Exact Shade (Quiz)
@@ -276,55 +321,7 @@
     </div>
   </section>
 
-  <!-- =================================================================
-       SIGNATURE 4-STEP RITUAL PHILOSOPHY
-  ================================================================= -->
-  <section class="signature-concept-section" id="signature-ritual">
-    <div class="container">
-      <div class="section-header text-center">
-        <span class="sub-heading">THE SIGNATURE RITUAL</span>
-        <h2 class="section-title">Natural Radiance • 4 Simple Steps</h2>
-        <div class="gold-flourish"></div>
-        <p class="section-subtitle">
-          Say goodbye to cakey layers. Formulated for Pakistani wheatish, fair, and warm olive undertones.
-        </p>
-      </div>
 
-      <div class="concept-grid">
-        <div class="concept-card">
-          <div class="step-num">01</div>
-          <div class="concept-icon"><i class="fa-solid fa-feather-pointed"></i></div>
-          <h3>Cleanse & Purify</h3>
-          <p>Himalaya Neem & Pond's Bright Beauty cleanser to wash away oil, dust, and impurities without stripping moisture.</p>
-          <span class="step-tag">Step 1: Cleanse</span>
-        </div>
-
-        <div class="concept-card highlight-card">
-          <div class="step-num">02</div>
-          <div class="concept-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-          <h3>Hydrate & Tone</h3>
-          <p>Pure Damask Saeed Ghani Arq-e-Gulab mist and Pond's Cold Cream to restore natural moisture balance.</p>
-          <span class="step-tag">Step 2: Hydrate</span>
-        </div>
-
-        <div class="concept-card">
-          <div class="step-num">03</div>
-          <div class="concept-icon"><i class="fa-solid fa-sun"></i></div>
-          <h3>Mineral Sun Shield</h3>
-          <p>Rivaj UK HD Mineral Sunblock SPF 60 for invisible, sweatproof sun protection under hot Pakistani sun.</p>
-          <span class="step-tag">Step 3: Shield</span>
-        </div>
-
-        <div class="concept-card">
-          <div class="step-num">04</div>
-          <div class="concept-icon"><i class="fa-solid fa-heart"></i></div>
-          <h3>Flawless Touch</h3>
-          <p>Masarrat Misbah silk foundation & iconic Medora velvet matte lipstick for effortless Pakistani elegance.</p>
-          <span class="step-tag">Step 4: Radiance</span>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- =================================================================
        INTERACTIVE SHADE FINDER BANNER / MODAL TRIGGER
@@ -365,25 +362,114 @@
         </p>
       </div>
 
-      <!-- Category Filter Tabs -->
-      <div class="filter-tabs-wrapper">
-        <div class="filter-tabs" id="categoryFilterTabs">
-          <button class="filter-tab-btn active" data-category="all">
-            <i class="fa-solid fa-border-all"></i> All Products (<span id="countAll">20</span>)
-          </button>
-          <button class="filter-tab-btn" data-category="skincare">
-            <i class="fa-solid fa-spa"></i> Skincare & Creams (<span id="countSkincare">10</span>)
-          </button>
-          <button class="filter-tab-btn" data-category="face">
-            <i class="fa-solid fa-face-smile"></i> Face & Foundation (<span id="countFace">6</span>)
-          </button>
-          <button class="filter-tab-btn" data-category="lips">
-            <i class="fa-solid fa-kiss-wink-heart"></i> Velvet Lipsticks (<span id="countLips">2</span>)
-          </button>
-          <button class="filter-tab-btn" data-category="haircare">
-            <i class="fa-solid fa-seedling"></i> Haircare & Oils (<span id="countHaircare">2</span>)
-          </button>
+      <!-- Category Filter Tabs Slider -->
+      <div class="category-slider-wrap">
+        <button class="cat-slide-btn prev" id="catSlidePrevBtn" aria-label="Previous categories" title="Scroll left">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="filter-tabs-wrapper" id="filterTabsWrapper">
+          <div class="filter-tabs" id="categoryFilterTabs">
+            <button class="filter-tab-btn active" data-category="all">
+              <i class="fa-solid fa-border-all"></i> All Products <span class="cat-badge" id="countAll">20</span>
+            </button>
+            <button class="filter-tab-btn" data-category="new-arrivals" style="border-color: rgba(198, 166, 117, 0.4);">
+              <i class="fa-solid fa-sparkles text-gold"></i> ✨ New Arrivals <span class="cat-badge" id="countNewArrivals">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="cleanser">
+              <i class="fa-solid fa-pump-soap"></i> Face Wash & Cleansers <span class="cat-badge" id="countCleanser">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="serum">
+              <i class="fa-solid fa-droplet"></i> Serums & Boosters <span class="cat-badge" id="countSerum">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="moisturizer">
+              <i class="fa-solid fa-cloud"></i> Moisturizers & Creams <span class="cat-badge" id="countMoisturizer">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="sunblock">
+              <i class="fa-solid fa-sun"></i> Sunscreens & SPF <span class="cat-badge" id="countSunblock">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="nightcream">
+              <i class="fa-solid fa-moon"></i> Night & Anti-Aging <span class="cat-badge" id="countNightcream">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="brightening">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Brightening & Radiance <span class="cat-badge" id="countBrightening">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="toner">
+              <i class="fa-solid fa-spray-can-sparkles"></i> Toners & Astringents <span class="cat-badge" id="countToner">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="facemask">
+              <i class="fa-solid fa-mask-face"></i> Face Masks & Packs <span class="cat-badge" id="countFacemask">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="sheetmask">
+              <i class="fa-solid fa-file-lines"></i> Sheet Masks & Patches <span class="cat-badge" id="countSheetmask">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="scrub">
+              <i class="fa-solid fa-gem"></i> Scrubs & Exfoliators <span class="cat-badge" id="countScrub">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="facialoil">
+              <i class="fa-solid fa-bottle-droplet"></i> Facial Oils & Elixirs <span class="cat-badge" id="countFacialoil">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="acnecare">
+              <i class="fa-solid fa-shield-heart"></i> Acne & Blemish Care <span class="cat-badge" id="countAcnecare">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="darkspots">
+              <i class="fa-solid fa-circle-dot"></i> Dark Spots & Melasma <span class="cat-badge" id="countDarkspots">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="eyecream">
+              <i class="fa-solid fa-eye"></i> Under Eye Creams <span class="cat-badge" id="countEyecream">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="ubtan">
+              <i class="fa-solid fa-leaf"></i> Herbal Ubtan & Pastes <span class="cat-badge" id="countUbtan">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="bleachcream">
+              <i class="fa-solid fa-certificate"></i> Bleach Creams & Polishers <span class="cat-badge" id="countBleachcream">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="skinpolisher">
+              <i class="fa-solid fa-star"></i> Skin Polishers & Bleach <span class="cat-badge" id="countSkinpolisher">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="facemist">
+              <i class="fa-solid fa-wind"></i> Face Mists & Rose Waters <span class="cat-badge" id="countFacemist">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="micellar">
+              <i class="fa-solid fa-soap"></i> Micellar Water & Removers <span class="cat-badge" id="countMicellar">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="lipcare">
+              <i class="fa-solid fa-heart"></i> Lip Balms & Lip Care <span class="cat-badge" id="countLipcare">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="bbcream">
+              <i class="fa-solid fa-magic"></i> BB & CC Creams <span class="cat-badge" id="countBbcream">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="foundation">
+              <i class="fa-solid fa-palette"></i> Foundations & Complexion <span class="cat-badge" id="countFoundation">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="compactpowder">
+              <i class="fa-solid fa-circle-notch"></i> Compact & Base Powders <span class="cat-badge" id="countCompactpowder">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="lipstick">
+              <i class="fa-solid fa-paint-brush"></i> Lipsticks & Liquid Mattes <span class="cat-badge" id="countLipstick">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="liptint">
+              <i class="fa-solid fa-smile-beam"></i> Lip Tints & Glosses <span class="cat-badge" id="countLiptint">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="handfoot">
+              <i class="fa-solid fa-hand-sparkles"></i> Hand & Foot Care <span class="cat-badge" id="countHandfoot">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="bodylotion">
+              <i class="fa-solid fa-flask"></i> Body Lotions & Butters <span class="cat-badge" id="countBodylotion">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="hairoil">
+              <i class="fa-solid fa-seedling"></i> Herbal Hair Oils <span class="cat-badge" id="countHairoil">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="haircare">
+              <i class="fa-solid fa-shower"></i> Shampoos & Haircare <span class="cat-badge" id="countHaircare">0</span>
+            </button>
+            <button class="filter-tab-btn" data-category="menscare">
+              <i class="fa-solid fa-user-tie"></i> Men’s Skincare & Grooming <span class="cat-badge" id="countMenscare">0</span>
+            </button>
+          </div>
         </div>
+        <button class="cat-slide-btn next" id="catSlideNextBtn" aria-label="Next categories" title="Scroll right">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
       </div>
 
       <!-- Secondary Controls: Sorting & Results Count -->
@@ -582,7 +668,7 @@
       <div class="footer-col">
         <h4 class="footer-heading">Customer Care</h4>
         <ul class="footer-links">
-          <li><a href="#signature-ritual">The Beauty Guide</a></li>
+          <li><a href="#collection">Curated Cosmetics</a></li>
           <li><a href="#" id="footerOpenShadeQuiz">Skin Shade Matcher</a></li>
           <li><a href="#">Track Order (TCS / Post)</a></li>
           <li><a href="#">7-Day Returns & Exchange</a></li>
@@ -1291,11 +1377,47 @@
             </div>
             <div class="admin-filter-group">
               <select id="adminCategoryFilter" class="admin-select">
-                <option value="all">All Categories</option>
-                <option value="skincare">Skincare</option>
-                <option value="face">Face & Foundation</option>
-                <option value="lips">Lips</option>
-                <option value="haircare">Haircare</option>
+                <option value="all">All Categories (30+)</option>
+                <optgroup label="Skincare Essentials">
+                  <option value="cleanser">Face Wash & Cleansers</option>
+                  <option value="serum">Serums & Boosters</option>
+                  <option value="moisturizer">Moisturizers & Creams</option>
+                  <option value="sunblock">Sunscreens & SPF</option>
+                  <option value="nightcream">Night & Anti-Aging</option>
+                  <option value="brightening">Brightening & Radiance</option>
+                  <option value="toner">Toners & Astringents</option>
+                  <option value="facemask">Face Masks & Packs</option>
+                  <option value="sheetmask">Sheet Masks & Patches</option>
+                  <option value="scrub">Scrubs & Exfoliators</option>
+                  <option value="facialoil">Facial Oils & Elixirs</option>
+                </optgroup>
+                <optgroup label="Targeted Treatments & Traditional Care">
+                  <option value="acnecare">Acne & Blemish Care</option>
+                  <option value="darkspots">Dark Spots & Melasma</option>
+                  <option value="eyecream">Under Eye Creams</option>
+                  <option value="ubtan">Herbal Ubtan & Pastes</option>
+                  <option value="bleachcream">Bleach Creams & Polishers</option>
+                  <option value="skinpolisher">Skin Polishers & Bleach</option>
+                  <option value="facemist">Face Mists & Rose Waters</option>
+                  <option value="micellar">Micellar Water & Removers</option>
+                  <option value="lipcare">Lip Balms & Treatments</option>
+                </optgroup>
+                <optgroup label="Complexion & Makeup">
+                  <option value="bbcream">BB & CC Creams</option>
+                  <option value="foundation">Foundations & Complexion</option>
+                  <option value="compactpowder">Compact & Loose Powders</option>
+                  <option value="lipstick">Lipsticks & Matte Lip</option>
+                  <option value="liptint">Lip Tints & Glosses</option>
+                  <option value="face">Eyeshadow & Palettes</option>
+                </optgroup>
+                <optgroup label="Body, Hair & Grooming">
+                  <option value="handfoot">Hand & Foot Care</option>
+                  <option value="bodylotion">Body Lotions & Butters</option>
+                  <option value="hairoil">Herbal Hair Oils</option>
+                  <option value="haircare">Shampoos & Hair Care</option>
+                  <option value="menscare">Men’s Skincare & Grooming</option>
+                  <option value="skincare">General Skincare</option>
+                </optgroup>
               </select>
               <button class="btn-luxury-primary btn-sm" id="adminAddNewTopBtn">
                 <i class="fa-solid fa-plus"></i> Add Product
@@ -1311,6 +1433,7 @@
                   <th style="width:60px;">Image</th>
                   <th>Product Details</th>
                   <th>Category</th>
+                  <th style="width:110px;">Stock</th>
                   <th style="width:140px;">Current Price (PKR)</th>
                   <th style="width:130px;">Original Price</th>
                   <th>Shades</th>
@@ -1421,10 +1544,46 @@
                   <div class="form-group">
                     <label for="pCategory"><i class="fa-solid fa-layer-group"></i> Category *</label>
                     <select id="pCategory" class="admin-select" required>
-                      <option value="skincare">Skincare & Creams</option>
-                      <option value="face">Face & Foundation</option>
-                      <option value="lips">Lipsticks & Tints</option>
-                      <option value="haircare">Herbal Haircare</option>
+                      <optgroup label="Skincare Essentials">
+                        <option value="cleanser">Face Wash & Cleansers</option>
+                        <option value="serum">Serums & Boosters</option>
+                        <option value="moisturizer">Moisturizers & Creams</option>
+                        <option value="sunblock">Sunscreens & SPF</option>
+                        <option value="nightcream">Night & Anti-Aging</option>
+                        <option value="brightening">Brightening & Radiance</option>
+                        <option value="toner">Toners & Astringents</option>
+                        <option value="facemask">Face Masks & Packs</option>
+                        <option value="sheetmask">Sheet Masks & Patches</option>
+                        <option value="scrub">Scrubs & Exfoliators</option>
+                        <option value="facialoil">Facial Oils & Elixirs</option>
+                      </optgroup>
+                      <optgroup label="Targeted Treatments & Traditional Care">
+                        <option value="acnecare">Acne & Blemish Care</option>
+                        <option value="darkspots">Dark Spots & Melasma</option>
+                        <option value="eyecream">Under Eye Creams</option>
+                        <option value="ubtan">Herbal Ubtan & Pastes</option>
+                        <option value="bleachcream">Bleach Creams & Polishers</option>
+                        <option value="skinpolisher">Skin Polishers & Bleach</option>
+                        <option value="facemist">Face Mists & Rose Waters</option>
+                        <option value="micellar">Micellar Water & Removers</option>
+                        <option value="lipcare">Lip Balms & Treatments</option>
+                      </optgroup>
+                      <optgroup label="Complexion & Makeup">
+                        <option value="bbcream">BB & CC Creams</option>
+                        <option value="foundation">Foundations & Complexion</option>
+                        <option value="compactpowder">Compact & Base Powders</option>
+                        <option value="lipstick">Lipsticks & Matte Lip</option>
+                        <option value="liptint">Lip Tints & Glosses</option>
+                        <option value="face">Eyeshadow & Palettes</option>
+                      </optgroup>
+                      <optgroup label="Body, Hair & Grooming">
+                        <option value="handfoot">Hand & Foot Care</option>
+                        <option value="bodylotion">Body Lotions & Butters</option>
+                        <option value="hairoil">Herbal Hair Oils</option>
+                        <option value="haircare">Shampoos & Haircare</option>
+                        <option value="menscare">Men’s Skincare & Grooming</option>
+                        <option value="skincare">General Skincare</option>
+                      </optgroup>
                     </select>
                   </div>
 
@@ -1444,6 +1603,20 @@
                     <label for="pOriginalPrice"><i class="fa-solid fa-tags"></i> Original / Strikethrough Price (PKR)</label>
                     <input type="number" id="pOriginalPrice" placeholder="e.g. 800" min="0">
                   </div>
+                </div>
+
+                <!-- Stock Availability (In Stock vs Out of Stock) -->
+                <div class="form-group">
+                  <label><i class="fa-solid fa-boxes-packing text-gold"></i> Stock & Inventory Status *</label>
+                  <div class="admin-options-bar" id="adminStockOptionsBar">
+                    <button type="button" class="admin-mode-pill in-stock-mode active" id="adminStockInBtn" onclick="setAdminStockMode(true)">
+                      <i class="fa-solid fa-circle-check text-success"></i> 🟢 In Stock (Active for Sale)
+                    </button>
+                    <button type="button" class="admin-mode-pill out-of-stock-mode" id="adminStockOutBtn" onclick="setAdminStockMode(false)">
+                      <i class="fa-solid fa-circle-xmark text-danger"></i> 🔴 Out of Stock (Black & White Photo)
+                    </button>
+                  </div>
+                  <input type="hidden" id="pInStock" value="1">
                 </div>
 
                 <div class="form-group">
@@ -1772,6 +1945,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=21.0"></script>
+  <script src="app.js?v=25.0"></script>
 </body>
 </html>

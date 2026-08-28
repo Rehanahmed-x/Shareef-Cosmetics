@@ -381,7 +381,8 @@ async function verifyWebCryptoPassword(enteredPin) {
     const customHash = localStorage.getItem('shareef_admin_hash') || STANDALONE_MASTER_HASH;
     return computedHash === customHash;
   } catch (e) {
-    return enteredPin === 'umair2026';
+    console.error('Password verification error:', e);
+    return false;
   }
 }
 
@@ -413,14 +414,13 @@ const API = {
         return 'http://localhost:5000';
       }
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return window.location.port === '5000' ? '' : 'http://localhost:5000';
+        return window.location.origin || 'http://localhost:5000';
       }
       if (window.location.hostname.includes('github.io')) {
         return DEFAULT_CLOUD_API_URL;
       }
-      if (window.location.port && window.location.port !== '5000') {
-        const host = window.location.hostname || 'localhost';
-        return `http://${host}:5000`;
+      if (window.location.origin && window.location.origin.startsWith('http')) {
+        return window.location.origin;
       }
     }
     return DEFAULT_CLOUD_API_URL;
@@ -496,15 +496,23 @@ const API = {
       prods = [...DEFAULT_PRODUCTS_DATA];
     }
 
-    // Merge any custom test products stored locally that aren't already in catalog
+    // 4. Merge any custom product overrides (stock status, custom items) stored locally
     try {
       const local = localStorage.getItem('shareef_custom_catalog');
       if (local) {
         const customList = JSON.parse(local);
         if (Array.isArray(customList)) {
           customList.forEach(cp => {
-            if (cp && cp.id && !prods.some(p => p.id === cp.id)) {
-              prods.unshift(cp);
+            if (cp && cp.id !== undefined) {
+              const existingIdx = prods.findIndex(p => p.id == cp.id);
+              if (existingIdx !== -1) {
+                // If local storage has explicit inStock override, preserve it
+                if (cp.inStock !== undefined) prods[existingIdx].inStock = cp.inStock;
+                if (cp.in_stock !== undefined) prods[existingIdx].in_stock = cp.in_stock;
+                if (cp.price !== undefined) prods[existingIdx].price = cp.price;
+              } else {
+                prods.unshift(cp);
+              }
             }
           });
         }
@@ -523,7 +531,15 @@ const API = {
           body: JSON.stringify(productData)
         });
         const parsed = await this.parseResponse(res);
-        if (parsed && parsed.success) return parsed;
+        if (parsed && parsed.success) {
+          try {
+            const local = localStorage.getItem('shareef_custom_catalog');
+            let current = local ? JSON.parse(local) : [];
+            current.unshift(parsed.data || productData);
+            localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
+          } catch(e) {}
+          return parsed;
+        }
       } catch (e) {
         console.error('Cloud create product error:', e);
       }
@@ -534,6 +550,7 @@ const API = {
     const newProd = {
       ...productData,
       id: Date.now(),
+      inStock: productData.inStock !== undefined ? productData.inStock : true,
       rating: productData.rating || 5.0,
       reviewsCount: productData.reviewsCount || 10,
       badge: productData.badge || 'New Arrival',
@@ -546,6 +563,7 @@ const API = {
   },
   async updateProduct(id, productData) {
     const baseUrl = this.getBaseUrl();
+    let serverUpdated = false;
     if (baseUrl) {
       try {
         const res = await fetch(`${baseUrl}/api/products/${id}`, {
@@ -554,21 +572,34 @@ const API = {
           body: JSON.stringify(productData)
         });
         const parsed = await this.parseResponse(res);
-        if (parsed && parsed.success) return parsed;
+        if (parsed && parsed.success) {
+          serverUpdated = true;
+        }
       } catch (e) {
         console.error('Cloud update product error:', e);
       }
     }
 
-    // Standalone fallback
-    const current = await this.fetchProducts();
-    const idx = current.findIndex(p => p.id == id);
-    if (idx !== -1) {
-      current[idx] = { ...current[idx], ...productData };
+    // Always update local storage & in-memory catalog
+    try {
+      const local = localStorage.getItem('shareef_custom_catalog');
+      let current = local ? JSON.parse(local) : [];
+      const idx = current.findIndex(p => p.id == id);
+      if (idx !== -1) {
+        current[idx] = { ...current[idx], ...productData };
+      } else {
+        const mem = PRODUCTS_DATA.find(p => p.id == id);
+        current.push({ ...(mem || {}), id: Number(id), ...productData });
+      }
       localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-      return { success: true, data: current[idx] };
+    } catch(e) {}
+
+    const memIdx = PRODUCTS_DATA.findIndex(p => p.id == id);
+    if (memIdx !== -1) {
+      PRODUCTS_DATA[memIdx] = { ...PRODUCTS_DATA[memIdx], ...productData };
     }
-    return { success: false, error: 'Product not found' };
+
+    return { success: true, data: PRODUCTS_DATA[memIdx] || productData };
   },
   async deleteProduct(id) {
     const baseUrl = this.getBaseUrl();
@@ -870,6 +901,8 @@ function initApp() {
   updateCartUI();
   updateWishlistUI();
   setupEventListeners();
+  initCategorySlider();
+  initDrawerCategorySearch();
   initAdminDashboard();
   initReviewSystem();
 
@@ -960,27 +993,186 @@ function initEntryLoader() {
 // =================================================================
 // 5. PRODUCT RENDERING & FILTERING
 // =================================================================
+// 4 Days in milliseconds for automatic New Arrival lifespan (96 hours)
+const FOUR_DAYS_MS = 4 * 24 * 60 * 60 * 1000;
+
+function isNewArrival(product) {
+  if (!product) return false;
+
+  // 1. Check createdAt / created_at timestamp from database or payload
+  const dateVal = product.createdAt || product.created_at || product.publishDate;
+  if (dateVal) {
+    const createdTime = new Date(dateVal).getTime();
+    if (!isNaN(createdTime)) {
+      const ageMs = Date.now() - createdTime;
+      return ageMs >= 0 && ageMs <= FOUR_DAYS_MS;
+    }
+  }
+
+  // 2. If product ID is a timestamp generated within 4 days
+  if (typeof product.id === 'number' && product.id > 1700000000000) {
+    const ageMs = Date.now() - product.id;
+    return ageMs >= 0 && ageMs <= FOUR_DAYS_MS;
+  }
+
+  // 3. Fallback for explicit badge if recently set
+  if (product.badge && (product.badge.toLowerCase().includes('new arrival') || product.badge.toLowerCase() === 'new')) {
+    return true;
+  }
+
+  return false;
+}
+
+function matchesCategory(product, cat) {
+  if (!cat || cat === 'all') return true;
+  const pCat = (product.category || '').toLowerCase();
+  if (pCat === cat.toLowerCase()) return true;
+
+  // Special Category: New Arrivals (Automatic 4-Day Lifespan)
+  if (cat === 'new-arrivals' || cat === 'new' || cat === 'newarrival' || cat === 'newarrivals') {
+    return isNewArrival(product);
+  }
+
+  const text = ((product.name || '') + ' ' + (product.description || '') + ' ' + (product.details || '') + ' ' + pCat).toLowerCase();
+  
+  if (cat === 'cleanser') {
+    return pCat === 'cleanser' || text.includes('face wash') || text.includes('cleanser') || text.includes('cleansing');
+  }
+  if (cat === 'serum') {
+    return pCat === 'serum' || text.includes('serum') || text.includes('booster') || text.includes('essence') || text.includes('lightening');
+  }
+  if (cat === 'moisturizer') {
+    return pCat === 'moisturizer' || text.includes('moisturiz') || text.includes('cold cream') || text.includes('skin cream') || text.includes('day cream') || text.includes('glow and lovely');
+  }
+  if (cat === 'sunblock') {
+    return pCat === 'sunblock' || text.includes('sunblock') || text.includes('sunscreen') || text.includes('spf');
+  }
+  if (cat === 'nightcream') {
+    return pCat === 'nightcream' || text.includes('night') || text.includes('anti-aging') || text.includes('whitening cream');
+  }
+  if (cat === 'brightening') {
+    return pCat === 'brightening' || text.includes('bright') || text.includes('whitening') || text.includes('glow') || text.includes('radiance') || text.includes('spot-less');
+  }
+  if (cat === 'toner') {
+    return pCat === 'toner' || text.includes('toner') || text.includes('rose water') || text.includes('astringent');
+  }
+  if (cat === 'facemask') {
+    return pCat === 'facemask' || text.includes('mask') || text.includes('mud') || text.includes('clay') || text.includes('ubtan') || text.includes('husn-e-yousuf');
+  }
+  if (cat === 'sheetmask') {
+    return pCat === 'sheetmask' || text.includes('sheet mask') || text.includes('patch');
+  }
+  if (cat === 'scrub') {
+    return pCat === 'scrub' || text.includes('scrub') || text.includes('exfoliat') || text.includes('polisher');
+  }
+  if (cat === 'facialoil') {
+    return pCat === 'facialoil' || (text.includes('facial oil') || text.includes('face oil') || text.includes('elixir'));
+  }
+  if (cat === 'acnecare') {
+    return pCat === 'acnecare' || text.includes('acne') || text.includes('neem') || text.includes('pimple') || text.includes('purifying');
+  }
+  if (cat === 'darkspots') {
+    return pCat === 'darkspots' || text.includes('dark spot') || text.includes('spot-less') || text.includes('pigmentation') || text.includes('melasma');
+  }
+  if (cat === 'eyecream') {
+    return pCat === 'eyecream' || text.includes('eye cream') || text.includes('under eye') || text.includes('dark circle');
+  }
+  if (cat === 'ubtan') {
+    return pCat === 'ubtan' || text.includes('ubtan') || text.includes('husn-e-yousuf') || text.includes('herbal paste') || text.includes('turmeric');
+  }
+  if (cat === 'bleachcream') {
+    return pCat === 'bleachcream' || text.includes('bleach');
+  }
+  if (cat === 'skinpolisher') {
+    return pCat === 'skinpolisher' || text.includes('polisher') || text.includes('dermacos');
+  }
+  if (cat === 'facemist') {
+    return pCat === 'facemist' || text.includes('rose water') || text.includes('ark-e-gulab') || text.includes('mist');
+  }
+  if (cat === 'micellar') {
+    return pCat === 'micellar' || text.includes('micellar') || text.includes('makeup remover');
+  }
+  if (cat === 'lipcare') {
+    return pCat === 'lipcare' || text.includes('lip balm') || text.includes('lip care') || text.includes('lip scrub') || pCat === 'lips';
+  }
+  if (cat === 'bbcream') {
+    return pCat === 'bbcream' || text.includes('bb cream') || text.includes('cc cream');
+  }
+  if (cat === 'foundation') {
+    return pCat === 'foundation' || text.includes('foundation') || text.includes('complexion') || text.includes('silk foundation');
+  }
+  if (cat === 'compactpowder') {
+    return pCat === 'compactpowder' || text.includes('compact') || text.includes('powder') || text.includes('oil-control');
+  }
+  if (cat === 'lipstick') {
+    return pCat === 'lipstick' || text.includes('lipstick') || text.includes('velvet') || text.includes('medora') || text.includes('swiss miss') || pCat === 'lips';
+  }
+  if (cat === 'liptint') {
+    return pCat === 'liptint' || text.includes('tint') || text.includes('gloss');
+  }
+  if (cat === 'handfoot') {
+    return pCat === 'handfoot' || text.includes('hand') || text.includes('foot') || text.includes('feet');
+  }
+  if (cat === 'bodylotion') {
+    return pCat === 'bodylotion' || text.includes('body lotion') || text.includes('body butter') || text.includes('lotion');
+  }
+  if (cat === 'hairoil') {
+    return pCat === 'hairoil' || (text.includes('hair') && text.includes('oil')) || text.includes('mughziat');
+  }
+  if (cat === 'haircare') {
+    return pCat === 'haircare' || text.includes('hair') || text.includes('shampoo') || text.includes('conditioner') || text.includes('mughziat');
+  }
+  if (cat === 'menscare') {
+    return pCat === 'menscare' || text.includes('men') || text.includes('grooming') || text.includes('shave');
+  }
+  if (cat === 'skincare') {
+    return pCat === 'skincare' || text.includes('cream') || text.includes('face') || text.includes('skin') || text.includes('lotion');
+  }
+  if (cat === 'face') {
+    return pCat === 'face' || text.includes('foundation') || text.includes('powder') || text.includes('eyeshadow') || text.includes('highlighter');
+  }
+  if (cat === 'lips') {
+    return pCat === 'lips' || text.includes('lipstick') || text.includes('lip');
+  }
+
+  return false;
+}
+
+function updateCategoryCounts() {
+  const categoryIds = [
+    'all', 'new-arrivals', 'cleanser', 'serum', 'moisturizer', 'sunblock', 'nightcream', 'brightening',
+    'toner', 'facemask', 'sheetmask', 'scrub', 'facialoil', 'acnecare', 'darkspots',
+    'eyecream', 'ubtan', 'bleachcream', 'skinpolisher', 'facemist', 'micellar',
+    'lipcare', 'bbcream', 'foundation', 'compactpowder', 'lipstick', 'liptint',
+    'handfoot', 'bodylotion', 'hairoil', 'haircare', 'menscare', 'skincare', 'face', 'lips'
+  ];
+
+  categoryIds.forEach(cat => {
+    const count = cat === 'all' ? PRODUCTS_DATA.length : PRODUCTS_DATA.filter(p => matchesCategory(p, cat)).length;
+    // Format slug e.g. 'new-arrivals' -> 'NewArrivals', 'cleanser' -> 'Cleanser'
+    const camel = cat.replace(/-([a-z])/g, g => g[1].toUpperCase());
+    const cap = camel.charAt(0).toUpperCase() + camel.slice(1);
+    
+    // Update category slider badge
+    const countEl = document.getElementById(`count${cap}`);
+    if (countEl) countEl.textContent = count;
+
+    // Update drawer badge
+    const drawerEl = document.getElementById(`drawerCount${cap}`);
+    if (drawerEl) drawerEl.textContent = count;
+  });
+}
+
 function renderProducts() {
   const grid = document.getElementById('productGrid');
   if (!grid) return;
 
-  // Update dynamic filter counts
-  const countAll = document.getElementById('countAll');
-  const countSkincare = document.getElementById('countSkincare');
-  const countFace = document.getElementById('countFace');
-  const countLips = document.getElementById('countLips');
-  const countHaircare = document.getElementById('countHaircare');
-
-  if (countAll) countAll.textContent = PRODUCTS_DATA.length;
-  if (countSkincare) countSkincare.textContent = PRODUCTS_DATA.filter(p => p.category === 'skincare').length;
-  if (countFace) countFace.textContent = PRODUCTS_DATA.filter(p => p.category === 'face').length;
-  if (countLips) countLips.textContent = PRODUCTS_DATA.filter(p => p.category === 'lips').length;
-  if (countHaircare) countHaircare.textContent = PRODUCTS_DATA.filter(p => p.category === 'haircare').length;
+  // Update dynamic count badges for all categories
+  updateCategoryCounts();
 
   // Filter products
   let filtered = PRODUCTS_DATA.filter(item => {
-    if (activeFilter === 'all') return true;
-    return item.category === activeFilter;
+    return matchesCategory(item, activeFilter);
   });
 
   // Sort products
@@ -998,6 +1190,7 @@ function renderProducts() {
 
   grid.innerHTML = filtered.map(product => {
     const isWishlisted = wishlist.includes(product.id);
+    const isInStock = product.inStock !== false && product.in_stock !== 0 && product.inStock !== 0;
     const validCardShades = (product.shades || []).filter(s => s && s.name && s.name !== 'Standard Pack' && !s.name.toLowerCase().startsWith('none'));
     const swatchesHtml = validCardShades.length > 0 ? `
       <div class="swatches-row">
@@ -1012,7 +1205,7 @@ function renderProducts() {
     ` : '';
 
     return `
-      <article class="product-card" data-id="${product.id}" data-selected-shade="${validCardShades.length > 0 ? validCardShades[0].name : 'None'}">
+      <article class="product-card ${!isInStock ? 'is-out-of-stock out-of-stock' : ''}" data-id="${product.id}" data-selected-shade="${validCardShades.length > 0 ? validCardShades[0].name : 'None'}">
         ${product.badge ? `<span class="product-card-badge ${product.badgeClass}">${product.badge}</span>` : ''}
         
         <button class="wishlist-card-btn ${isWishlisted ? 'active' : ''}" 
@@ -1022,7 +1215,8 @@ function renderProducts() {
         </button>
 
         <div class="product-image-wrap" onclick="openQuickView(${product.id})">
-          <img src="${product.image}" alt="${product.name}" class="product-img" loading="lazy" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+          <img src="${product.image}" alt="${product.name}" class="product-img ${!isInStock ? 'img-grayscale' : ''}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+          ${!isInStock ? `<div class="out-of-stock-banner-ribbon">OUT OF STOCK</div>` : ''}
           <button class="quick-view-overlay-btn" onclick="event.stopPropagation(); openQuickView(${product.id})">
             <i class="fa-solid fa-eye"></i> Options & Quick View
           </button>
@@ -1044,8 +1238,9 @@ function renderProducts() {
               <span class="current-price">Rs. ${product.price.toLocaleString()}</span>
               ${product.originalPrice ? `<span class="old-price">Rs. ${product.originalPrice.toLocaleString()}</span>` : ''}
             </div>
-            <button class="btn-card-add" onclick="event.stopPropagation(); quickAddFromCard(${product.id}, this)" aria-label="Add to Bag" title="Add to Bag">
-              <i class="fa-solid fa-bag-shopping"></i>
+            <button class="btn-card-add ${!isInStock ? 'btn-out-of-stock' : ''}" 
+                    ${!isInStock ? 'disabled title="Out of Stock"' : `onclick="event.stopPropagation(); quickAddFromCard(${product.id}, this)" aria-label="Add to Bag" title="Add to Bag"`}>
+              <i class="fa-solid ${!isInStock ? 'fa-ban' : 'fa-bag-shopping'}"></i>
             </button>
           </div>
         </div>
@@ -1119,6 +1314,11 @@ function animateCartIcon() {
 function quickAddProduct(productId, customShade, customVolume, units = 1, customPrice = null) {
   const product = PRODUCTS_DATA.find(p => p.id === productId);
   if (!product) return;
+
+  if (product.inStock === false || product.in_stock === 0 || product.inStock === 0) {
+    showToast('✕ Sorry, this product is currently Out of Stock.');
+    return;
+  }
 
   const shade = customShade || 'None';
   const volume = customVolume || 'Standard';
@@ -1730,9 +1930,12 @@ function openQuickView(productId) {
     unitPrice: initialSizeObj.price
   };
 
+  const isInStock = product.inStock !== false && product.in_stock !== 0 && product.inStock !== 0;
+
   container.innerHTML = `
-    <div class="qv-image-side" style="background:#FFF; display:flex; align-items:center; justify-content:center; position:relative;">
-      <img src="${product.image}" alt="${product.name}" style="max-height:360px; object-fit:contain; background:#FFF;" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+    <div class="qv-image-side" style="background:#FFF; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;">
+      <img src="${product.image}" alt="${product.name}" class="${!isInStock ? 'img-grayscale' : ''}" style="max-height:360px; object-fit:contain; background:#FFF;" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+      ${!isInStock ? `<div class="out-of-stock-banner-ribbon">OUT OF STOCK</div>` : ''}
       ${product.badge ? `<span class="product-card-badge ${product.badgeClass}" style="top:16px; left:16px;">${product.badge}</span>` : ''}
     </div>
     <div class="qv-details-side">
@@ -1810,13 +2013,13 @@ function openQuickView(productId) {
       <!-- Quantity Stepper & Add to Bag -->
       <div class="qv-qty-controls-row">
         <div class="qv-qty-stepper">
-          <button type="button" class="qv-qty-btn" onclick="updateQuickViewUnits(-1)" aria-label="Decrease quantity">-</button>
+          <button type="button" class="qv-qty-btn" onclick="updateQuickViewUnits(-1)" aria-label="Decrease quantity" ${!isInStock ? 'disabled' : ''}>-</button>
           <span class="qv-qty-val" id="qvUnitsVal">1</span>
-          <button type="button" class="qv-qty-btn" onclick="updateQuickViewUnits(1)" aria-label="Increase quantity">+</button>
+          <button type="button" class="qv-qty-btn" onclick="updateQuickViewUnits(1)" aria-label="Increase quantity" ${!isInStock ? 'disabled' : ''}>+</button>
         </div>
 
-        <button class="btn-luxury-primary" id="qvAddToCartBtn" style="flex: 1; justify-content: center;" onclick="handleQuickViewAddToCart()">
-          <i class="fa-solid fa-bag-shopping"></i> Add to Beauty Bag
+        <button class="btn-luxury-primary ${!isInStock ? 'disabled' : ''}" id="qvAddToCartBtn" style="flex: 1; justify-content: center; ${!isInStock ? 'background:#2A2523; color:#ff4455; border:1px solid #ff4455; cursor:not-allowed;' : ''}" ${!isInStock ? 'disabled' : 'onclick="handleQuickViewAddToCart()"'}>
+          <i class="fa-solid ${!isInStock ? 'fa-ban' : 'fa-bag-shopping'}"></i> ${!isInStock ? 'Out of Stock' : 'Add to Beauty Bag'}
         </button>
       </div>
 
@@ -2465,13 +2668,18 @@ function setupEventListeners() {
     });
   });
 
-  // Category Filter Tabs
+  // Category Filter Tabs & Drawer Links
   document.querySelectorAll('.filter-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeFilter = btn.getAttribute('data-category');
-      renderProducts();
+      const cat = btn.getAttribute('data-category');
+      if (cat) setCategoryFilter(cat);
+    });
+  });
+
+  document.querySelectorAll('.drawer-cat-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const filter = link.getAttribute('data-filter');
+      if (filter) setCategoryFilter(filter);
     });
   });
 
@@ -2703,16 +2911,95 @@ function setupEventListeners() {
   initLiveSearch();
 }
 
+function initCategorySlider() {
+  const wrapper = document.getElementById('filterTabsWrapper');
+  const prevBtn = document.getElementById('catSlidePrevBtn');
+  const nextBtn = document.getElementById('catSlideNextBtn');
+
+  if (!wrapper || !prevBtn || !nextBtn) return;
+
+  const scrollAmount = 320;
+
+  prevBtn.addEventListener('click', () => {
+    wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+  });
+
+  nextBtn.addEventListener('click', () => {
+    wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  });
+
+  const updateArrowStates = () => {
+    const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+    prevBtn.disabled = wrapper.scrollLeft <= 5;
+    nextBtn.disabled = wrapper.scrollLeft >= maxScroll - 5;
+  };
+
+  wrapper.addEventListener('scroll', updateArrowStates);
+  window.addEventListener('resize', updateArrowStates);
+  setTimeout(updateArrowStates, 300);
+}
+
+function initDrawerCategorySearch() {
+  const searchInput = document.getElementById('drawerCategorySearch');
+  const catList = document.getElementById('drawerCategoriesList');
+  if (!searchInput || !catList) return;
+
+  searchInput.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const items = catList.querySelectorAll('li');
+    items.forEach(li => {
+      const text = li.textContent.toLowerCase();
+      if (!q || text.includes(q)) {
+        li.classList.remove('drawer-cat-item-hidden');
+      } else {
+        li.classList.add('drawer-cat-item-hidden');
+      }
+    });
+  });
+}
+
 function setCategoryFilter(category) {
   activeFilter = category;
+
+  // Update category slider active tab & scroll into center view
   document.querySelectorAll('.filter-tab-btn').forEach(b => {
     if (b.getAttribute('data-category') === category) {
       b.classList.add('active');
+      b.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     } else {
       b.classList.remove('active');
     }
   });
+
+  // Update drawer category active link
+  document.querySelectorAll('.drawer-cat-link').forEach(l => {
+    if (l.getAttribute('data-filter') === category) {
+      l.classList.add('active');
+    } else {
+      l.classList.remove('active');
+    }
+  });
+
+  // Update nav links active state
+  document.querySelectorAll('.desktop-nav .nav-link, .mobile-nav-link').forEach(l => {
+    if (l.getAttribute('data-filter') === category) {
+      l.classList.add('active');
+    } else {
+      l.classList.remove('active');
+    }
+  });
+
+  // Close drawer if open
+  if (typeof closeDrawer === 'function') closeDrawer();
+  if (typeof closeMobileMenu === 'function') closeMobileMenu();
+
   renderProducts();
+
+  // Smooth scroll to catalog section
+  const collectionSection = document.getElementById('collection');
+  if (collectionSection && window.scrollY > 400) {
+    collectionSection.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 // =================================================================
@@ -3110,6 +3397,13 @@ function closeAdminLogin() {
 }
 
 async function openAdminDashboard() {
+  const isValid = await API.verifyAdmin();
+  if (!isValid) {
+    sessionStorage.removeItem('shareef_admin_token');
+    closeAdminDashboard();
+    openAdminLogin();
+    return;
+  }
   const modal = document.getElementById('adminDashboardModalOverlay');
   if (modal) {
     modal.classList.add('active');
@@ -3237,7 +3531,7 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center; padding: 36px; color: var(--text-muted);">
+        <td colspan="8" style="text-align:center; padding: 36px; color: var(--text-muted);">
           <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 8px; display:block; color:var(--accent-gold);"></i>
           No products matched your search filter.
         </td>
@@ -3247,6 +3541,7 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
   }
 
   tbody.innerHTML = filtered.map(product => {
+    const isInStock = product.inStock !== false && product.in_stock !== 0 && product.inStock !== 0;
     const shadesHtml = product.shades && product.shades.length > 0
       ? product.shades.map(s => `
           <span class="admin-swatch-chip" style="background-color:${s.color};" title="${s.name}"></span>
@@ -3256,7 +3551,7 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
     return `
       <tr>
         <td>
-          <img src="${product.image}" alt="${product.name}" class="admin-p-thumb" onerror="this.src='assets/images/hero_banner.jpg'">
+          <img src="${product.image}" alt="${product.name}" class="admin-p-thumb ${!isInStock ? 'img-grayscale' : ''}" onerror="this.src='assets/images/hero_banner.jpg'">
         </td>
         <td>
           <div class="admin-p-title">${product.name}</div>
@@ -3264,6 +3559,12 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
         </td>
         <td>
           <span style="text-transform: capitalize; font-weight:600; color:var(--text-secondary);">${product.category}</span>
+        </td>
+        <td>
+          <button type="button" class="btn-stock-toggle" onclick="toggleProductStock(${product.id})" title="Click to toggle In Stock / Out of Stock" style="padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; cursor:pointer; border:1px solid ${isInStock ? '#4CAF50' : '#E53935'}; background:${isInStock ? 'rgba(76,175,80,0.12)' : 'rgba(229,57,53,0.12)'}; color:${isInStock ? '#2E7D32' : '#C62828'}; display:inline-flex; align-items:center; gap:4px;">
+            <i class="fa-solid ${isInStock ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+            <span>${isInStock ? 'In Stock' : 'Out of Stock'}</span>
+          </button>
         </td>
         <td>
           <div class="inline-price-box">
@@ -3298,6 +3599,24 @@ function renderAdminProductsTable(searchTerm = '', categoryFilter = 'all') {
       </tr>
     `;
   }).join('');
+}
+
+async function toggleProductStock(productId) {
+  const product = PRODUCTS_DATA.find(p => p.id === productId);
+  if (!product) return;
+  const currentStock = product.inStock !== false && product.in_stock !== 0 && product.inStock !== 0;
+  const newStock = !currentStock;
+
+  const res = await API.updateProduct(productId, { inStock: newStock });
+  if (res && res.success) {
+    product.inStock = newStock;
+    product.in_stock = newStock ? 1 : 0;
+    renderProducts();
+    renderAdminProductsTable();
+    showToast(`✓ "${product.name.slice(0, 20)}..." marked as ${newStock ? '🟢 IN STOCK' : '🔴 OUT OF STOCK'}`);
+  } else {
+    showToast('✕ Error updating stock: ' + (res.error || 'Unauthorized'));
+  }
 }
 
 let CURRENT_ADMIN_ORDERS = [];
@@ -3841,6 +4160,16 @@ function addShadePreset(name, color) {
   showToast(`Added ${name} to product shades`);
 }
 
+function setAdminStockMode(inStock) {
+  const inBtn = document.getElementById('adminStockInBtn');
+  const outBtn = document.getElementById('adminStockOutBtn');
+  const hiddenInput = document.getElementById('pInStock');
+
+  if (inBtn) inBtn.className = inStock ? 'admin-mode-pill in-stock-mode active' : 'admin-mode-pill in-stock-mode';
+  if (outBtn) outBtn.className = !inStock ? 'admin-mode-pill out-of-stock-mode active' : 'admin-mode-pill out-of-stock-mode';
+  if (hiddenInput) hiddenInput.value = inStock ? '1' : '0';
+}
+
 function resetAdminProductForm() {
   const form = document.getElementById('adminProductForm');
   if (!form) return;
@@ -3853,6 +4182,7 @@ function resetAdminProductForm() {
 
   setAdminSizeMode('none');
   setAdminShadeMode('none');
+  setAdminStockMode(true);
 
   updateAdminImagePreview('');
 }
@@ -3934,6 +4264,10 @@ function openEditProductModal(productId) {
   document.getElementById('pRating').value = product.rating || 4.9;
   document.getElementById('pReviewsCount').value = product.reviewsCount || 450;
 
+  // Handle Stock Mode
+  const isInStock = product.inStock !== false && product.in_stock !== 0 && product.inStock !== 0;
+  setAdminStockMode(isInStock);
+
   // Handle Sizes & Quantity Mode
   if (product.sizes && Array.isArray(product.sizes) && product.sizes.length > 1) {
     setAdminSizeMode('multi');
@@ -3985,6 +4319,7 @@ async function handleProductFormSubmit(e) {
   const name = document.getElementById('pName').value.trim();
   const category = document.getElementById('pCategory').value;
   const badge = document.getElementById('pBadge').value.trim();
+  const inStock = document.getElementById('pInStock')?.value === '1';
   const price = parseInt(document.getElementById('pPrice').value, 10) || 0;
   const origPriceVal = document.getElementById('pOriginalPrice').value.trim();
   const originalPrice = origPriceVal ? parseInt(origPriceVal, 10) : 0;
@@ -4005,8 +4340,9 @@ async function handleProductFormSubmit(e) {
   const payload = {
     name,
     category,
-    badge,
-    badgeClass: badge.toLowerCase().includes('ruby') || badge.toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
+    badge: badge || (editId ? '' : 'New Arrival'),
+    badgeClass: (badge || '').toLowerCase().includes('ruby') || (badge || '').toLowerCase().includes('save') ? 'badge-ruby' : 'badge-gold',
+    inStock,
     price,
     originalPrice,
     description,
@@ -4015,7 +4351,8 @@ async function handleProductFormSubmit(e) {
     rating,
     reviewsCount,
     shades,
-    sizes
+    sizes,
+    createdAt: editId ? undefined : new Date().toISOString()
   };
 
   let res;

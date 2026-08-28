@@ -21,7 +21,8 @@
         "color": "#F6A4BA"
       }
     ],
-    "details": "Vitamin B3+ Formula • Removes Dullness • Daily Cleanser"
+    "details": "Vitamin B3+ Formula • Removes Dullness • Daily Cleanser",
+    "inStock": true
   },
   {
     "id": 2,
@@ -45,7 +46,8 @@
         "color": "#82A8E5"
       }
     ],
-    "details": "Rich Moisture • 24hr Nourishment • Soft Velvety Skin"
+    "details": "Rich Moisture • 24hr Nourishment • Soft Velvety Skin",
+    "inStock": true
   },
   {
     "id": 3,
@@ -69,7 +71,8 @@
         "color": "#66BB6A"
       }
     ],
-    "details": "Neem & Turmeric • 100% Herbal Actives • Soap Free"
+    "details": "Neem & Turmeric • 100% Herbal Actives • Soap Free",
+    "inStock": true
   },
   {
     "id": 4,
@@ -89,7 +92,8 @@
         "color": "#00897B"
       }
     ],
-    "details": "Aloe Vera & Ashwagandha • Non-Greasy • All Skin Types"
+    "details": "Aloe Vera & Ashwagandha • Non-Greasy • All Skin Types",
+    "inStock": true
   },
   {
     "id": 5,
@@ -109,7 +113,8 @@
         "color": "#CD325A"
       }
     ],
-    "details": "Pure Steam Distilled • Zero Alcohol • Natural Pore Toner"
+    "details": "Pure Steam Distilled • Zero Alcohol • Natural Pore Toner",
+    "inStock": true
   },
   {
     "id": 6,
@@ -129,7 +134,8 @@
         "color": "#A07828"
       }
     ],
-    "details": "7 Natural Seed Oils • Anti-Hairfall • Herbal Root Nourishment"
+    "details": "7 Natural Seed Oils • Anti-Hairfall • Herbal Root Nourishment",
+    "inStock": true
   },
   {
     "id": 7,
@@ -149,7 +155,8 @@
         "color": "#C3912D"
       }
     ],
-    "details": "Herbal Extracts • Saffron & Pearl Minerals • Night & Day"
+    "details": "Herbal Extracts • Saffron & Pearl Minerals • Night & Day",
+    "inStock": true
   },
   {
     "id": 8,
@@ -181,7 +188,8 @@
         "color": "#D97587"
       }
     ],
-    "details": "Long-wearing Matte • Vitamin E Enriched • Original Swatch"
+    "details": "Long-wearing Matte • Vitamin E Enriched • Original Swatch",
+    "inStock": true
   },
   {
     "id": 9,
@@ -209,7 +217,8 @@
         "color": "#CE9F72"
       }
     ],
-    "details": "Mirror & Puff Included • Oil Absorption • Pocket Friendly"
+    "details": "Mirror & Puff Included • Oil Absorption • Pocket Friendly",
+    "inStock": true
   },
   {
     "id": 10,
@@ -229,7 +238,8 @@
         "color": "#F08C14"
       }
     ],
-    "details": "SPF 60 PA+++ • Zinc Oxide Mineral Filter • Water Resistant"
+    "details": "SPF 60 PA+++ • Zinc Oxide Mineral Filter • Water Resistant",
+    "inStock": true
   },
   {
     "id": 11,
@@ -249,7 +259,8 @@
         "color": "#282828"
       }
     ],
-    "details": "Activated Charcoal • Removes Blackheads • Tightens Pores"
+    "details": "Activated Charcoal • Removes Blackheads • Tightens Pores",
+    "inStock": true
   },
   {
     "id": 12,
@@ -277,7 +288,8 @@
         "color": "#B85842"
       }
     ],
-    "details": "Velvet Matte Finish • Enriched with Vitamin E • Dermatologically Tested"
+    "details": "Velvet Matte Finish • Enriched with Vitamin E • Dermatologically Tested",
+    "inStock": true
   },
   {
     "id": 13,
@@ -305,7 +317,8 @@
         "color": "#D4B38A"
       }
     ],
-    "details": "High Definition • Velvet Texture • Includes Luxury Mirror"
+    "details": "High Definition • Velvet Texture • Includes Luxury Mirror",
+    "inStock": true
   },
   {
     "id": 14,
@@ -333,7 +346,8 @@
         "color": "#DCE2E6"
       }
     ],
-    "details": "Intense Shimmer • Multi-use Cheek & Eyes • Crease Proof"
+    "details": "Intense Shimmer • Multi-use Cheek & Eyes • Crease Proof",
+    "inStock": true
   },
   {
     "id": 15,
@@ -365,7 +379,8 @@
         "color": "#C89D73"
       }
     ],
-    "details": "Halal Certified • Formulated for Asian Skin • Non-comedogenic"
+    "details": "Halal Certified • Formulated for Asian Skin • Non-comedogenic",
+    "inStock": true
   },
   {
     "id": 16,
@@ -385,7 +400,8 @@
         "color": "#1E64B4"
       }
     ],
-    "details": "Vanishing Formula • Controls Oil • 70+ Years Trusted Heritage"
+    "details": "Vanishing Formula • Controls Oil • 70+ Years Trusted Heritage",
+    "inStock": true
   },
   {
     "id": 17,
@@ -405,7 +421,8 @@
         "color": "#288C46"
       }
     ],
-    "details": "Infused with Avocado • No Harsh Stinging • Salon Grade"
+    "details": "Infused with Avocado • No Harsh Stinging • Salon Grade",
+    "inStock": true
   },
   {
     "id": 18,
@@ -425,7 +442,8 @@
         "color": "#286E3C"
       }
     ],
-    "details": "Pure Tea Tree Oil • Anti-Blemish • Lightweight Absorption"
+    "details": "Pure Tea Tree Oil • Anti-Blemish • Lightweight Absorption",
+    "inStock": true
   },
   {
     "id": 19,
@@ -445,7 +463,8 @@
         "color": "#DC961E"
       }
     ],
-    "details": "Real Honey & Almonds • 24-Hour Softness • Non-Sticky Formula"
+    "details": "Real Honey & Almonds • 24-Hour Softness • Non-Sticky Formula",
+    "inStock": true
   },
   {
     "id": 20,
@@ -465,6 +484,7 @@
         "color": "#E13C6E"
       }
     ],
-    "details": "Vitamin B3, C & E • SPF 15 Sun Protection • Matte Radiant Glow"
+    "details": "Vitamin B3, C & E • SPF 15 Sun Protection • Matte Radiant Glow",
+    "inStock": true
   }
 ]

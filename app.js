@@ -369,36 +369,10 @@ const DEFAULT_PRODUCTS_DATA = [
 // =================================================================
 // 2. FULL-STACK DATABASE & REST API CLIENT (HYBRID CLOUD / GITHUB PAGES)
 // =================================================================
-const STANDALONE_MASTER_HASH = "0d4a89d3aacdf9cd889de43dfa26be325f0dd2d51e214d407f058b740830ed1f";
 
-async function verifyWebCryptoPassword(enteredPin) {
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode("shareef_salt_" + enteredPin + "_2026");
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    const customHash = localStorage.getItem('shareef_admin_hash') || STANDALONE_MASTER_HASH;
-    return computedHash === customHash;
-  } catch (e) {
-    console.error('Password verification error:', e);
-    return false;
-  }
-}
+// NOTE: All admin authentication is handled exclusively by the Python backend.
+// No client-side password hashing or fallback is permitted.
 
-async function setWebCryptoPassword(newPin) {
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode("shareef_salt_" + newPin + "_2026");
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    localStorage.setItem('shareef_admin_hash', computedHash);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
 
 const DEFAULT_CLOUD_API_URL = "https://shareefcosmetics.pythonanywhere.com";
 
@@ -557,119 +531,64 @@ const API = {
   },
   async createProduct(productData) {
     const baseUrl = this.getBaseUrl();
-    if (baseUrl) {
-      try {
-        const res = await fetch(`${baseUrl}/api/products`, {
-          method: 'POST',
-          headers: this.getAuthHeaders(),
-          body: JSON.stringify(productData)
-        });
-        const parsed = await this.parseResponse(res);
-        if (parsed && parsed.success) {
-          try {
-            const local = localStorage.getItem('shareef_custom_catalog');
-            let current = local ? JSON.parse(local) : [];
-            current.unshift(parsed.data || productData);
-            localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-          } catch(e) {}
-          return parsed;
-        }
-      } catch (e) {
-        console.error('Cloud create product error:', e);
+    try {
+      const res = await fetch(`${baseUrl}/api/products`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(productData)
+      });
+      const parsed = await this.parseResponse(res);
+      if (parsed && parsed.success) {
+        return parsed;
       }
+      // Return the real error — do NOT silently fall back to local storage
+      return { success: false, error: parsed.error || `Server rejected the request (HTTP ${res.status}). Product was NOT saved.` };
+    } catch (e) {
+      return { success: false, error: 'Network error — product was NOT saved to the database. Check your connection and ensure PythonAnywhere is running.' };
     }
-
-    // Standalone fallback
-    const current = await this.fetchProducts();
-    const newProd = {
-      ...productData,
-      id: Date.now(),
-      inStock: productData.inStock !== undefined ? productData.inStock : true,
-      rating: productData.rating || 5.0,
-      reviewsCount: productData.reviewsCount || 10,
-      badge: productData.badge || 'New Arrival',
-      badgeClass: productData.badgeClass || 'badge-gold',
-      shades: productData.shades || [{ name: 'Standard Pack', color: '#C6A675' }]
-    };
-    current.unshift(newProd);
-    localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-    return { success: true, data: newProd };
   },
   async updateProduct(id, productData) {
     const baseUrl = this.getBaseUrl();
-    let serverUpdated = false;
-    if (baseUrl) {
-      try {
-        const res = await fetch(`${baseUrl}/api/products/${id}`, {
-          method: 'PUT',
-          headers: this.getAuthHeaders(),
-          body: JSON.stringify(productData)
-        });
-        const parsed = await this.parseResponse(res);
-        if (parsed && parsed.success) {
-          serverUpdated = true;
-        }
-      } catch (e) {
-        console.error('Cloud update product error:', e);
-      }
-    }
-
-    // Always update local storage & in-memory catalog
     try {
-      const local = localStorage.getItem('shareef_custom_catalog');
-      let current = local ? JSON.parse(local) : [];
-      const idx = current.findIndex(p => p.id == id);
-      if (idx !== -1) {
-        current[idx] = { ...current[idx], ...productData };
-      } else {
-        const mem = PRODUCTS_DATA.find(p => p.id == id);
-        current.push({ ...(mem || {}), id: Number(id), ...productData });
+      const res = await fetch(`${baseUrl}/api/products/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(productData)
+      });
+      const parsed = await this.parseResponse(res);
+      if (parsed && parsed.success) {
+        // Only update in-memory cache after a confirmed server save
+        const memIdx = PRODUCTS_DATA.findIndex(p => p.id == id);
+        if (memIdx !== -1) {
+          PRODUCTS_DATA[memIdx] = { ...PRODUCTS_DATA[memIdx], ...productData };
+        }
+        return parsed;
       }
-      localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-    } catch(e) {}
-
-    const memIdx = PRODUCTS_DATA.findIndex(p => p.id == id);
-    if (memIdx !== -1) {
-      PRODUCTS_DATA[memIdx] = { ...PRODUCTS_DATA[memIdx], ...productData };
+      return { success: false, error: parsed.error || `Server error (HTTP ${res.status}). Changes were NOT saved.` };
+    } catch (e) {
+      return { success: false, error: 'Network error — changes were NOT saved to the database. Check your connection.' };
     }
-
-    return { success: true, data: PRODUCTS_DATA[memIdx] || productData };
   },
   async deleteProduct(id) {
     const baseUrl = this.getBaseUrl();
-    if (baseUrl) {
-      try {
-        const res = await fetch(`${baseUrl}/api/products/${id}`, {
-          method: 'DELETE',
-          headers: this.getAuthHeaders()
-        });
-        const parsed = await this.parseResponse(res);
-        if (parsed && parsed.success) return parsed;
-      } catch (e) {
-        console.error('Cloud delete product error:', e);
-      }
+    try {
+      const res = await fetch(`${baseUrl}/api/products/${id}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+      const parsed = await this.parseResponse(res);
+      if (parsed && parsed.success) return parsed;
+      return { success: false, error: parsed.error || `Server error (HTTP ${res.status}). Product was NOT deleted.` };
+    } catch (e) {
+      return { success: false, error: 'Network error — product was NOT deleted from database. Check your connection.' };
     }
-
-    let current = await this.fetchProducts();
-    current = current.filter(p => p.id != id);
-    localStorage.setItem('shareef_custom_catalog', JSON.stringify(current));
-    return { success: true, message: 'Deleted' };
   },
   async loginAdmin(password) {
-    // 1. Direct Web Crypto verification on GitHub Pages static CDN
-    if (this.isGitHubStatic()) {
-      const ok = await verifyWebCryptoPassword(password);
-      if (ok) {
-        const token = 'gh_token_' + Date.now() + '_' + Math.random().toString(36).substring(2);
-        return { success: true, token, username: 'admin', message: 'Logged in successfully' };
-      }
-      return { success: false, error: 'Invalid password. Access denied.' };
-    }
-
-    // 2. Full-Stack backend authentication
+    // Authentication is handled exclusively server-side.
+    // No client-side password hash comparison or fallback is allowed.
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       const res = await fetch(`${this.getBaseUrl()}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -677,59 +596,51 @@ const API = {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      const parsed = await this.parseResponse(res);
-      if (parsed && parsed.success) return parsed;
-      
-      // Fallback for static servers returning 405
-      if (res.status === 405 || (parsed && parsed.error && parsed.error.includes('405'))) {
-        const ok = await verifyWebCryptoPassword(password);
-        if (ok) {
-          const token = 'gh_token_' + Date.now() + '_' + Math.random().toString(36).substring(2);
-          return { success: true, token, username: 'admin', message: 'Logged in' };
-        }
-      }
-      return parsed;
+      return await this.parseResponse(res);
     } catch (e) {
-      const ok = await verifyWebCryptoPassword(password);
-      if (ok) {
-        const token = 'gh_token_' + Date.now() + '_' + Math.random().toString(36).substring(2);
-        return { success: true, token, username: 'admin', message: 'Logged in' };
+      if (e.name === 'AbortError') {
+        return { success: false, error: 'Login request timed out. Please check your PythonAnywhere backend is running.' };
       }
-      return { success: false, error: 'Invalid credentials. Access denied.' };
+      return { success: false, error: 'Cannot reach admin server. Ensure the PythonAnywhere backend is online and reachable.' };
     }
   },
   async verifyAdmin() {
     const token = this.getAuthToken();
     if (!token) return false;
-    if (token.startsWith('gh_token_')) return true;
+    // Session token is always verified server-side — no client-side bypass.
     try {
-      const res = await fetch(`${this.getBaseUrl()}/api/admin/verify`, {
+      const res = await fetchWithTimeout(`${this.getBaseUrl()}/api/admin/verify`, {
         headers: this.getAuthHeaders()
-      });
+      }, 5000);
       return res.ok;
     } catch (e) {
-      return token.startsWith('gh_token_');
+      return false; // Treat unreachable backend as unauthenticated
     }
   },
   async changeAdminPassword(newPassword) {
-    if (this.isGitHubStatic()) {
-      await setWebCryptoPassword(newPassword);
-      return { success: true, message: 'Password updated successfully!' };
-    }
+    // Password change is always server-side only.
     try {
       const res = await fetch(`${this.getBaseUrl()}/api/admin/change-password`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({ new_password: newPassword })
       });
-      const parsed = await this.parseResponse(res);
-      if (parsed && parsed.success) {
-        await setWebCryptoPassword(newPassword);
-      }
-      return parsed;
+      return await this.parseResponse(res);
     } catch (e) {
-      await setWebCryptoPassword(newPassword);
-      return { success: true, message: 'Password updated!' };
+      return { success: false, error: 'Cannot reach server. Password was NOT updated. Check your connection.' };
+    }
+  },
+  async checkHealth() {
+    // Ping the backend /api/health endpoint and return connectivity status.
+    try {
+      const res = await fetchWithTimeout(`${this.getBaseUrl()}/api/health`, {}, 5000);
+      if (res.ok) {
+        const json = await this.parseResponse(res);
+        return { online: true, db: json.db === 'connected', message: `Backend connected — DB: ${json.db}` };
+      }
+      return { online: false, message: `Backend returned HTTP ${res.status}` };
+    } catch (e) {
+      return { online: false, message: e.name === 'AbortError' ? 'Backend timed out (>5s)' : 'Backend unreachable' };
     }
   },
   async fetchOrders(status = 'all', search = '') {
@@ -3555,6 +3466,20 @@ async function openAdminDashboard() {
     renderAdminProductsTable();
     renderAdminOrdersTable();
     populateStoreSettingsFields();
+
+    // Background health check — result shown in Settings tab connection status
+    API.checkHealth().then(health => {
+      const statusMsg = document.getElementById('cloudDbStatusMsg');
+      if (statusMsg) {
+        if (health.online && health.db) {
+          statusMsg.innerHTML = `<span style="color:var(--accent-success);"><i class="fa-solid fa-circle-check"></i> ✅ ${health.message}</span>`;
+        } else if (health.online) {
+          statusMsg.innerHTML = `<span style="color:#FF9800;"><i class="fa-solid fa-triangle-exclamation"></i> Backend reached but DB may have an issue: ${health.message}</span>`;
+        } else {
+          statusMsg.innerHTML = `<span style="color:var(--accent-ruby);"><i class="fa-solid fa-circle-xmark"></i> ❌ ${health.message} — Admin saves will fail until the server is back online.</span>`;
+        }
+      }
+    });
   }
 }
 

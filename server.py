@@ -23,6 +23,10 @@ DB_PATH = os.path.join(BASE_DIR, 'shareef_cosmetics.db')
 PORT = int(os.environ.get('PORT', 5000))
 HOST = '0.0.0.0'
 
+# Allowed CORS origin — set ALLOWED_ORIGIN env var on PythonAnywhere to your GitHub Pages domain.
+# Never use '*' in production; this restricts API access to your frontend only.
+ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN', 'https://rehanahmed-x.github.io')
+
 # Session tokens store (in addition to DB for ultra-fast validation)
 # token -> { "user_id": int, "username": str, "expires_at": float }
 ACTIVE_SESSIONS = {}
@@ -457,15 +461,30 @@ def init_database():
     )
     ''')
 
-    # Seed Admin User if not exists
+    # Seed Admin User if not exists (password NEVER stored in source — read from env)
     cursor.execute('SELECT COUNT(*) FROM admin_users')
     if cursor.fetchone()[0] == 0:
-        pwd_hash, salt = hash_password('umair2026')
+        admin_pwd = os.environ.get('ADMIN_PASSWORD', '')
+        if not admin_pwd:
+            admin_pwd = secrets.token_urlsafe(16)
+            print(f"[SECURITY] ADMIN_PASSWORD env var not set. Generated one-time password: {admin_pwd}", file=sys.stderr)
+            print("[SECURITY] Set ADMIN_PASSWORD on PythonAnywhere Web tab > Environment Variables.", file=sys.stderr)
+        pwd_hash, salt = hash_password(admin_pwd)
         cursor.execute(
             'INSERT INTO admin_users (username, password_hash, salt, role) VALUES (?, ?, ?, ?)',
             ('admin', pwd_hash, salt, 'superadmin')
         )
         print("[DATABASE] Created initial secure admin account: 'admin'")
+
+    # Sync admin password from ADMIN_PASSWORD env var on every startup.
+    # Setting this env var on PythonAnywhere is the only way to change the password.
+    admin_pwd_env = os.environ.get('ADMIN_PASSWORD', '')
+    if admin_pwd_env:
+        pwd_hash, salt = hash_password(admin_pwd_env)
+        cursor.execute(
+            'UPDATE admin_users SET password_hash = ?, salt = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
+            (pwd_hash, salt, 'admin')
+        )
 
     # Seed Settings if not exists
     default_settings = {
@@ -591,10 +610,20 @@ def format_order_row(row):
 # =====================================================================
 class ShareefAppHandler(BaseHTTPRequestHandler):
 
+    def _get_cors_origin(self):
+        """Return the request's Origin if it is in our allowlist, else return ALLOWED_ORIGIN."""
+        origin = self.headers.get('Origin', '')
+        if (origin == ALLOWED_ORIGIN
+                or origin.startswith('http://localhost')
+                or origin.startswith('http://127.0.0.1')):
+            return origin
+        return ALLOWED_ORIGIN
+
     def _set_headers(self, status=200, content_type='application/json'):
         self.send_response(status)
         self.send_header('Content-Type', content_type)
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', self._get_cors_origin())
+        self.send_header('Vary', 'Origin')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token')
         self.send_header('X-Content-Type-Options', 'nosniff')
@@ -778,7 +807,26 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': True, 'data': settings}).encode('utf-8'))
             return
 
-        # 7. Static File Serving
+        # 7. API: Health Check / Backend Status (Public)
+        if path == '/api/health':
+            conn = get_db_connection()
+            db_ok = False
+            try:
+                conn.execute('SELECT 1 FROM admin_users LIMIT 1')
+                db_ok = True
+            except Exception:
+                pass
+            finally:
+                conn.close()
+            self._set_headers(200)
+            self.wfile.write(json.dumps({
+                'status': 'ok',
+                'db': 'connected' if db_ok else 'error',
+                'server': 'Shareef Cosmetics API'
+            }).encode('utf-8'))
+            return
+
+        # 8. Static File Serving
         self._serve_static(path)
 
     # -------------------------------------------------------------
@@ -1390,7 +1438,7 @@ def application(environ, start_response):
         start_response(status_code, headers_list)
         return [body_part]
     else:
-        start_response('200 OK', [('Content-Type', 'application/json'), ('Access-Control-Allow-Origin', '*')])
+        start_response('200 OK', [('Content-Type', 'application/json'), ('Access-Control-Allow-Origin', ALLOWED_ORIGIN)])
         return [output_bytes]
 
 app = application

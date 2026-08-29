@@ -399,7 +399,8 @@ const API = {
 
     if (typeof window !== 'undefined' && window.location) {
       if (window.location.protocol === 'file:') {
-        return 'http://localhost:5000';
+        // Opened as a local file — connect directly to the cloud backend
+        return DEFAULT_CLOUD_API_URL;
       }
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return window.location.origin || 'http://localhost:5000';

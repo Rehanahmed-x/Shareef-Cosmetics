@@ -653,6 +653,18 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
         return '127.0.0.1'
 
     # -------------------------------------------------------------
+    # OPTIONS — CORS PREFLIGHT (required for browser cross-origin POST)
+    # -------------------------------------------------------------
+    def do_OPTIONS(self):
+        self.send_response(204)  # No Content
+        self.send_header('Access-Control-Allow-Origin', self._get_cors_origin())
+        self.send_header('Vary', 'Origin')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token')
+        self.send_header('Access-Control-Max-Age', '86400')  # Cache preflight for 24h
+        self.end_headers()
+
+    # -------------------------------------------------------------
     # GET REQUESTS
     # -------------------------------------------------------------
     def do_GET(self):

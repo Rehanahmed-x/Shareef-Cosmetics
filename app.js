@@ -402,6 +402,20 @@ async function setWebCryptoPassword(newPin) {
 
 const DEFAULT_CLOUD_API_URL = "https://shareefcosmetics.pythonanywhere.com";
 
+// High-performance network fetch with strict timeout (prevents 2-minute mobile network hangs)
+async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return res;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
 const API = {
   getBaseUrl() {
     const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
@@ -464,9 +478,11 @@ const API = {
   async fetchProducts() {
     let prods = null;
     const baseUrl = this.getBaseUrl();
-    if (baseUrl) {
+
+    // 1. Fast-Fetch Live Database with strict 3.5s timeout (prevents 2-minute hang)
+    if (baseUrl && !this.isGitHubStatic()) {
       try {
-        const res = await fetch(`${baseUrl}/api/products`, { cache: 'no-store' });
+        const res = await fetchWithTimeout(`${baseUrl}/api/products`, { cache: 'no-store' }, 3500);
         if (res.ok) {
           const json = await this.parseResponse(res);
           if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -474,14 +490,14 @@ const API = {
           }
         }
       } catch (e) {
-        console.warn('Live database fetch failed, attempting backup:', e);
+        console.warn('Live database fetch timed out or failed, using fast fallback:', e.name || e.message);
       }
     }
 
-    // 2. Fetch live products.json directly from repository
+    // 2. Fetch live products.json directly from repository with 2.5s timeout
     if (!prods) {
       try {
-        const res = await fetch(`products.json?v=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetchWithTimeout(`products.json?v=${Date.now()}`, { cache: 'no-store' }, 2500);
         if (res.ok) {
           const json = await res.json();
           if (Array.isArray(json) && json.length > 0) {
@@ -491,7 +507,19 @@ const API = {
       } catch (e) {}
     }
 
-    // 3. Fallback to defaults
+    // 3. Fallback to cached catalog or hardcoded defaults
+    if (!prods || prods.length === 0) {
+      try {
+        const cached = localStorage.getItem('shareef_cached_catalog');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            prods = parsed;
+          }
+        }
+      } catch (e) {}
+    }
+
     if (!prods || prods.length === 0) {
       prods = [...DEFAULT_PRODUCTS_DATA];
     }
@@ -506,7 +534,6 @@ const API = {
             if (cp && cp.id !== undefined) {
               const existingIdx = prods.findIndex(p => p.id == cp.id);
               if (existingIdx !== -1) {
-                // If local storage has explicit inStock override, preserve it
                 if (cp.inStock !== undefined) prods[existingIdx].inStock = cp.inStock;
                 if (cp.in_stock !== undefined) prods[existingIdx].in_stock = cp.in_stock;
                 if (cp.price !== undefined) prods[existingIdx].price = cp.price;
@@ -518,6 +545,13 @@ const API = {
         }
       }
     } catch(e) {}
+
+    // 5. Store resolved catalog in localStorage for instant 0ms startup on next load
+    try {
+      if (Array.isArray(prods) && prods.length > 0) {
+        localStorage.setItem('shareef_cached_catalog', JSON.stringify(prods));
+      }
+    } catch (e) {}
 
     return prods;
   },
@@ -867,15 +901,49 @@ const API = {
   }
 };
 
-let PRODUCTS_DATA = [...DEFAULT_PRODUCTS_DATA];
+function getInitialProducts() {
+  try {
+    const cached = localStorage.getItem('shareef_cached_catalog');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return [...DEFAULT_PRODUCTS_DATA];
+}
+
+let PRODUCTS_DATA = getInitialProducts();
+
+function getCatalogFingerprint(list) {
+  if (!Array.isArray(list)) return '';
+  return list.map(p => `${p.id}:${p.price}:${p.inStock !== false && p.in_stock !== 0 ? 1 : 0}:${p.reviewsCount || 0}`).join('|');
+}
+
+let lastCatalogFingerprint = getCatalogFingerprint(PRODUCTS_DATA);
+let isSyncingProducts = false;
 
 async function syncProductsFromDatabase() {
-  const latest = await API.fetchProducts();
-  if (Array.isArray(latest) && latest.length > 0) {
-    PRODUCTS_DATA = latest;
-    renderProducts();
-    if (typeof updateAdminStats === 'function') updateAdminStats();
-    if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+  if (isSyncingProducts) return;
+  isSyncingProducts = true;
+  try {
+    const latest = await API.fetchProducts();
+    if (Array.isArray(latest) && latest.length > 0) {
+      const newFingerprint = getCatalogFingerprint(latest);
+      // Only re-render if data has genuinely changed to avoid DOM thrashing & mobile stutter
+      if (newFingerprint !== lastCatalogFingerprint || latest.length !== PRODUCTS_DATA.length) {
+        PRODUCTS_DATA = latest;
+        lastCatalogFingerprint = newFingerprint;
+        renderProducts();
+        if (typeof updateAdminStats === 'function') updateAdminStats();
+        if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+      }
+    }
+  } catch (err) {
+    console.warn('Product sync warning:', err);
+  } finally {
+    isSyncingProducts = false;
   }
 }
 
@@ -911,19 +979,24 @@ function initApp() {
     console.warn('Initial product sync:', err);
   });
 
-  // Multi-device real-time sync: Auto-refresh catalog when tab becomes active
+  // Multi-device real-time sync: Auto-refresh catalog when tab becomes active (with 10s cooldown)
+  let lastVisibilitySync = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      syncProductsFromDatabase();
+      const now = Date.now();
+      if (now - lastVisibilitySync > 10000) {
+        lastVisibilitySync = now;
+        syncProductsFromDatabase();
+      }
     }
   });
 
-  // Background live polling sync every 15 seconds
+  // Background live polling sync every 60 seconds (only when tab is actively visible)
   setInterval(() => {
     if (document.visibilityState === 'visible') {
       syncProductsFromDatabase();
     }
-  }, 15000);
+  }, 60000);
 }
 
 // Immediate execution & readyState check
@@ -1215,7 +1288,7 @@ function renderProducts() {
         </button>
 
         <div class="product-image-wrap" onclick="openQuickView(${product.id})">
-          <img src="${product.image}" alt="${product.name}" class="product-img ${!isInStock ? 'img-grayscale' : ''}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
+          <img src="${product.image}" alt="${product.name}" class="product-img ${!isInStock ? 'img-grayscale' : ''}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='assets/images/hero_banner.jpg';">
           ${!isInStock ? `<div class="out-of-stock-banner-ribbon">OUT OF STOCK</div>` : ''}
           <button class="quick-view-overlay-btn" onclick="event.stopPropagation(); openQuickView(${product.id})">
             <i class="fa-solid fa-eye"></i> Options & Quick View
@@ -2939,17 +3012,24 @@ function setupEventListeners() {
     });
   }
 
-  // Scroll Header Shadow
+  // Scroll Header Shadow (RAF throttled & passive)
+  let headerScrollTicking = false;
   window.addEventListener('scroll', () => {
-    const header = document.getElementById('siteHeader');
-    if (header) {
-      if (window.scrollY > 40) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
+    if (!headerScrollTicking) {
+      headerScrollTicking = true;
+      requestAnimationFrame(() => {
+        const header = document.getElementById('siteHeader');
+        if (header) {
+          if (window.scrollY > 40) {
+            header.classList.add('scrolled');
+          } else {
+            header.classList.remove('scrolled');
+          }
+        }
+        headerScrollTicking = false;
+      });
     }
-  });
+  }, { passive: true });
 
   // Initialize Search
   initLiveSearch();
@@ -2972,14 +3052,28 @@ function initCategorySlider() {
     wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   });
 
+  let sliderScrollTicking = false;
   const updateArrowStates = () => {
     const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
     prevBtn.disabled = wrapper.scrollLeft <= 5;
     nextBtn.disabled = wrapper.scrollLeft >= maxScroll - 5;
+    sliderScrollTicking = false;
   };
 
-  wrapper.addEventListener('scroll', updateArrowStates);
-  window.addEventListener('resize', updateArrowStates);
+  wrapper.addEventListener('scroll', () => {
+    if (!sliderScrollTicking) {
+      sliderScrollTicking = true;
+      requestAnimationFrame(updateArrowStates);
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    if (!sliderScrollTicking) {
+      sliderScrollTicking = true;
+      requestAnimationFrame(updateArrowStates);
+    }
+  }, { passive: true });
+
   setTimeout(updateArrowStates, 300);
 }
 
@@ -3331,7 +3425,7 @@ function initAdminDashboard() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_DIM = 800;
+            const MAX_DIM = 600;
             let width = img.width;
             let height = img.height;
             if (width > height) {
@@ -3349,7 +3443,10 @@ function initAdminDashboard() {
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.84);
+            let optimizedBase64 = canvas.toDataURL('image/webp', 0.82);
+            if (!optimizedBase64.startsWith('data:image/webp')) {
+              optimizedBase64 = canvas.toDataURL('image/jpeg', 0.80);
+            }
             if (imageUrlInput) imageUrlInput.value = optimizedBase64;
             updateAdminImagePreview(optimizedBase64);
           };

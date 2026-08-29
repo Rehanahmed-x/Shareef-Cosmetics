@@ -6743,5 +6743,39 @@ ul {
   }
 }
 
+/* =================================================================
+   MOBILE GPU PERFORMANCE & SMOOTH SCROLL ACCELERATION
+================================================================= */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
 
+.product-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 280px 400px;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
 
+@media (max-width: 768px) {
+  .product-card {
+    contain-intrinsic-size: 150px 300px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .product-card:hover {
+    transform: none !important;
+  }
+
+  .site-header {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transform: translateZ(0);
+  }
+
+  .product-img {
+    will-change: auto;
+  }
+}

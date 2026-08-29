@@ -21,7 +21,8 @@
         "color": "#F6A4BA"
       }
     ],
-    "details": "Vitamin B3+ Formula • Removes Dullness • Daily Cleanser",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -46,7 +47,8 @@
         "color": "#82A8E5"
       }
     ],
-    "details": "Rich Moisture • 24hr Nourishment • Soft Velvety Skin",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -71,7 +73,8 @@
         "color": "#66BB6A"
       }
     ],
-    "details": "Neem & Turmeric • 100% Herbal Actives • Soap Free",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -92,7 +95,8 @@
         "color": "#00897B"
       }
     ],
-    "details": "Aloe Vera & Ashwagandha • Non-Greasy • All Skin Types",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -113,7 +117,8 @@
         "color": "#CD325A"
       }
     ],
-    "details": "Pure Steam Distilled • Zero Alcohol • Natural Pore Toner",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -134,7 +139,8 @@
         "color": "#A07828"
       }
     ],
-    "details": "7 Natural Seed Oils • Anti-Hairfall • Herbal Root Nourishment",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -155,7 +161,8 @@
         "color": "#C3912D"
       }
     ],
-    "details": "Herbal Extracts • Saffron & Pearl Minerals • Night & Day",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -188,7 +195,8 @@
         "color": "#D97587"
       }
     ],
-    "details": "Long-wearing Matte • Vitamin E Enriched • Original Swatch",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -217,7 +225,8 @@
         "color": "#CE9F72"
       }
     ],
-    "details": "Mirror & Puff Included • Oil Absorption • Pocket Friendly",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -238,7 +247,8 @@
         "color": "#F08C14"
       }
     ],
-    "details": "SPF 60 PA+++ • Zinc Oxide Mineral Filter • Water Resistant",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -259,7 +269,8 @@
         "color": "#282828"
       }
     ],
-    "details": "Activated Charcoal • Removes Blackheads • Tightens Pores",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -288,7 +299,8 @@
         "color": "#B85842"
       }
     ],
-    "details": "Velvet Matte Finish • Enriched with Vitamin E • Dermatologically Tested",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -317,7 +329,8 @@
         "color": "#D4B38A"
       }
     ],
-    "details": "High Definition • Velvet Texture • Includes Luxury Mirror",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -346,7 +359,8 @@
         "color": "#DCE2E6"
       }
     ],
-    "details": "Intense Shimmer • Multi-use Cheek & Eyes • Crease Proof",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -379,7 +393,8 @@
         "color": "#C89D73"
       }
     ],
-    "details": "Halal Certified • Formulated for Asian Skin • Non-comedogenic",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -400,7 +415,8 @@
         "color": "#1E64B4"
       }
     ],
-    "details": "Vanishing Formula • Controls Oil • 70+ Years Trusted Heritage",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -421,7 +437,8 @@
         "color": "#288C46"
       }
     ],
-    "details": "Infused with Avocado • No Harsh Stinging • Salon Grade",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -442,7 +459,8 @@
         "color": "#286E3C"
       }
     ],
-    "details": "Pure Tea Tree Oil • Anti-Blemish • Lightweight Absorption",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -463,7 +481,8 @@
         "color": "#DC961E"
       }
     ],
-    "details": "Real Honey & Almonds • 24-Hour Softness • Non-Sticky Formula",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   },
   {
@@ -484,7 +503,8 @@
         "color": "#E13C6E"
       }
     ],
-    "details": "Vitamin B3, C & E • SPF 15 Sun Protection • Matte Radiant Glow",
+    "sizes": [],
+    "details": 1,
     "inStock": true
   }
 ]

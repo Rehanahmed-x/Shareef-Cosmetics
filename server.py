@@ -886,6 +886,11 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
             badge = body.get('badge', '').strip()
             badge_class = body.get('badgeClass', body.get('badge_class', ''))
             image = body.get('image', '').strip() or 'assets/images/products/ponds_facewash.jpg'
+            if image.startswith('data:image/') and len(image) > 350000:
+                self._set_headers(400)
+                self.wfile.write(json.dumps({'success': False, 'error': 'Product image is too large. Please upload an image under 250KB.'}).encode('utf-8'))
+                return
+
             description = body.get('description', '').strip()
             shades = json.dumps(body.get('shades', []))
             sizes = json.dumps(body.get('sizes', []))
@@ -1059,6 +1064,12 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
                     conn.close()
                     self._set_headers(404)
                     self.wfile.write(json.dumps({'success': False, 'error': 'Product not found'}).encode('utf-8'))
+                    return
+
+                if 'image' in body and isinstance(body['image'], str) and body['image'].startswith('data:image/') and len(body['image']) > 350000:
+                    conn.close()
+                    self._set_headers(400)
+                    self.wfile.write(json.dumps({'success': False, 'error': 'Product image is too large. Please upload an image under 250KB.'}).encode('utf-8'))
                     return
 
                 # Build dynamic update

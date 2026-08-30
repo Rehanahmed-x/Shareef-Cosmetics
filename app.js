@@ -3676,8 +3676,21 @@ async function toggleProductStock(productId) {
 
   const res = await API.updateProduct(productId, { inStock: newStock });
   if (res && res.success) {
-    product.inStock = newStock;
-    product.in_stock = newStock ? 1 : 0;
+    // Use the confirmed data from the server response to update PRODUCTS_DATA
+    const confirmed = res.data;
+    const idx = PRODUCTS_DATA.findIndex(p => p.id === productId);
+    if (idx !== -1) {
+      if (confirmed && confirmed.id) {
+        // Replace with full server-confirmed product data
+        PRODUCTS_DATA[idx] = confirmed;
+      } else {
+        // Fallback: update both field names the app checks
+        PRODUCTS_DATA[idx].inStock = newStock;
+        PRODUCTS_DATA[idx].in_stock = newStock ? 1 : 0;
+      }
+    }
+    // Force re-render directly — bypass fingerprint check
+    lastCatalogFingerprint = '';
     renderProducts();
     renderAdminProductsTable();
     showToast(`✓ "${product.name.slice(0, 20)}..." marked as ${newStock ? '🟢 IN STOCK' : '🔴 OUT OF STOCK'}`);

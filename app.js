@@ -843,16 +843,48 @@ const API = {
     }
   },
   async fetchReviews() {
-    try {
-      const res = await fetchWithTimeout(`${this.getBaseUrl()}/api/reviews`, { cache: 'no-store' }, 4000);
-      if (res.ok) {
-        const json = await this.parseResponse(res);
-        if (json && json.success && Array.isArray(json.data)) {
-          return json.data;
+    let revs = null;
+    const baseUrl = this.getBaseUrl();
+
+    // 1. Fetch Live Cloud Database API with 4s timeout
+    if (baseUrl && !this.isGitHubStatic()) {
+      try {
+        const res = await fetchWithTimeout(`${baseUrl}/api/reviews`, { cache: 'no-store' }, 4000);
+        if (res.ok) {
+          const json = await this.parseResponse(res);
+          if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
+            revs = json.data;
+          }
         }
+      } catch (e) {}
+    }
+
+    // 2. Fetch live reviews.json directly from repository (EXACTLY MATCHING PRODUCTS.JSON!)
+    if (!revs) {
+      try {
+        const res = await fetchWithTimeout(`reviews.json?v=${Date.now()}`, { cache: 'no-store' }, 2500);
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && json.length > 0) {
+            revs = json;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 3. Fallback to cached reviews in localStorage or default reviews
+    if (!revs || revs.length === 0) {
+      const cached = safeGetJSON('shareef_customer_reviews');
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        revs = cached;
       }
-    } catch (e) {}
-    return null;
+    }
+
+    if (!revs || revs.length === 0) {
+      revs = [...DEFAULT_REVIEWS];
+    }
+
+    return revs;
   },
   async createReview(reviewData) {
     try {
@@ -4630,5 +4662,16 @@ function exportProductsJSON() {
   downloadAnchor.click();
   downloadAnchor.remove();
   showToast('✓ "products.json" downloaded! Upload it to GitHub to sync all phones worldwide.');
+}
+
+function exportReviewsJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(CUSTOMER_REVIEWS, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "reviews.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast('✓ "reviews.json" downloaded! Upload it to GitHub to sync comments across all devices worldwide.');
 }
 

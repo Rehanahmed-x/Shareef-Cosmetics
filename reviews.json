@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "Ayesha Khan",
+    "city": "DHA Phase 6, Karachi",
+    "rating": 5,
+    "title": "Lifesaver for Karachi weather!",
+    "product": "Shareef Minute Miracle Palette",
+    "comment": "The Shareef Minute Miracle Palette is a lifesaver for Karachi weather! It doesn't melt in humidity and gives that effortlessly glowing look without feeling sticky or heavy. Delivery was super fast via TCS COD.",
+    "recommended": true,
+    "date": "Verified Buyer"
+  },
+  {
+    "id": 2,
+    "name": "Mahnoor Siddiqui",
+    "city": "Gulberg, Lahore",
+    "rating": 5,
+    "title": "Exact match for wheatish Pakistani skin tone",
+    "product": "Masarrat Misbah Silk Foundation",
+    "comment": "Masarrat Misbah silk foundation matched my exact wheatish skin tone perfectly through their Shade Quiz tool. The coverage looks like natural high-end magazine skin. Medora lipsticks are 100% authentic originals!",
+    "recommended": true,
+    "date": "Verified Buyer"
+  },
+  {
+    "id": 3,
+    "name": "Fatima Zahra",
+    "city": "Sector F-7/2, Islamabad",
+    "rating": 5,
+    "title": "Breathtaking Bridal Box & fast 2-day delivery",
+    "product": "Shareef Signature Velvet Vanity Box",
+    "comment": "I ordered the Bridal Vanity Box for my sister's wedding. The velvet packaging is breathtaking! Everything was intact and original. Ordered on WhatsApp and arrived within 2 days in Islamabad.",
+    "recommended": true,
+    "date": "Verified Buyer"
+  },
+  {
+    "id": 4,
+    "name": "Zainab Bukhari",
+    "city": "Cantt, Multan",
+    "rating": 5,
+    "title": "Purest Arq-e-Gulab and Face Wash",
+    "product": "Saeed Ghani Pure Damask Rose Water Spray",
+    "comment": "Saeed Ghani Rose Water spray is truly genuine. So refreshing in Multan summer heat. Packed securely with thick bubble wrap and TCS delivered right to my door within 48 hours.",
+    "recommended": true,
+    "date": "Verified Buyer"
+  },
+  {
+    "id": 5,
+    "name": "Hina Bilal",
+    "city": "Satellite Town, Gujranwala",
+    "rating": 5,
+    "title": "100% Original Pakistani brands at best prices",
+    "product": "Golden Pearl Beauty Cream & Serum",
+    "comment": "Original Golden Pearl and Himalaya Neem Face wash arrived in perfect condition. Love the easy COD payment and customer care responsiveness on WhatsApp.",
+    "recommended": true,
+    "date": "Verified Buyer"
+  },
+  {
+    "id": 6,
+    "name": "Sana Tariq",
+    "city": "University Town, Peshawar",
+    "rating": 5,
+    "title": "Super smooth Medora shades & fast dispatch",
+    "product": "Medora Matte Lipstick (50+ Shades)",
+    "comment": "Medora matte lipsticks are classic! Authentic batch codes and vibrant colors. Ordered 4 shades and got them safely in Peshawar via TCS in 2 days.",
+    "recommended": true,
+    "date": "Verified Buyer"
+  }
+]

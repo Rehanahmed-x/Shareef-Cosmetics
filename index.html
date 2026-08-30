@@ -37,7 +37,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=29.0">
+  <link rel="stylesheet" href="style.css?v=30.0">
 </head>
 
 <body>
@@ -2008,12 +2008,16 @@
             <!-- Backup & Export -->
             <div class="admin-settings-card">
               <div class="settings-icon"><i class="fa-solid fa-file-export"></i></div>
-              <h4>Export & Backup Catalog</h4>
-              <p>Download a complete JSON backup of all current products, custom shades, and edited prices to keep safe
-                on your computer.</p>
-              <button type="button" class="btn-luxury-primary" id="adminExportJsonBtn">
-                <i class="fa-solid fa-download"></i> Download Catalog JSON Backup
-              </button>
+              <h4>Export & Backup Catalog & Reviews</h4>
+              <p>Download complete JSON backups of all current products and customer comments to upload to GitHub Pages for 100% multi-device sync.</p>
+              <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                <button type="button" class="btn-luxury-primary" id="adminExportJsonBtn" onclick="exportProductsJSON()">
+                  <i class="fa-solid fa-download"></i> Download Catalog JSON (products.json)
+                </button>
+                <button type="button" class="btn-luxury-secondary" id="adminExportReviewsJsonBtn" onclick="exportReviewsJSON()">
+                  <i class="fa-solid fa-comments"></i> Download Reviews JSON (reviews.json)
+                </button>
+              </div>
             </div>
 
             <!-- Restore from Backup -->
@@ -2126,7 +2130,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=29.0"></script>
+  <script src="app.js?v=30.0"></script>
 </body>
 
 </html>

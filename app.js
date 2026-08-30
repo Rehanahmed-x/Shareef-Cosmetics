@@ -1,7 +1,8 @@
 /**
- * SHAREEF COSMETICS - JAVASCRIPT APPLICATION CORE
+ * SHAREEF COSMETICS - JAVASCRIPT APPLICATION CORE (v27.0)
  * 20 Iconic Pakistani Local Cosmetics & Skincare Products (White Background).
  */
+console.log('%c SHAREEF COSMETICS v27.0 ACTIVE ', 'background: #111; color: #d4af37; font-size: 14px; font-weight: bold; padding: 4px 8px; border-radius: 4px;');
 
 // =================================================================
 // 1. DEFAULT PRODUCTS DATASET (20 PAKISTANI COSMETIC FAVORITES)
@@ -407,7 +408,11 @@ const API = {
   getBaseUrl() {
     const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
     if (customApiUrl && typeof customApiUrl === 'string' && customApiUrl.startsWith('http')) {
-      return customApiUrl.replace(/\/$/, '');
+      if (customApiUrl.includes('onrender.com')) {
+        localStorage.removeItem('shareef_cloud_api_url');
+      } else {
+        return customApiUrl.replace(/\/$/, '');
+      }
     }
 
     if (typeof window !== 'undefined' && window.location) {
@@ -743,6 +748,19 @@ const API = {
     }
   },
   async fetchAdminStats() {
+    if (!this.getAuthToken()) {
+      const prods = (typeof PRODUCTS_DATA !== 'undefined' && Array.isArray(PRODUCTS_DATA)) ? PRODUCTS_DATA : [];
+      return {
+        totalProducts: prods.length,
+        skincareCount: prods.filter(p => p.category === 'skincare').length,
+        faceCount: prods.filter(p => p.category === 'face' || p.category === 'lips').length,
+        haircareCount: prods.filter(p => p.category === 'haircare').length,
+        totalOrders: 0,
+        pendingOrders: 0,
+        dispatchedOrders: 0,
+        revenue: 0
+      };
+    }
     if (this.isGitHubStatic()) {
       const prods = await this.fetchProducts();
       const orders = await this.fetchOrders();
@@ -825,9 +843,14 @@ const CURRENT_APP_VERSION = '27.0';
 // Automatic cache invalidation for older app versions stored in Chrome localStorage
 (function checkLocalStorageVersion() {
   try {
+    const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
+    if (customApiUrl && (customApiUrl.includes('onrender.com') || !customApiUrl.startsWith('http'))) {
+      localStorage.removeItem('shareef_cloud_api_url');
+    }
     const savedVer = localStorage.getItem('shareef_app_version');
     if (savedVer !== CURRENT_APP_VERSION) {
       localStorage.removeItem('shareef_cached_catalog');
+      localStorage.removeItem('shareef_cloud_api_url');
       localStorage.setItem('shareef_app_version', CURRENT_APP_VERSION);
     }
   } catch (e) {}

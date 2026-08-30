@@ -820,6 +820,19 @@ const API = {
   }
 };
 
+const CURRENT_APP_VERSION = '27.0';
+
+// Automatic cache invalidation for older app versions stored in Chrome localStorage
+(function checkLocalStorageVersion() {
+  try {
+    const savedVer = localStorage.getItem('shareef_app_version');
+    if (savedVer !== CURRENT_APP_VERSION) {
+      localStorage.removeItem('shareef_cached_catalog');
+      localStorage.setItem('shareef_app_version', CURRENT_APP_VERSION);
+    }
+  } catch (e) {}
+})();
+
 function getInitialProducts() {
   try {
     const cached = localStorage.getItem('shareef_cached_catalog');
@@ -837,7 +850,7 @@ let PRODUCTS_DATA = getInitialProducts();
 
 function getCatalogFingerprint(list) {
   if (!Array.isArray(list)) return '';
-  return list.map(p => `${p.id}:${p.price}:${p.inStock !== false && p.in_stock !== 0 ? 1 : 0}:${p.reviewsCount || 0}`).join('|');
+  return list.map(p => `${p.id}:${p.name || ''}:${p.price}:${p.originalPrice || ''}:${p.image || ''}:${p.badge || ''}:${p.inStock !== false && p.in_stock !== 0 ? 1 : 0}:${p.reviewsCount || 0}`).join('|');
 }
 
 let lastCatalogFingerprint = getCatalogFingerprint(PRODUCTS_DATA);

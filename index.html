@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=26.2">
+  <link rel="stylesheet" href="style.css?v=27.0">
 </head>
 
 <body>
@@ -92,6 +92,16 @@
           setTimeout(function () { l.style.display = 'none'; }, 500);
         }
       }, 800);
+      // Unregister any legacy Service Worker cached by Chrome
+      if ('serviceWorker' in navigator) {
+        try {
+          navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            for (var i = 0; i < registrations.length; i++) {
+              registrations[i].unregister();
+            }
+          }).catch(function () {});
+        } catch (e) {}
+      }
     })();
   </script>
 
@@ -2105,7 +2115,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=26.2"></script>
+  <script src="app.js?v=27.0"></script>
 </body>
 
 </html>

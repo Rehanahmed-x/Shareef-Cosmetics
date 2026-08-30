@@ -868,7 +868,7 @@ const API = {
   }
 };
 
-const CURRENT_APP_VERSION = '28.0';
+const CURRENT_APP_VERSION = '29.0';
 
 // Automatic cache invalidation for older app versions stored in Chrome localStorage
 (function checkLocalStorageVersion() {
@@ -2330,25 +2330,26 @@ function renderReviews(highlightId = null) {
   const container = document.getElementById('reviewsGrid');
   if (!container) return;
 
-  // Sort reviews: highest star rating first, then by newest ID
+  // Sort reviews: Live database / user-submitted reviews FIRST (newest first), then default reviews
   const sortedReviews = [...CUSTOMER_REVIEWS].sort((a, b) => {
-    if ((b.rating || 5) !== (a.rating || 5)) {
-      return (b.rating || 5) - (a.rating || 5);
-    }
+    const aIsLive = (a.isLive || a.id > 100 || (typeof a.id === 'string' && a.id.length > 5)) ? 1 : 0;
+    const bIsLive = (b.isLive || b.id > 100 || (typeof b.id === 'string' && b.id.length > 5)) ? 1 : 0;
+    if (bIsLive !== aIsLive) return bIsLive - aIsLive;
+    if ((b.rating || 5) !== (a.rating || 5)) return (b.rating || 5) - (a.rating || 5);
     return (b.id || 0) - (a.id || 0);
   });
 
-  // Display top 3 highest-rated comments by default, or all when expanded
+  // Display visible reviews: ensure real customer comments are always visible
   let visibleReviews;
   if (isAllReviewsExpanded) {
     visibleReviews = sortedReviews;
   } else {
-    visibleReviews = sortedReviews.slice(0, 3);
-    // If a brand new review was just submitted, ensure it's visible in top 3
+    // Show top 6 reviews by default (ensures live customer comments are never hidden behind slice(0, 3))
+    visibleReviews = sortedReviews.slice(0, 6);
     if (highlightId && !visibleReviews.some(r => r.id === highlightId)) {
       const highlightedItem = CUSTOMER_REVIEWS.find(r => r.id === highlightId);
       if (highlightedItem) {
-        visibleReviews = [highlightedItem, ...visibleReviews.slice(0, 2)];
+        visibleReviews = [highlightedItem, ...visibleReviews.slice(0, 5)];
       }
     }
   }
@@ -2459,18 +2460,32 @@ function initReviewSystem() {
   renderReviews();
   populateReviewProductDropdown();
 
-  // Asynchronously fetch real customer reviews from cloud database
-  API.fetchReviews().then(serverReviews => {
-    if (Array.isArray(serverReviews) && serverReviews.length > 0) {
-      serverReviews.forEach(sr => {
-        if (!CUSTOMER_REVIEWS.some(r => r.id === sr.id || (r.name === sr.name && r.comment === sr.comment))) {
-          CUSTOMER_REVIEWS.unshift(sr);
+  // Real-time review sync with cloud database
+  const fetchAndSyncReviews = () => {
+    API.fetchReviews().then(serverReviews => {
+      if (Array.isArray(serverReviews) && serverReviews.length > 0) {
+        let addedNew = false;
+        serverReviews.forEach(sr => {
+          sr.isLive = true;
+          const existingIdx = CUSTOMER_REVIEWS.findIndex(r => r.id === sr.id || (r.name === sr.name && r.comment === sr.comment));
+          if (existingIdx === -1) {
+            CUSTOMER_REVIEWS.unshift(sr);
+            addedNew = true;
+          } else {
+            CUSTOMER_REVIEWS[existingIdx] = { ...CUSTOMER_REVIEWS[existingIdx], ...sr, isLive: true };
+          }
+        });
+        if (addedNew) {
+          persistReviews();
+          renderReviews();
         }
-      });
-      persistReviews();
-      renderReviews();
-    }
-  }).catch(() => {});
+      }
+    }).catch(() => {});
+  };
+
+  fetchAndSyncReviews();
+  // Poll for new customer comments every 15 seconds across all devices
+  setInterval(fetchAndSyncReviews, 15000);
 
   const openBtn = document.getElementById('openReviewModalBtn');
   const closeBtn = document.getElementById('closeReviewModalBtn');
@@ -2581,6 +2596,7 @@ function initReviewSystem() {
         title: title || (rating >= 4 ? 'Highly Recommended!' : 'Customer Review'),
         comment,
         recommended,
+        isLive: true,
         date: 'Verified Buyer • Just now'
       };
 
@@ -2592,9 +2608,15 @@ function initReviewSystem() {
 
       // Submit comment to cloud database for nationwide visibility across devices
       API.createReview(newReview).then(res => {
-        if (res && res.success && res.data && res.data.id) {
-          newReview.id = res.data.id;
-          persistReviews();
+        if (res && res.success) {
+          showToast(`✨ Shukriya, ${name}! Your review has been saved to the cloud and is live nationwide!`);
+          if (res.data && res.data.id) {
+            newReview.id = res.data.id;
+            persistReviews();
+            renderReviews(newReview.id);
+          }
+        } else {
+          showToast(`⚠️ Review posted locally. (Cloud sync: ${res ? res.error : 'offline'})`);
         }
       }).catch(err => {
         console.warn('Review cloud database save fallback:', err);

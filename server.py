@@ -620,13 +620,18 @@ def format_order_row(row):
 class ShareefAppHandler(BaseHTTPRequestHandler):
 
     def _get_cors_origin(self):
-        """Return the request's Origin if it is in our allowlist, else return ALLOWED_ORIGIN."""
+        """Return the request's Origin if valid, else fallback to wildcard or ALLOWED_ORIGIN."""
         origin = self.headers.get('Origin', '')
+        if not origin:
+            return '*'
         if (origin == ALLOWED_ORIGIN
-                or origin.startswith('http://localhost')
-                or origin.startswith('http://127.0.0.1')):
+                or '.github.io' in origin
+                or 'localhost' in origin
+                or '127.0.0.1' in origin
+                or origin.startswith('http://192.168.')
+                or origin.startswith('http://10.')):
             return origin
-        return ALLOWED_ORIGIN
+        return origin or ALLOWED_ORIGIN or '*'
 
     def _set_headers(self, status=200, content_type='application/json'):
         self.send_response(status)
@@ -883,50 +888,60 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
 
         # 0.5. API: Submit Customer Review (Public)
         if path == '/api/reviews':
-            author_name = str(body.get('name') or body.get('author_name') or 'Valued Customer').strip()
-            review_text = str(body.get('comment') or body.get('review_text') or '').strip()
-            rating = int(body.get('rating', 5))
-            city = str(body.get('city') or 'Pakistan').strip()
-            title = str(body.get('title') or 'Verified Review').strip()
-            product_name = str(body.get('product') or body.get('product_name') or 'Shareef Cosmetics').strip()
-            product_id = int(body.get('productId') or body.get('product_id') or 0)
-
-            if not review_text:
-                self._set_headers(400)
-                self.wfile.write(json.dumps({'success': False, 'error': 'Review comment text is required.'}).encode('utf-8'))
-                return
-
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO product_reviews (product_id, author_name, rating, review_text, city, title, product_name, verified_buyer)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-            ''', (product_id, author_name, rating, review_text, city, title, product_name))
-            new_id = cursor.lastrowid
-
-            if product_id > 0:
+            try:
+                author_name = str(body.get('name') or body.get('author_name') or 'Valued Customer').strip()
+                review_text = str(body.get('comment') or body.get('review_text') or '').strip()
                 try:
-                    cursor.execute('UPDATE products SET reviews_count = reviews_count + 1 WHERE id = ?', (product_id,))
-                except Exception:
-                    pass
+                    rating = int(body.get('rating', 5))
+                except (ValueError, TypeError):
+                    rating = 5
+                city = str(body.get('city') or 'Pakistan').strip()
+                title = str(body.get('title') or 'Verified Review').strip()
+                product_name = str(body.get('product') or body.get('product_name') or 'Shareef Cosmetics').strip()
+                try:
+                    product_id = int(body.get('productId') or body.get('product_id') or 0)
+                except (ValueError, TypeError):
+                    product_id = 0
 
-            conn.commit()
-            conn.close()
+                if not review_text:
+                    self._set_headers(400)
+                    self.wfile.write(json.dumps({'success': False, 'error': 'Review comment text is required.'}).encode('utf-8'))
+                    return
 
-            new_review = {
-                'id': new_id,
-                'name': author_name,
-                'city': city,
-                'rating': rating,
-                'title': title,
-                'product': product_name,
-                'comment': review_text,
-                'recommended': True,
-                'date': 'Just now'
-            }
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO product_reviews (product_id, author_name, rating, review_text, city, title, product_name, verified_buyer)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                ''', (product_id, author_name, rating, review_text, city, title, product_name))
+                new_id = cursor.lastrowid
 
-            self._set_headers(201)
-            self.wfile.write(json.dumps({'success': True, 'data': new_review}).encode('utf-8'))
+                if product_id > 0:
+                    try:
+                        cursor.execute('UPDATE products SET reviews_count = reviews_count + 1 WHERE id = ?', (product_id,))
+                    except Exception:
+                        pass
+
+                conn.commit()
+                conn.close()
+
+                new_review = {
+                    'id': new_id,
+                    'name': author_name,
+                    'city': city,
+                    'rating': rating,
+                    'title': title,
+                    'product': product_name,
+                    'comment': review_text,
+                    'recommended': True,
+                    'date': 'Just now'
+                }
+
+                self._set_headers(201)
+                self.wfile.write(json.dumps({'success': True, 'data': new_review}).encode('utf-8'))
+            except Exception as ex:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({'success': False, 'error': f'Database error: {str(ex)}'}).encode('utf-8'))
             return
 
         # 1. API: Admin Login (Protected with Brute-Force Rate Limiting)

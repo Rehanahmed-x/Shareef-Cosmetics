@@ -835,6 +835,30 @@ const API = {
     } catch (e) {
       return { success: true, message: 'Saved locally' };
     }
+  },
+  async fetchReviews() {
+    try {
+      const res = await fetchWithTimeout(`${this.getBaseUrl()}/api/reviews`, { cache: 'no-store' }, 4000);
+      if (res.ok) {
+        const json = await this.parseResponse(res);
+        if (json && json.success && Array.isArray(json.data)) {
+          return json.data;
+        }
+      }
+    } catch (e) {}
+    return null;
+  },
+  async createReview(reviewData) {
+    try {
+      const res = await fetch(`${this.getBaseUrl()}/api/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewData)
+      });
+      return await this.parseResponse(res);
+    } catch (e) {
+      return { success: false, error: 'Network error — comment could not be saved to cloud database.' };
+    }
   }
 };
 
@@ -2428,6 +2452,19 @@ function initReviewSystem() {
   renderReviews();
   populateReviewProductDropdown();
 
+  // Asynchronously fetch real customer reviews from cloud database
+  API.fetchReviews().then(serverReviews => {
+    if (Array.isArray(serverReviews) && serverReviews.length > 0) {
+      serverReviews.forEach(sr => {
+        if (!CUSTOMER_REVIEWS.some(r => r.id === sr.id || (r.name === sr.name && r.comment === sr.comment))) {
+          CUSTOMER_REVIEWS.unshift(sr);
+        }
+      });
+      persistReviews();
+      renderReviews();
+    }
+  }).catch(() => {});
+
   const openBtn = document.getElementById('openReviewModalBtn');
   const closeBtn = document.getElementById('closeReviewModalBtn');
   const modal = document.getElementById('reviewModalOverlay');
@@ -2486,15 +2523,13 @@ function initReviewSystem() {
         btn.classList.remove('active');
       }
     });
-    if (ratingScoreText && ratingDescriptions[rating]) {
-      ratingScoreText.textContent = ratingDescriptions[rating];
-    }
+    if (starScoreInput) starScoreInput.value = rating;
+    if (ratingScoreText) ratingScoreText.textContent = ratingDescriptions[rating] || `${rating}.0 / 5.0`;
   }
 
   starBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const rating = parseInt(btn.getAttribute('data-rating'), 10);
-      if (starScoreInput) starScoreInput.value = rating;
       updateStarsUI(rating);
     });
 
@@ -2547,6 +2582,16 @@ function initReviewSystem() {
       renderReviews(newReview.id);
       closeReviewModal();
       reviewForm.reset();
+
+      // Submit comment to cloud database for nationwide visibility across devices
+      API.createReview(newReview).then(res => {
+        if (res && res.success && res.data && res.data.id) {
+          newReview.id = res.data.id;
+          persistReviews();
+        }
+      }).catch(err => {
+        console.warn('Review cloud database save fallback:', err);
+      });
 
       // Reset rating to 5
       if (starScoreInput) starScoreInput.value = 5;

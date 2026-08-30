@@ -376,6 +376,19 @@ const DEFAULT_PRODUCTS_DATA = [
 
 const DEFAULT_CLOUD_API_URL = "https://shareefcosmetics.pythonanywhere.com";
 
+// Safe JSON parser for localStorage items to prevent corrupt local data from breaking normal mode
+function safeGetJSON(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed !== null && parsed !== undefined ? parsed : fallback;
+  } catch (e) {
+    console.warn(`Safe JSON parse fallback for localStorage item "${key}":`, e);
+    return fallback;
+  }
+}
+
 // High-performance network fetch with strict timeout (prevents 2-minute mobile network hangs)
 async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
   const controller = new AbortController();
@@ -646,7 +659,7 @@ const API = {
   },
   async fetchOrders(status = 'all', search = '') {
     if (this.isGitHubStatic()) {
-      let orders = JSON.parse(localStorage.getItem('shareef_orders_backup')) || [];
+      let orders = safeGetJSON('shareef_orders_backup', []);
       if (status && status !== 'all') orders = orders.filter(o => o.status === status);
       if (search) {
         const q = search.toLowerCase();
@@ -672,11 +685,11 @@ const API = {
     } catch (e) {
       console.error('Error fetching orders:', e);
     }
-    return JSON.parse(localStorage.getItem('shareef_orders_backup')) || [];
+    return safeGetJSON('shareef_orders_backup', []);
   },
   async updateOrderStatus(orderId, newStatus) {
     if (this.isGitHubStatic()) {
-      let orders = JSON.parse(localStorage.getItem('shareef_orders_backup')) || [];
+      let orders = safeGetJSON('shareef_orders_backup', []);
       const idx = orders.findIndex(o => o.id === orderId);
       if (idx !== -1) {
         orders[idx].status = newStatus;
@@ -698,7 +711,7 @@ const API = {
   },
   async deleteOrder(orderId) {
     if (this.isGitHubStatic()) {
-      let orders = JSON.parse(localStorage.getItem('shareef_orders_backup')) || [];
+      let orders = safeGetJSON('shareef_orders_backup', []);
       orders = orders.filter(o => o.id !== orderId);
       localStorage.setItem('shareef_orders_backup', JSON.stringify(orders));
       return { success: true, message: 'Order deleted' };
@@ -716,7 +729,7 @@ const API = {
   async createOrder(orderPayload) {
     // Always store in local backup as well
     try {
-      let orders = JSON.parse(localStorage.getItem('shareef_orders_backup')) || [];
+      let orders = safeGetJSON('shareef_orders_backup', []);
       orders.unshift({ ...orderPayload, id: 'SC-' + Date.now() });
       localStorage.setItem('shareef_orders_backup', JSON.stringify(orders));
     } catch(e) {}
@@ -859,8 +872,8 @@ async function syncProductsFromDatabase() {
   }
 }
 
-let cart = JSON.parse(localStorage.getItem('shareef_cart')) || [];
-let wishlist = JSON.parse(localStorage.getItem('shareef_wishlist')) || [];
+let cart = safeGetJSON('shareef_cart', []);
+let wishlist = safeGetJSON('shareef_wishlist', []);
 
 let appliedDiscount = 0; // percentage
 let appliedCouponCode = '';

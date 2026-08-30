@@ -1337,7 +1337,14 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
         try:
             with open(file_path, 'rb') as f:
                 content = f.read()
-            self._set_headers(200, ctype)
+            self.send_response(200)
+            self.send_header('Content-Type', ctype)
+            self.send_header('Access-Control-Allow-Origin', self._get_cors_origin())
+            if file_path.endswith(('.html', '.js', '.css', '.json')):
+                self.send_header('Cache-Control', 'no-cache, must-revalidate')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Expires', '0')
+            self.end_headers()
             self.wfile.write(content)
         except Exception as e:
             self._set_headers(500, 'text/plain')

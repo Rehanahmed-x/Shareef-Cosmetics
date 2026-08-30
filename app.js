@@ -406,7 +406,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
 const API = {
   getBaseUrl() {
     const customApiUrl = localStorage.getItem('shareef_cloud_api_url');
-    if (customApiUrl && customApiUrl.startsWith('http')) {
+    if (customApiUrl && typeof customApiUrl === 'string' && customApiUrl.startsWith('http')) {
       return customApiUrl.replace(/\/$/, '');
     }
 
@@ -416,7 +416,11 @@ const API = {
         return DEFAULT_CLOUD_API_URL;
       }
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return window.location.origin || 'http://localhost:5000';
+        if (window.location.port === '5000') {
+          return window.location.origin;
+        }
+        // Opened via local dev server (e.g. Live Server port 5500/8080/3000)
+        return DEFAULT_CLOUD_API_URL;
       }
       if (window.location.hostname.includes('github.io')) {
         return DEFAULT_CLOUD_API_URL;
@@ -467,10 +471,10 @@ const API = {
     let prods = null;
     const baseUrl = this.getBaseUrl();
 
-    // 1. Fast-Fetch Live Database with strict 3.5s timeout (prevents 2-minute hang)
+    // 1. Fetch Live Database with 5s timeout
     if (baseUrl && !this.isGitHubStatic()) {
       try {
-        const res = await fetchWithTimeout(`${baseUrl}/api/products`, { cache: 'no-store' }, 3500);
+        const res = await fetchWithTimeout(`${baseUrl}/api/products`, { cache: 'no-store' }, 5000);
         if (res.ok) {
           const json = await this.parseResponse(res);
           if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -478,7 +482,7 @@ const API = {
           }
         }
       } catch (e) {
-        console.warn('Live database fetch timed out or failed, using fast fallback:', e.name || e.message);
+        console.info('Live cloud backend sync fallback:', e.name || e.message);
       }
     }
 
@@ -497,15 +501,10 @@ const API = {
 
     // 3. Fallback to cached catalog or hardcoded defaults
     if (!prods || prods.length === 0) {
-      try {
-        const cached = localStorage.getItem('shareef_cached_catalog');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            prods = parsed;
-          }
-        }
-      } catch (e) {}
+      const cached = safeGetJSON('shareef_cached_catalog');
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        prods = cached;
+      }
     }
 
     if (!prods || prods.length === 0) {
@@ -513,26 +512,21 @@ const API = {
     }
 
     // 4. Merge any custom product overrides (stock status, custom items) stored locally
-    try {
-      const local = localStorage.getItem('shareef_custom_catalog');
-      if (local) {
-        const customList = JSON.parse(local);
-        if (Array.isArray(customList)) {
-          customList.forEach(cp => {
-            if (cp && cp.id !== undefined) {
-              const existingIdx = prods.findIndex(p => p.id == cp.id);
-              if (existingIdx !== -1) {
-                if (cp.inStock !== undefined) prods[existingIdx].inStock = cp.inStock;
-                if (cp.in_stock !== undefined) prods[existingIdx].in_stock = cp.in_stock;
-                if (cp.price !== undefined) prods[existingIdx].price = cp.price;
-              } else {
-                prods.unshift(cp);
-              }
-            }
-          });
+    const customList = safeGetJSON('shareef_custom_catalog');
+    if (customList && Array.isArray(customList)) {
+      customList.forEach(cp => {
+        if (cp && cp.id !== undefined) {
+          const existingIdx = prods.findIndex(p => p.id == cp.id);
+          if (existingIdx !== -1) {
+            if (cp.inStock !== undefined) prods[existingIdx].inStock = cp.inStock;
+            if (cp.in_stock !== undefined) prods[existingIdx].in_stock = cp.in_stock;
+            if (cp.price !== undefined) prods[existingIdx].price = cp.price;
+          } else {
+            prods.unshift(cp);
+          }
         }
-      }
-    } catch(e) {}
+      });
+    }
 
     // 5. Store resolved catalog in localStorage for instant 0ms startup on next load
     try {

@@ -476,6 +476,8 @@ const API = {
     let prods = null;
     const baseUrl = this.getBaseUrl();
 
+    let isLiveSync = false;
+
     // 1. Fetch Live Database with 5s timeout
     if (baseUrl && !this.isGitHubStatic()) {
       try {
@@ -484,6 +486,7 @@ const API = {
           const json = await this.parseResponse(res);
           if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
             prods = json.data;
+            isLiveSync = true;
           }
         }
       } catch (e) {
@@ -499,6 +502,7 @@ const API = {
           const json = await res.json();
           if (Array.isArray(json) && json.length > 0) {
             prods = json;
+            isLiveSync = true;
           }
         }
       } catch (e) {}
@@ -516,21 +520,23 @@ const API = {
       prods = [...DEFAULT_PRODUCTS_DATA];
     }
 
-    // 4. Merge any custom product overrides (stock status, custom items) stored locally
-    const customList = safeGetJSON('shareef_custom_catalog');
-    if (customList && Array.isArray(customList)) {
-      customList.forEach(cp => {
-        if (cp && cp.id !== undefined) {
-          const existingIdx = prods.findIndex(p => p.id == cp.id);
-          if (existingIdx !== -1) {
-            if (cp.inStock !== undefined) prods[existingIdx].inStock = cp.inStock;
-            if (cp.in_stock !== undefined) prods[existingIdx].in_stock = cp.in_stock;
-            if (cp.price !== undefined) prods[existingIdx].price = cp.price;
-          } else {
-            prods.unshift(cp);
+    // 4. Merge custom product overrides ONLY when offline / static (do not resurrect items deleted on live backend)
+    if (!isLiveSync) {
+      const customList = safeGetJSON('shareef_custom_catalog');
+      if (customList && Array.isArray(customList)) {
+        customList.forEach(cp => {
+          if (cp && cp.id !== undefined) {
+            const existingIdx = prods.findIndex(p => p.id == cp.id);
+            if (existingIdx !== -1) {
+              if (cp.inStock !== undefined) prods[existingIdx].inStock = cp.inStock;
+              if (cp.in_stock !== undefined) prods[existingIdx].in_stock = cp.in_stock;
+              if (cp.price !== undefined) prods[existingIdx].price = cp.price;
+            } else {
+              prods.unshift(cp);
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     // 5. Store resolved catalog in localStorage for instant 0ms startup on next load
@@ -862,7 +868,7 @@ const API = {
   }
 };
 
-const CURRENT_APP_VERSION = '27.0';
+const CURRENT_APP_VERSION = '28.0';
 
 // Automatic cache invalidation for older app versions stored in Chrome localStorage
 (function checkLocalStorageVersion() {
@@ -874,6 +880,7 @@ const CURRENT_APP_VERSION = '27.0';
     const savedVer = localStorage.getItem('shareef_app_version');
     if (savedVer !== CURRENT_APP_VERSION) {
       localStorage.removeItem('shareef_cached_catalog');
+      localStorage.removeItem('shareef_custom_catalog');
       localStorage.removeItem('shareef_cloud_api_url');
       localStorage.setItem('shareef_app_version', CURRENT_APP_VERSION);
     }

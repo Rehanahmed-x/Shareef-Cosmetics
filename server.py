@@ -456,10 +456,19 @@ def init_database():
         author_name TEXT NOT NULL,
         rating INTEGER NOT NULL,
         review_text TEXT NOT NULL,
+        city TEXT DEFAULT 'Pakistan',
+        title TEXT DEFAULT 'Verified Review',
+        product_name TEXT DEFAULT 'Shareef Cosmetics',
         verified_buyer INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
+
+    for col, ctype in [("city", "TEXT DEFAULT 'Pakistan'"), ("title", "TEXT DEFAULT 'Verified Review'"), ("product_name", "TEXT DEFAULT 'Shareef Cosmetics'")]:
+        try:
+            cursor.execute(f"ALTER TABLE product_reviews ADD COLUMN {col} {ctype}")
+        except Exception:
+            pass
 
     # Seed Admin User if not exists (password NEVER stored in source — read from env)
     cursor.execute('SELECT COUNT(*) FROM admin_users')
@@ -836,6 +845,29 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
                 'db': 'connected' if db_ok else 'error',
                 'server': 'Shareef Cosmetics API'
             }).encode('utf-8'))
+        # 7.5. API: Get All Customer Reviews (Public)
+        if path == '/api/reviews':
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM product_reviews ORDER BY id DESC")
+            rows = cursor.fetchall()
+            conn.close()
+            reviews = []
+            for r in rows:
+                reviews.append({
+                    'id': r['id'],
+                    'product_id': r['product_id'],
+                    'name': r['author_name'],
+                    'rating': r['rating'],
+                    'comment': r['review_text'],
+                    'city': r['city'] if 'city' in r.keys() and r['city'] else 'Pakistan',
+                    'title': r['title'] if 'title' in r.keys() and r['title'] else 'Verified Review',
+                    'product': r['product_name'] if 'product_name' in r.keys() and r['product_name'] else 'Shareef Cosmetics',
+                    'recommended': True,
+                    'date': r['created_at'] if 'created_at' in r.keys() else 'Verified Buyer'
+                })
+            self._set_headers(200)
+            self.wfile.write(json.dumps({'success': True, 'count': len(reviews), 'data': reviews}).encode('utf-8'))
             return
 
         # 8. Static File Serving
@@ -848,6 +880,54 @@ class ShareefAppHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         body = self._read_json_body()
+
+        # 0.5. API: Submit Customer Review (Public)
+        if path == '/api/reviews':
+            author_name = str(body.get('name') or body.get('author_name') or 'Valued Customer').strip()
+            review_text = str(body.get('comment') or body.get('review_text') or '').strip()
+            rating = int(body.get('rating', 5))
+            city = str(body.get('city') or 'Pakistan').strip()
+            title = str(body.get('title') or 'Verified Review').strip()
+            product_name = str(body.get('product') or body.get('product_name') or 'Shareef Cosmetics').strip()
+            product_id = int(body.get('productId') or body.get('product_id') or 0)
+
+            if not review_text:
+                self._set_headers(400)
+                self.wfile.write(json.dumps({'success': False, 'error': 'Review comment text is required.'}).encode('utf-8'))
+                return
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO product_reviews (product_id, author_name, rating, review_text, city, title, product_name, verified_buyer)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+            ''', (product_id, author_name, rating, review_text, city, title, product_name))
+            new_id = cursor.lastrowid
+
+            if product_id > 0:
+                try:
+                    cursor.execute('UPDATE products SET reviews_count = reviews_count + 1 WHERE id = ?', (product_id,))
+                except Exception:
+                    pass
+
+            conn.commit()
+            conn.close()
+
+            new_review = {
+                'id': new_id,
+                'name': author_name,
+                'city': city,
+                'rating': rating,
+                'title': title,
+                'product': product_name,
+                'comment': review_text,
+                'recommended': True,
+                'date': 'Just now'
+            }
+
+            self._set_headers(201)
+            self.wfile.write(json.dumps({'success': True, 'data': new_review}).encode('utf-8'))
+            return
 
         # 1. API: Admin Login (Protected with Brute-Force Rate Limiting)
         if path == '/api/admin/login':
